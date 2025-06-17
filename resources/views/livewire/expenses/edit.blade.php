@@ -1,0 +1,134 @@
+<?php
+
+use App\Models\Expense;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Volt\Component;
+
+new class extends Component {
+    public Expense $expense;
+    public string $description = '';
+    public float $amount = 0;
+    public string $category = '';
+    public string $date = '';
+    public ?string $reference_number = '';
+    public ?string $payment_method = '';
+    public ?string $notes = '';
+
+    public function mount(Expense $expense): void
+    {
+        $this->expense = $expense;
+        $this->description = $expense->description;
+        $this->amount = $expense->amount;
+        $this->category = $expense->category;
+        $this->date = $expense->date ? $expense->date->format('Y-m-d') : now()->format('Y-m-d');
+        $this->reference_number = $expense->reference_number ?? '';
+        $this->payment_method = $expense->payment_method ?? '';
+        $this->notes = $expense->notes ?? '';
+    }
+
+    public function save(): void
+    {
+        $validated = $this->validate([
+            'description' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0'],
+            'category' => ['required', 'string', 'max:100'],
+            'date' => ['required', 'date'],
+            'reference_number' => ['nullable', 'string', 'max:100'],
+            'payment_method' => ['nullable', 'string', 'max:100'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $this->expense->description = $this->description;
+        $this->expense->amount = $this->amount;
+        $this->expense->category = $this->category;
+        $this->expense->date = $this->date;
+        $this->expense->reference_number = $this->reference_number;
+        $this->expense->payment_method = $this->payment_method;
+        $this->expense->notes = $this->notes;
+        $this->expense->save();
+
+        $this->redirect(route('expenses.index'));
+    }
+}; ?>
+
+<div class="w-full">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Edit Expense</h1>
+        <p class="text-zinc-600 dark:text-zinc-400">Update expense details</p>
+    </div>
+
+    <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
+        <form wire:submit="save" class="p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="description" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Description</label>
+                    <input wire:model="description" type="text" id="description" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5" required>
+                    @error('description') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label for="amount" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Amount</label>
+                    <input wire:model="amount" type="number" step="0.01" id="amount" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5" required>
+                    @error('amount') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label for="category" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Category</label>
+                    <select wire:model="category" id="category" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5" required>
+                        <option value="">Select a category</option>
+                        <option value="Materials">Materials</option>
+                        <option value="Utilities">Utilities</option>
+                        <option value="Rent">Rent</option>
+                        <option value="Salaries">Salaries</option>
+                        <option value="Equipment">Equipment</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Transportation">Transportation</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    @error('category') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label for="date" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Date</label>
+                    <input wire:model="date" type="date" id="date" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5" required>
+                    @error('date') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label for="reference_number" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Reference Number</label>
+                    <input wire:model="reference_number" type="text" id="reference_number" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
+                    @error('reference_number') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label for="payment_method" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Payment Method</label>
+                    <select wire:model="payment_method" id="payment_method" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
+                        <option value="">Select payment method</option>
+                        <option value="cash">Cash</option>
+                        <option value="bank_transfer">Bank Transfer</option>
+                        <option value="credit_card">Credit Card</option>
+                        <option value="mobile_money">Mobile Money</option>
+                        <option value="other">Other</option>
+                    </select>
+                    @error('payment_method') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="md:col-span-2">
+                    <label for="notes" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Notes</label>
+                    <textarea wire:model="notes" id="notes" rows="4" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5"></textarea>
+                    @error('notes') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                <a href="{{ route('expenses.index') }}" class="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                    Cancel
+                </a>
+                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
