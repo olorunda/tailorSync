@@ -26,11 +26,13 @@ class InvoiceFactory extends Factory
             'invoice_number' => 'INV-' . $this->faker->unique()->numberBetween(1000, 9999),
             'total_amount' => $this->faker->randomFloat(2, 100, 5000),
             'tax_amount' => $this->faker->randomFloat(2, 10, 500),
+            'subtotal' => $this->faker->randomFloat(2, 10, 500),
             'discount_amount' => $this->faker->randomFloat(2, 0, 200),
             'due_date' => $this->faker->dateTimeBetween('now', '+30 days'),
             'status' => $this->faker->randomElement(['draft', 'sent', 'paid', 'overdue']),
             'notes' => $this->faker->paragraph(),
             'created_at' => $this->faker->dateTimeBetween('-30 days', 'now'),
+            'issue_date' => $this->faker->dateTimeBetween('-30 days', 'now'),
             'updated_at' => function (array $attributes) {
                 return $this->faker->dateTimeBetween($attributes['created_at'], 'now');
             },

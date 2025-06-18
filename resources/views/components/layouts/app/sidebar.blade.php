@@ -4,6 +4,16 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
+        <!-- Offline indicator -->
+        <div class="offline-indicator fixed top-0 left-0 w-full bg-yellow-500 text-white text-center py-2 z-50 hidden">
+            <div class="container mx-auto flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                You are currently offline. Some features may be limited.
+            </div>
+        </div>
+
         <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 shadow-md">
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
@@ -14,6 +24,7 @@
             <flux:navlist variant="outline">
                 <flux:navlist.group :heading="__('Platform')" class="grid">
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+                    <flux:navlist.item icon="bell" :href="route('notifications.index')" :current="request()->routeIs('notifications.*')" wire:navigate>{{ __('Notifications') }}</flux:navlist.item>
                 </flux:navlist.group>
 
                 @if(auth()->user()->hasPermission('view_clients') || auth()->user()->hasPermission('view_orders') || auth()->user()->hasPermission('view_appointments') || auth()->user()->hasPermission('view_messages'))
@@ -26,9 +37,6 @@
                         @endif
                         @if(auth()->user()->hasPermission('view_appointments'))
                             <flux:navlist.item icon="calendar" :href="route('appointments.index')" :current="request()->routeIs('appointments.*')" wire:navigate>{{ __('Appointments') }}</flux:navlist.item>
-                        @endif
-                        @if(auth()->user()->hasPermission('view_messages'))
-                            <flux:navlist.item icon="chat-bubble-left-right" :href="route('messages.index')" :current="request()->routeIs('messages.*')" wire:navigate>{{ __('Messages') }}</flux:navlist.item>
                         @endif
                     </flux:navlist.group>
                 @endif
@@ -72,15 +80,15 @@
 
             <flux:spacer />
 
-            <flux:navlist variant="outline">
-                <flux:navlist.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                {{ __('Repository') }}
-                </flux:navlist.item>
+{{--            <flux:navlist variant="outline">--}}
+{{--                <flux:navlist.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">--}}
+{{--                {{ __('Repository') }}--}}
+{{--                </flux:navlist.item>--}}
 
-                <flux:navlist.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-                {{ __('Documentation') }}
-                </flux:navlist.item>
-            </flux:navlist>
+{{--                <flux:navlist.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">--}}
+{{--                {{ __('Documentation') }}--}}
+{{--                </flux:navlist.item>--}}
+{{--            </flux:navlist>--}}
 
             <!-- Desktop User Menu -->
             <flux:dropdown class="hidden lg:block" position="bottom" align="start">
@@ -132,12 +140,18 @@
 
         <!-- Mobile Header -->
         <flux:header class="lg:hidden">
+            <flux:sidebar.toggle class="lg:hidden" icon="bar-2" inset="left" />
+
             <a href="{{ route('dashboard') }}" class="flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
                 <x-app-logo-icon />
                 <span class="text-lg font-semibold">{{ config('app.name', 'TailorFit') }}</span>
             </a>
 
             <flux:spacer />
+
+            <div class="flex items-center gap-2 mr-2">
+                @livewire('notifications.dropdown')
+            </div>
 
             <flux:dropdown position="top" align="end">
                 <flux:profile
@@ -192,6 +206,9 @@
             </flux:breadcrumbs>
         </div>
 
+        <div>
+
+        </div>
             {{ $slot }}
 
 
@@ -201,6 +218,14 @@
                 <a href="{{ route('dashboard') }}" class="flex flex-col items-center justify-center {{ request()->routeIs('dashboard') ? 'text-primary-600 dark:text-primary-500 font-medium' : 'text-zinc-500 dark:text-zinc-400' }} hover:text-primary-500 active:scale-95 transition-all duration-200" wire:navigate>
                     <flux:icon name="home" class="w-6 h-6" />
                     <span class="text-xs mt-1">{{ __('Home') }}</span>
+                </a>
+
+                <a href="{{ route('notifications.index') }}" class="flex flex-col items-center justify-center relative {{ request()->routeIs('notifications.*') ? 'text-primary-600 dark:text-primary-500 font-medium' : 'text-zinc-500 dark:text-zinc-400' }} hover:text-primary-500 active:scale-95 transition-all duration-200" wire:navigate>
+                    <div class="relative">
+                        <flux:icon name="bell" class="w-6 h-6" />
+                        @livewire('notifications.dropdown', ['showDropdown' => false])
+                    </div>
+                    <span class="text-xs mt-1">{{ __('Notifications') }}</span>
                 </a>
 
                 @if(auth()->user()->hasPermission('view_clients'))
@@ -214,13 +239,6 @@
                 <a href="{{ route('orders.index') }}" class="flex flex-col items-center justify-center {{ request()->routeIs('orders.*') ? 'text-primary-600 dark:text-primary-500 font-medium' : 'text-zinc-500 dark:text-zinc-400' }} hover:text-primary-500 active:scale-95 transition-all duration-200" wire:navigate>
                     <flux:icon name="clipboard-document-list" class="w-6 h-6" />
                     <span class="text-xs mt-1">{{ __('Orders') }}</span>
-                </a>
-                @endif
-
-                @if(auth()->user()->hasPermission('view_appointments'))
-                <a href="{{ route('appointments.index') }}" class="flex flex-col items-center justify-center {{ request()->routeIs('appointments.*') ? 'text-primary-600 dark:text-primary-500 font-medium' : 'text-zinc-500 dark:text-zinc-400' }} hover:text-primary-500 active:scale-95 transition-all duration-200" wire:navigate>
-                    <flux:icon name="calendar" class="w-6 h-6" />
-                    <span class="text-xs mt-1">{{ __('Calendar') }}</span>
                 </a>
                 @endif
 

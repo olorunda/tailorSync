@@ -5,6 +5,19 @@ namespace Database\Seeders;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Database\Seeders\AppointmentSeeder;
+use Database\Seeders\ClientSeeder;
+use Database\Seeders\DesignSeeder;
+use Database\Seeders\DesignTagSeeder;
+use Database\Seeders\ExpenseSeeder;
+use Database\Seeders\InventoryItemSeeder;
+use Database\Seeders\InvoiceSeeder;
+use Database\Seeders\MeasurementSeeder;
+use Database\Seeders\MessageSeeder;
+use Database\Seeders\OrderSeeder;
+use Database\Seeders\PaymentSeeder;
+use Database\Seeders\TaskSeeder;
+use Database\Seeders\TeamMemberSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -20,16 +33,11 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
         ]);
 
-        // Create admin user
-        $adminRole = \App\Models\Role::where('name', 'admin')->first();
-
-        User::factory()->create([
-            'name' => 'Admin User',
-            'email' => 'admin@example.com',
-            'role_id' => $adminRole->id,
-        ]);
+        // Seed admin user
+//        $this->call(UserSeeder::class);
 
         // Create additional test users with different roles
+        $adminRole = \App\Models\Role::where('name', 'admin')->first();
         $managerRole = \App\Models\Role::where('name', 'manager')->first();
         $tailorRole = \App\Models\Role::where('name', 'tailor')->first();
         $staffRole = \App\Models\Role::where('name', 'staff')->first();
@@ -39,6 +47,13 @@ class DatabaseSeeder extends Seeder
             'name' => 'Manager User',
             'email' => 'manager@example.com',
             'role_id' => $managerRole->id,
+        ]);
+
+        User::factory()->create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'role'=>'admin',
+           // 'role_id' => $accountantRole->id,
         ]);
 
         User::factory()->create([
@@ -58,5 +73,22 @@ class DatabaseSeeder extends Seeder
             'email' => 'accountant@example.com',
             'role_id' => $accountantRole->id,
         ]);
+
+        // Seed all other models with up to 100 records each
+//        $this->call([
+//            AppointmentSeeder::class,
+//            ClientSeeder::class,
+//            DesignSeeder::class,
+//            DesignTagSeeder::class,
+//            ExpenseSeeder::class,
+//            InventoryItemSeeder::class,
+//            InvoiceSeeder::class,
+//            MeasurementSeeder::class,
+//            MessageSeeder::class,
+//            OrderSeeder::class,
+//            PaymentSeeder::class,
+//            TaskSeeder::class,
+//            TeamMemberSeeder::class,
+//        ]);
     }
 }

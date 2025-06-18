@@ -22,12 +22,9 @@ class ExpenseFactory extends Factory
             'category' => $this->faker->randomElement(['Materials', 'Utilities', 'Rent', 'Salaries', 'Equipment', 'Marketing', 'Transportation', 'Maintenance', 'Other']),
             'vendor' => $this->faker->company(),
             'amount' => $this->faker->randomFloat(2, 10, 1000),
-            'expense_date' => $this->faker->date(),
+            'date' => $this->faker->date(),
             'description' => $this->faker->sentence(),
-            'is_recurring' => $this->faker->boolean(20),
-            'recurrence_frequency' => function (array $attributes) {
-                return $attributes['is_recurring'] ? $this->faker->randomElement(['daily', 'weekly', 'monthly', 'quarterly', 'yearly']) : null;
-            },
+            'payment_method' => $this->faker->randomElement(['cash', 'bank_transfer', 'credit_card', 'mobile_money', 'other']),
             'created_at' => $this->faker->dateTimeBetween('-30 days', 'now'),
             'updated_at' => function (array $attributes) {
                 return $this->faker->dateTimeBetween($attributes['created_at'], 'now');

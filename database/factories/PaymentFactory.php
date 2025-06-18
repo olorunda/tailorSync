@@ -23,11 +23,13 @@ class PaymentFactory extends Factory
             'user_id' => User::factory(),
             'client_id' => Client::factory(),
             'invoice_id' => Invoice::factory(),
+            'status' => $this->faker->randomElement(['pending', 'completed', 'failed']),
             'amount' => $this->faker->randomFloat(2, 50, 2000),
             'payment_date' => $this->faker->dateTimeBetween('-30 days', 'now'),
             'payment_method' => $this->faker->randomElement(['cash', 'bank_transfer', 'credit_card', 'mobile_money', 'other']),
             'reference_number' => $this->faker->bothify('PAY-####-????'),
             'notes' => $this->faker->paragraph(),
+            'description' => $this->faker->paragraph(1),
             'created_at' => $this->faker->dateTimeBetween('-30 days', 'now'),
             'updated_at' => function (array $attributes) {
                 return $this->faker->dateTimeBetween($attributes['created_at'], 'now');

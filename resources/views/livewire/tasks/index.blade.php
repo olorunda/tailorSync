@@ -11,6 +11,7 @@ new class extends Component {
     public string $search = '';
     public ?string $priority = null;
     public ?string $status = null;
+    public ?string $type = null;
     public ?string $due_date_start = null;
     public ?string $due_date_end = null;
 
@@ -37,6 +38,11 @@ new class extends Component {
         $this->resetPage();
     }
 
+    public function updatingType()
+    {
+        $this->resetPage();
+    }
+
     public function updatingDueDateStart()
     {
         $this->resetPage();
@@ -49,7 +55,7 @@ new class extends Component {
 
     public function resetFilters()
     {
-        $this->reset(['priority', 'status', 'due_date_start', 'due_date_end']);
+        $this->reset(['priority', 'status', 'type', 'due_date_start', 'due_date_end']);
         $this->resetPage();
     }
 
@@ -79,7 +85,8 @@ new class extends Component {
                         $query->where('title', 'like', "%{$search}%")
                             ->orWhere('description', 'like', "%{$search}%")
                             ->orWhere('status', 'like', "%{$search}%")
-                            ->orWhere('priority', 'like', "%{$search}%");
+                            ->orWhere('priority', 'like', "%{$search}%")
+                            ->orWhere('type', 'like', "%{$search}%");
                     });
                 })
                 ->when($this->priority, function ($query, $priority) {
@@ -87,6 +94,9 @@ new class extends Component {
                 })
                 ->when($this->status, function ($query, $status) {
                     return $query->where('status', $status);
+                })
+                ->when($this->type, function ($query, $type) {
+                    return $query->where('type', $type);
                 })
                 ->when($this->due_date_start, function ($query, $date) {
                     return $query->where('due_date', '>=', $date);
@@ -157,6 +167,18 @@ new class extends Component {
                     </div>
 
                     <div>
+                        <label for="type-filter" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Type</label>
+                        <select wire:model.live="type" id="type-filter" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2">
+                            <option value="">All Types</option>
+                            <option value="cutting">Cutting</option>
+                            <option value="sewing">Sewing</option>
+                            <option value="fitting">Fitting</option>
+                            <option value="delivery">Delivery</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div>
                         <label for="due-date-start" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Due Date From</label>
                         <input wire:model.live="due_date_start" type="date" id="due-date-start" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2">
                     </div>
@@ -183,6 +205,7 @@ new class extends Component {
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-300 uppercase tracking-wider">Due Date</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-300 uppercase tracking-wider">Priority</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-300 uppercase tracking-wider">Status</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-300 uppercase tracking-wider">Type</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-300 uppercase tracking-wider">Assigned To</th>
                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-zinc-500 dark:text-zinc-300 uppercase tracking-wider">Actions</th>
                     </tr>
@@ -242,6 +265,11 @@ new class extends Component {
                                         Pending
                                     </span>
                                 @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Type">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400">
+                                    {{ ucfirst($task->type) }}
+                                </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap" data-label="Assigned To">
                                 @if($task->teamMember)

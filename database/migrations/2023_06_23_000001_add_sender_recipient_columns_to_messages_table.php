@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::table('messages', function (Blueprint $table) {
             $table->foreignId('sender_id')->nullable()->after('user_id');
             $table->foreignId('recipient_id')->nullable()->after('client_id');
-            $table->string('subject')->nullable()->after('content');
-            $table->text('message')->nullable()->after('subject');
+           // $table->string('subject')->nullable();
+            $table->text('message')->nullable();
         });
     }
 

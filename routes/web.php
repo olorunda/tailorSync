@@ -7,11 +7,20 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+// Offline page for PWA
+Route::view('offline', 'offline')->name('offline');
+
+// Public order viewing route
+Route::get('orders/public/{hash}', [\App\Http\Controllers\PublicOrderController::class, 'show'])->name('orders.public');
+
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
 Route::middleware(['auth'])->group(function () {
+    // Notifications Routes
+    Volt::route('notifications', 'notifications.index')->name('notifications.index');
+
     // Settings Routes
     Route::redirect('settings', 'settings/profile');
 

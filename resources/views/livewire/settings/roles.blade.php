@@ -13,6 +13,7 @@ new class extends Component {
     public $permissions = [];
     public $selectedRole = null;
     public $rolePermissions = [];
+    public $rolePermissions2 = [];
     public $newRole = [
         'name' => '',
         'description' => ''
@@ -200,8 +201,8 @@ new class extends Component {
         if (!$this->selectedRole) {
             return;
         }
-
-        $this->selectedRole->permissions()->sync($this->rolePermissions);
+        $this->rolePermissions2=(array_values(array_unique((array)array_merge($this->rolePermissions2, $this->rolePermissions))));
+        $this->selectedRole->permissions()->sync($this->rolePermissions2);
         $this->dispatch('permissions-updated');
     }
 
@@ -215,10 +216,13 @@ new class extends Component {
             return;
         }
 
+
+
+
         if (in_array($permissionId, $this->rolePermissions)) {
-            $this->rolePermissions = array_diff($this->rolePermissions, [$permissionId]);
+            $this->rolePermissions2 = array_diff($this->rolePermissions, [$permissionId]);
         } else {
-            $this->rolePermissions[] = $permissionId;
+            $this->rolePermissions2[] = $permissionId;
         }
     }
 }; ?>

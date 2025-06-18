@@ -65,7 +65,7 @@
 
     /* Improve focus styles for better accessibility and visual appeal */
     :focus-visible {
-        @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+        @apply outline-none ring-2 ring-offset-2;
     }
 }
 
@@ -168,7 +168,7 @@ select:focus[data-flux-control] {
         @apply block px-4 py-2 text-right border-b border-zinc-100 dark:border-zinc-700 last:border-b-0;
     }
 
-    .responsive-table tbody td::before {
+    .responsive-table tbody td:before {
         content: attr(data-label);
         @apply float-left font-medium text-zinc-700 dark:text-zinc-100;
     }
@@ -248,6 +248,47 @@ main, [x-transition] {
 /* Subtle animation for cards and panels */
 .card, .panel, [data-flux-card], [data-flux-panel] {
     @apply transition-all duration-300 hover:shadow-md;
+}
+
+/* Mail UI Styles */
+.mail-ui-sidebar {
+    @apply transition-all duration-300;
+}
+
+.mail-ui-message {
+    @apply transition-all duration-200 border-l-4 border-transparent;
+}
+
+.mail-ui-message:hover {
+    @apply border-l-4 border-orange-500;
+}
+
+.mail-ui-message.unread {
+    @apply border-l-4 border-orange-500;
+}
+
+.mail-ui-message-preview {
+    @apply overflow-hidden text-ellipsis whitespace-nowrap;
+}
+
+.mail-ui-message-content {
+    @apply transition-all duration-300 ease-in-out;
+}
+
+.mail-ui-message.collapsed .mail-ui-message-content {
+    @apply max-h-16 overflow-hidden;
+}
+
+.mail-ui-message.expanded .mail-ui-message-content {
+    @apply max-h-screen;
+}
+
+.mail-ui-avatar {
+    @apply transition-transform duration-200;
+}
+
+.mail-ui-message:hover .mail-ui-avatar {
+    @apply scale-110;
 }
 
 /* Print styles */

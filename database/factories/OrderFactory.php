@@ -24,6 +24,7 @@ class OrderFactory extends Factory
             'order_number' => 'ORD-' . $this->faker->unique()->randomNumber(5),
             'status' => $this->faker->randomElement(['pending', 'in_progress', 'completed', 'cancelled']),
             'total_amount' => $this->faker->randomFloat(2, 100, 5000),
+            'cost' => $this->faker->randomFloat(2, 100, 5000),
             'due_date' => $this->faker->dateTimeBetween('now', '+30 days'),
             'notes' => $this->faker->paragraph(),
             'created_at' => $this->faker->dateTimeBetween('-30 days', 'now'),
@@ -43,7 +44,7 @@ class OrderFactory extends Factory
         return $this->state(function (array $attributes) {
             return [
                 'status' => 'completed',
-                'completed_at' => $this->faker->dateTimeBetween('-10 days', 'now'),
+               // 'completed_at' => $this->faker->dateTimeBetween('-10 days', 'now'),
             ];
         });
     }

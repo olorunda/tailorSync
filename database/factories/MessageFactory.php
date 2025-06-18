@@ -21,11 +21,12 @@ class MessageFactory extends Factory
         return [
             'user_id' => User::factory(),
             'client_id' => Client::factory(),
+            'status' => $this->faker->randomElement(['sent', 'draft', 'queued', 'failed']),
             'subject' => $this->faker->sentence(),
             'body' => $this->faker->paragraphs(3, true),
             'is_read' => $this->faker->boolean(70),
             'direction' => $this->faker->randomElement(['incoming', 'outgoing']),
-            'message_type' => $this->faker->randomElement(['email', 'sms', 'system']),
+            'message_type' => $this->faker->randomElement(['internal', 'sms', 'whatsapp', 'email']),
             'created_at' => $this->faker->dateTimeBetween('-30 days', 'now'),
             'updated_at' => function (array $attributes) {
                 return $this->faker->dateTimeBetween($attributes['created_at'], 'now');

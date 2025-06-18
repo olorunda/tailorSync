@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Client;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -19,12 +20,16 @@ class MeasurementFactory extends Factory
     {
         return [
             'client_id' => Client::factory(),
-            'chest' => $this->faker->randomFloat(2, 30, 50),
-            'waist' => $this->faker->randomFloat(2, 25, 45),
-            'hips' => $this->faker->randomFloat(2, 30, 50),
-            'shoulder' => $this->faker->randomFloat(2, 15, 25),
-            'sleeve_length' => $this->faker->randomFloat(2, 20, 30),
-            'inseam' => $this->faker->randomFloat(2, 25, 35),
+            'user_id' => User::factory(),
+            'name' => $this->faker->word() . ' Measurements',
+            'measurements' => [
+                'chest' => $this->faker->numberBetween(80, 120),
+                'waist' => $this->faker->numberBetween(60, 100),
+                'hip' => $this->faker->numberBetween(80, 120),
+                'shoulder' => $this->faker->numberBetween(40, 60),
+                'sleeve' => $this->faker->numberBetween(50, 70),
+            ],
+            'photos' => [],
             'notes' => $this->faker->paragraph(),
             'measurement_date' => $this->faker->date(),
         ];

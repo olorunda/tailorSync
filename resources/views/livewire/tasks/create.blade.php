@@ -12,6 +12,7 @@ new class extends Component {
     public ?string $due_date = '';
     public string $priority = 'medium';
     public string $status = 'pending';
+    public string $type = 'sewing';
     public ?int $assigned_to = null;
     public ?int $order_id = null;
     public ?string $notes = '';
@@ -40,6 +41,7 @@ new class extends Component {
             'due_date' => ['nullable', 'date'],
             'priority' => ['required', 'string', 'in:low,medium,high'],
             'status' => ['required', 'string', 'in:pending,in_progress,completed'],
+            'type' => ['required', 'string', 'in:cutting,sewing,fitting,delivery,other'],
             'assigned_to' => ['nullable', 'exists:users,id'],
             'order_id' => ['nullable', 'exists:orders,id'],
             'notes' => ['nullable', 'string', 'max:1000'],
@@ -63,6 +65,7 @@ new class extends Component {
             'due_date' => $this->due_date,
             'priority' => $this->priority,
             'status' => $this->status,
+            'type' => $this->type,
             'assigned_to' => $this->assigned_to,
             'order_id' => $this->order_id,
             'notes' => $this->notes,
@@ -74,7 +77,7 @@ new class extends Component {
     public function with(): array
     {
         return [
-            'team_members' => User::where('id', '!=', Auth::id())->orderBy('name')->get(),
+            'team_members' => Auth::user()->allTeamMembers()->orderBy('name')->get(),
             'orders' => Order::where('user_id', Auth::id())->orderBy('created_at', 'desc')->get(),
         ];
     }
@@ -119,6 +122,18 @@ new class extends Component {
                         <option value="completed">Completed</option>
                     </select>
                     @error('status') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label for="type" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Type</label>
+                    <select wire:model="type" id="type" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5" required>
+                        <option value="cutting">Cutting</option>
+                        <option value="sewing">Sewing</option>
+                        <option value="fitting">Fitting</option>
+                        <option value="delivery">Delivery</option>
+                        <option value="other">Other</option>
+                    </select>
+                    @error('type') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
 
                 <div>

@@ -26,6 +26,7 @@ class Payment extends Model
         'payment_method',
         'reference_number',
         'notes',
+        'cost',
         'status',
     ];
 

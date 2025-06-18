@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\Client;
 use App\Models\Invoice;
+use App\Notifications\InvoiceEmailNotification;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Volt\Component;
 
@@ -9,7 +11,7 @@ new class extends Component {
 
     public function mount(Invoice $invoice)
     {
-        if (!in_array($invoice->user_id,[Auth::id(),Auth::user()->parent_id])) {
+        if (!in_array($invoice->user->parent_id,[Auth::id(),Auth::user()->parent_id]) && !in_array($invoice->user_id,[Auth::id(),Auth::user()->parent_id])) {
             return $this->redirect(route('invoices.index'));
         }
 
@@ -70,6 +72,31 @@ new class extends Component {
         $this->redirect(route('invoices.index'));
     }
 
+    public function emailToClient()
+    {
+        // Check if client email exists
+        if (!$this->invoice->client_email) {
+            session()->flash('error', 'Client email address is not available. Please update the client information first.');
+            return;
+        }
+
+        try {
+            // Get the client
+            $client = Client::find($this->invoice->client_id);
+
+            if ($client) {
+                // Send notification to the client
+                $client->notify(new InvoiceEmailNotification($this->invoice));
+
+                session()->flash('status', 'Invoice has been emailed to the client successfully!');
+            } else {
+                session()->flash('error', 'Client not found. Please check the invoice details.');
+            }
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to send email: ' . $e->getMessage());
+        }
+    }
+
     public function placeholder()
     {
         return <<<'HTML'
@@ -85,20 +112,40 @@ new class extends Component {
 
 <div class="w-full">
     @if (session()->has('error'))
-    <div class="bg-red-50 dark:bg-red-900/30 border-l-4 border-red-400 p-4 mb-4">
-        <div class="flex">
-            <div class="flex-shrink-0">
-                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                </svg>
-            </div>
-            <div class="ml-3">
-                <p class="text-sm text-red-700 dark:text-red-200">
-                    {{ session('error') }}
-                </p>
+        <div class="bg-red-50 dark:bg-red-900/30 border-l-4 border-red-400 p-4 mb-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                              clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-red-700 dark:text-red-200">
+                        {{ session('error') }}
+                    </p>
+                </div>
             </div>
         </div>
-    </div>
+    @endif
+    @if (session()->has('status'))
+        <div class="bg-green-50 dark:bg-green-900/30 border-l-4 border-green-400 p-4 mb-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-green-700 dark:text-green-200">
+                        {{ session('status') }}
+                    </p>
+                </div>
+            </div>
+        </div>
     @endif
 
     <div class="flex justify-between items-center mb-6">
@@ -200,8 +247,9 @@ new class extends Component {
                 Print
             </a>
 
-            <a
-                href="#"
+            <button
+                wire:click="emailToClient"
+                wire:confirm="Are you sure you want to email this invoice to the client?"
                 class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium transition-colors"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
@@ -209,7 +257,7 @@ new class extends Component {
                     <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                 </svg>
                 Email to Client
-            </a>
+            </button>
         </div>
     </div>
 

@@ -232,6 +232,8 @@ new class extends Component {
      */
     public function togglePermission($permissionId): void
     {
+
+
         if (in_array($permissionId, $this->rolePermissions)) {
             $this->rolePermissions = array_diff($this->rolePermissions, [$permissionId]);
         } else {
@@ -353,7 +355,7 @@ new class extends Component {
                                                         id="permission-{{ $permission->id }}"
                                                         type="checkbox"
                                                         wire:model.live="rolePermissions"
-                                                        wire:click="togglePermission({{ $permission->id }})"
+                                                        wire:click="togglePermission($event.target.value)"
                                                         value="{{ $permission->id }}"
                                                         class="w-5 h-5 text-orange-600 bg-zinc-100 border-zinc-300 rounded focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-zinc-800 focus:ring-2 dark:bg-zinc-700 dark:border-zinc-600"
                                                     >
