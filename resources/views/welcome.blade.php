@@ -284,7 +284,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="border-t border-zinc-200 dark:border-zinc-800 mt-8 pt-8 text-center text-zinc-500 dark:text-zinc-500">
+                <div class="border-t border-zinc-200 dark:border-zinc-800 mt-8 pt-8 text-center text-zinc-500 dark:text-zinc-400">
                     <p>&copy; {{ date('Y') }} TailorSync. All rights reserved.</p>
                 </div>
             </div>

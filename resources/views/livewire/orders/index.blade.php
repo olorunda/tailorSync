@@ -133,7 +133,7 @@ new class extends Component {
         </div>
 
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+            <table class="responsive-table min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                 <thead class="bg-zinc-50 dark:bg-zinc-700">
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-300 uppercase tracking-wider cursor-pointer" wire:click="sortBy('id')">
@@ -186,11 +186,11 @@ new class extends Component {
                 <tbody class="bg-white dark:bg-zinc-800 divide-y divide-zinc-200 dark:divide-zinc-700">
                     @forelse ($orders as $order)
                         <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700">
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Order #">
                                 <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">#{{ $order->id }}</div>
                                 <div class="text-sm text-zinc-500 dark:text-zinc-400">{{ $order->created_at->format('M d, Y') }}</div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Client">
                                 <div class="flex items-center">
                                     <div class="flex-shrink-0 h-10 w-10 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
                                         <span class="text-orange-600 dark:text-orange-500 font-medium text-sm">{{ strtoupper(substr($order->client->name ?? 'NA', 0, 2)) }}</span>
@@ -201,7 +201,7 @@ new class extends Component {
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Due Date">
                                 @if ($order->due_date)
                                     <div class="text-sm text-zinc-900 dark:text-zinc-100">{{ $order->due_date->format('M d, Y') }}</div>
                                     <div class="text-sm text-zinc-500 dark:text-zinc-400">
@@ -215,7 +215,7 @@ new class extends Component {
                                     <span class="text-sm text-zinc-500 dark:text-zinc-400">Not set</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Status">
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                     @if($order->status === 'completed') bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400
                                     @elseif($order->status === 'in_progress') bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400
@@ -227,7 +227,7 @@ new class extends Component {
                                     {{ ucfirst(str_replace('_', ' ', $order->status)) }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Amount">
                                 <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                                     {{ $order->total_amount ? '$' . number_format($order->total_amount, 2) : 'Not set' }}
                                 </div>
@@ -237,7 +237,7 @@ new class extends Component {
                                     @endif
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" data-label="Actions">
                                 <a href="{{ route('orders.show', $order) }}" class="text-orange-600 dark:text-orange-500 hover:text-orange-800 dark:hover:text-orange-400 mr-3">View</a>
                                 <a href="{{ route('orders.edit', $order) }}" class="text-orange-600 dark:text-orange-500 hover:text-orange-800 dark:hover:text-orange-400">Edit</a>
                             </td>

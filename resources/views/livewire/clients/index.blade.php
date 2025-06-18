@@ -90,7 +90,7 @@ new class extends Component {
         </div>
 
         <div class="overflow-x-auto min-h-[400px]">
-            <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+            <table class="responsive-table min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                 <thead class="bg-zinc-50 dark:bg-zinc-700">
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-300 uppercase tracking-wider">Name</th>
@@ -103,7 +103,7 @@ new class extends Component {
                 <tbody class="bg-white dark:bg-zinc-800 divide-y divide-zinc-200 dark:divide-zinc-700">
                     @forelse ($clients as $client)
                         <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700">
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Name">
                                 <div class="flex items-center">
                                     <div class="flex-shrink-0 h-10 w-10 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
                                         <span class="text-orange-600 dark:text-orange-500 font-medium text-sm">{{ strtoupper(substr($client->name, 0, 2)) }}</span>
@@ -114,21 +114,21 @@ new class extends Component {
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Contact">
                                 <div class="text-sm text-zinc-900 dark:text-zinc-100">{{ $client->email }}</div>
                                 <div class="text-sm text-zinc-500 dark:text-zinc-400">{{ $client->phone }}</div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Measurements">
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
                                     {{ $client->measurements_count ?? 0 }} measurements
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Orders">
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400">
                                     {{ $client->orders_count ?? 0 }} orders
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" data-label="Actions">
                                 <div class="relative inline-block text-left" x-data="{ open: false, position: 'bottom' }" x-init="$watch('open', value => { if (value) { const rect = $el.getBoundingClientRect(); const spaceBelow = window.innerHeight - rect.bottom; const spaceAbove = rect.top; position = spaceBelow < 300 && spaceAbove > spaceBelow ? 'top' : 'bottom'; } })">
                                     <button @click="open = !open" type="button" class="relative inline-flex items-center justify-center w-full rounded-md border border-zinc-300 dark:border-zinc-600 shadow-sm px-4 py-2 bg-white dark:bg-zinc-700 text-sm font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
                                         Actions
@@ -140,7 +140,7 @@ new class extends Component {
                                         <div class="py-1">
                                             @if(auth()->user()->hasPermission('view_clients'))
                                             <a href="{{ route('clients.show', $client) }}" class="group flex items-center px-4 py-2 text-sm text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700">
-                                                <svg class="mr-3 h-5 w-5 text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-500 dark:group-hover:text-zinc-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <svg class="mr-3 h-5 w-5 text-zinc-400 dark:text-zinc-400 group-hover:text-zinc-500 dark:group-hover:text-zinc-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                                     <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                                                     <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
                                                 </svg>
@@ -149,7 +149,7 @@ new class extends Component {
                                             @endif
                                             @if(auth()->user()->hasPermission('edit_clients'))
                                             <a href="{{ route('clients.edit', $client) }}" class="group flex items-center px-4 py-2 text-sm text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700">
-                                                <svg class="mr-3 h-5 w-5 text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-500 dark:group-hover:text-zinc-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <svg class="mr-3 h-5 w-5 text-zinc-400 dark:text-zinc-400 group-hover:text-zinc-500 dark:group-hover:text-zinc-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                                 </svg>
                                                 Edit Client
@@ -159,7 +159,7 @@ new class extends Component {
                                         <div class="py-1">
                                             @if(auth()->user()->hasPermission('create_measurements'))
                                             <a href="{{ route('measurements.create', $client) }}" class="group flex items-center px-4 py-2 text-sm text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700">
-                                                <svg class="mr-3 h-5 w-5 text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-500 dark:group-hover:text-zinc-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <svg class="mr-3 h-5 w-5 text-zinc-400 dark:text-zinc-400 group-hover:text-zinc-500 dark:group-hover:text-zinc-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                                     <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z" clip-rule="evenodd" />
                                                 </svg>
                                                 Add Measurement
@@ -167,7 +167,7 @@ new class extends Component {
                                             @endif
                                             @if(auth()->user()->hasPermission('create_orders'))
                                             <a href="{{ route('orders.create', ['client_id' => $client->id]) }}" class="group flex items-center px-4 py-2 text-sm text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700">
-                                                <svg class="mr-3 h-5 w-5 text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-500 dark:group-hover:text-zinc-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <svg class="mr-3 h-5 w-5 text-zinc-400 dark:text-zinc-400 group-hover:text-zinc-500 dark:group-hover:text-zinc-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                                     <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
                                                 </svg>
                                                 Create Order
@@ -175,7 +175,7 @@ new class extends Component {
                                             @endif
                                             @if(auth()->user()->hasPermission('create_appointments'))
                                             <a href="{{ route('appointments.create', ['client_id' => $client->id]) }}" class="group flex items-center px-4 py-2 text-sm text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700">
-                                                <svg class="mr-3 h-5 w-5 text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-500 dark:group-hover:text-zinc-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <svg class="mr-3 h-5 w-5 text-zinc-400 dark:text-zinc-400 group-hover:text-zinc-500 dark:group-hover:text-zinc-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                                     <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
                                                 </svg>
                                                 Schedule Appointment

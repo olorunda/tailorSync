@@ -487,7 +487,7 @@ new class extends Component {
                 <h2 class="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-4">Invoice Items</h2>
 
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+                    <table class="responsive-table min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                         <thead>
                             <tr>
                                 <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-300 uppercase tracking-wider">Description</th>
@@ -500,7 +500,7 @@ new class extends Component {
                         <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
                             @foreach ($items as $index => $item)
                                 <tr>
-                                    <td class="px-4 py-2">
+                                    <td class="px-4 py-2" data-label="Description">
                                         <input
                                             wire:model="items.{{ $index }}.description"
                                             type="text"
@@ -510,7 +510,7 @@ new class extends Component {
                                         >
                                         @error("items.{$index}.description") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                     </td>
-                                    <td class="px-4 py-2">
+                                    <td class="px-4 py-2" data-label="Quantity">
                                         <input
                                             wire:model="items.{{ $index }}.quantity"
                                             type="number"
@@ -521,7 +521,7 @@ new class extends Component {
                                         >
                                         @error("items.{$index}.quantity") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                     </td>
-                                    <td class="px-4 py-2">
+                                    <td class="px-4 py-2" data-label="Unit Price">
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                                 <span class="text-zinc-500 dark:text-zinc-400 sm:text-sm">{{ Auth::user()->getCurrencySymbol() }}</span>
@@ -537,7 +537,7 @@ new class extends Component {
                                         </div>
                                         @error("items.{$index}.unit_price") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                     </td>
-                                    <td class="px-4 py-2">
+                                    <td class="px-4 py-2" data-label="Amount">
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                                 <span class="text-zinc-500 dark:text-zinc-400 sm:text-sm">{{ Auth::user()->getCurrencySymbol() }}</span>
@@ -550,7 +550,7 @@ new class extends Component {
                                             >
                                         </div>
                                     </td>
-                                    <td class="px-4 py-2 text-right">
+                                    <td class="px-4 py-2 text-right" data-label="Action">
                                         <button
                                             type="button"
                                             wire:click="removeItem({{ $index }})"

@@ -256,7 +256,7 @@ new class extends Component {
 
                     <!-- Invoice Items -->
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+                        <table class="responsive-table min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                             <thead>
                                 <tr>
                                     <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Description</th>
@@ -268,16 +268,16 @@ new class extends Component {
                             <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
                                 @foreach ($invoice->items as $item)
                                     <tr>
-                                        <td class="px-4 py-4">
+                                        <td class="px-4 py-4" data-label="Description">
                                             <div class="text-sm text-zinc-900 dark:text-zinc-100">{{ $item['description'] }}</div>
                                         </td>
-                                        <td class="px-4 py-4 text-right whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                                        <td class="px-4 py-4 text-right whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400" data-label="Quantity">
                                             {{ $item['quantity'] }}
                                         </td>
-                                        <td class="px-4 py-4 text-right whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400">
+                                        <td class="px-4 py-4 text-right whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400" data-label="Unit Price">
                                             {{ Auth::user()->getCurrencySymbol() }}{{ number_format($item['unit_price'], 2) }}
                                         </td>
-                                        <td class="px-4 py-4 text-right whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                        <td class="px-4 py-4 text-right whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100" data-label="Amount">
                                             {{ Auth::user()->getCurrencySymbol() }}{{ number_format($item['quantity'] * $item['unit_price'], 2) }}
                                         </td>
                                     </tr>

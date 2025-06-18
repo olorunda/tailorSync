@@ -74,7 +74,7 @@ new class extends Component {
         </div>
 
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+            <table class="responsive-table min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                 <thead class="bg-zinc-50 dark:bg-zinc-700">
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-300 uppercase tracking-wider">Name</th>
@@ -87,7 +87,7 @@ new class extends Component {
                 <tbody class="bg-white dark:bg-zinc-800 divide-y divide-zinc-200 dark:divide-zinc-700">
                     @forelse ($team_members as $member)
                         <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700">
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Name">
                                 <div class="flex items-center">
                                     <div class="flex-shrink-0 h-10 w-10 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
                                         <span class="text-purple-600 dark:text-purple-500 font-medium text-sm">{{ strtoupper(substr($member->name, 0, 2)) }}</span>
@@ -98,19 +98,19 @@ new class extends Component {
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Email">
                                 <div class="text-sm text-zinc-900 dark:text-zinc-100">{{ $member->email }}</div>
                                 <div class="text-sm text-zinc-500 dark:text-zinc-400">{{ $member->phone ?? 'No phone' }}</div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Role">
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400">
                                     {{ $member->role }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Joined">
                                 <div class="text-sm text-zinc-900 dark:text-zinc-100">{{ $member->created_at->format('M d, Y') }}</div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" data-label="Actions">
                                 <a href="{{ route('team.show', $member) }}" class="text-orange-600 dark:text-orange-500 hover:text-orange-800 dark:hover:text-orange-400 mr-3">View</a>
                                 <a href="{{ route('team.edit', $member) }}" class="text-orange-600 dark:text-orange-500 hover:text-orange-800 dark:hover:text-orange-400">Edit</a>
                             </td>

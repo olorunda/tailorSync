@@ -217,7 +217,7 @@ new class extends Component {
     <!-- Invoices Table -->
     <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+            <table class="responsive-table min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                 <thead class="bg-zinc-50 dark:bg-zinc-700">
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-300 uppercase tracking-wider cursor-pointer" wire:click="sortBy('invoice_number')">
@@ -284,27 +284,27 @@ new class extends Component {
                 <tbody class="bg-white dark:bg-zinc-800 divide-y divide-zinc-200 dark:divide-zinc-700">
                     @forelse ($invoices as $invoice)
                         <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100" data-label="Invoice #">
                                 {{ $invoice->invoice_number }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Client">
                                 <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $invoice->client_name }}</div>
                                 @if ($invoice->client_email)
                                     <div class="text-sm text-zinc-500 dark:text-zinc-400">{{ $invoice->client_email }}</div>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-500 dark:text-zinc-400">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-500 dark:text-zinc-400" data-label="Date">
                                 {{ $invoice->invoice_date?->format('M d, Y') }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-500 dark:text-zinc-400">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-500 dark:text-zinc-400" data-label="Due Date">
                                 <span class="{{ $invoice->due_date < now() && $invoice->status !== 'paid' ? 'text-red-600 dark:text-red-400 font-medium' : '' }}">
                                     {{ $invoice->due_date?->format('M d, Y') }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100" data-label="Amount">
                                 ${{ number_format($invoice->total_amount, 2) }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Status">
                                 @if ($invoice->status === 'paid')
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
                                         Paid
@@ -323,7 +323,7 @@ new class extends Component {
                                     </span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" data-label="Actions">
                                 <a href="{{ route('invoices.show', $invoice) }}" class="text-orange-600 dark:text-orange-500 hover:text-orange-800 dark:hover:text-orange-400 mr-3">View</a>
                                 <a href="{{ route('invoices.edit', $invoice) }}" class="text-orange-600 dark:text-orange-500 hover:text-orange-800 dark:hover:text-orange-400">Edit</a>
                             </td>

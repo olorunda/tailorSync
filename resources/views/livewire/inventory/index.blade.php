@@ -217,7 +217,7 @@ new class extends Component {
     <!-- Inventory Table -->
     <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+            <table class="responsive-table min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                 <thead class="bg-zinc-50 dark:bg-zinc-700">
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-300 uppercase tracking-wider cursor-pointer" wire:click="sortBy('name')">
@@ -270,7 +270,7 @@ new class extends Component {
                 <tbody class="bg-white dark:bg-zinc-800 divide-y divide-zinc-200 dark:divide-zinc-700">
                     @forelse ($inventoryItems as $item)
                         <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700">
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Item">
                                 <div class="flex items-center">
                                     @if ($item->image)
                                         <img src="{{ Storage::url($item->image) }}" alt="{{ $item->name }}" class="h-10 w-10 rounded-md object-cover mr-3">
@@ -289,22 +289,22 @@ new class extends Component {
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Type">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400">
                                     {{ ucfirst($item->type ?? 'N/A') }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Quantity">
                                 <div class="text-sm text-zinc-900 dark:text-zinc-100">
                                     {{ $item->quantity }} {{ $item->unit ?? 'pcs' }}
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Price">
                                 <div class="text-sm text-zinc-900 dark:text-zinc-100">
                                     {{ $item->unit_price ? '$' . number_format($item->unit_price, 2) : 'N/A' }}
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap" data-label="Status">
                                 @if ($item->quantity <= 0)
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400">
                                         Out of Stock
@@ -319,7 +319,7 @@ new class extends Component {
                                     </span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" data-label="Actions">
                                 <a href="{{ route('inventory.show', $item) }}" class="text-orange-600 dark:text-orange-500 hover:text-orange-800 dark:hover:text-orange-400 mr-3">View</a>
                                 <a href="{{ route('inventory.edit', $item) }}" class="text-orange-600 dark:text-orange-500 hover:text-orange-800 dark:hover:text-orange-400">Edit</a>
                             </td>

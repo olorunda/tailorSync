@@ -323,7 +323,7 @@ new class extends Component {
                 <h3 class="text-lg font-medium text-zinc-900 dark:text-zinc-100">Recent Orders</h3>
             </div>
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+                <table class="responsive-table min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                     <thead class="bg-zinc-50 dark:bg-zinc-700">
                         <tr>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-300 uppercase tracking-wider">Order</th>
@@ -335,14 +335,14 @@ new class extends Component {
                     <tbody class="bg-white dark:bg-zinc-800 divide-y divide-zinc-200 dark:divide-zinc-700">
                         @forelse ($recentOrders as $order)
                             <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700">
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-6 py-4 whitespace-nowrap" data-label="Order">
                                     <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $order->order_number }}</div>
                                     <div class="text-sm text-zinc-500 dark:text-zinc-400">{{ $order->due_date ? $order->due_date->format('M d, Y') : 'No date' }}</div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-6 py-4 whitespace-nowrap" data-label="Client">
                                     <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $order->client->name ?? 'No client' }}</div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-6 py-4 whitespace-nowrap" data-label="Status">
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                         @if($order->status === 'completed') bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400
                                         @elseif($order->status === 'in_progress') bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400
@@ -352,7 +352,7 @@ new class extends Component {
                                         {{ ucfirst(str_replace('_', ' ', $order->status)) }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-900 dark:text-zinc-100">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-900 dark:text-zinc-100" data-label="Amount">
                                     {{ Auth::user()->getCurrencySymbol() }}{{ number_format($order->total_amount, 2) }}
                                 </td>
                             </tr>
@@ -376,7 +376,7 @@ new class extends Component {
                 <h3 class="text-lg font-medium text-zinc-900 dark:text-zinc-100">Recent Invoices</h3>
             </div>
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+                <table class="responsive-table min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                     <thead class="bg-zinc-50 dark:bg-zinc-700">
                         <tr>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-300 uppercase tracking-wider">Invoice</th>
@@ -388,14 +388,14 @@ new class extends Component {
                     <tbody class="bg-white dark:bg-zinc-800 divide-y divide-zinc-200 dark:divide-zinc-700">
                         @forelse ($recentInvoices as $invoice)
                             <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700">
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-6 py-4 whitespace-nowrap" data-label="Invoice">
                                     <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $invoice->invoice_number }}</div>
                                     <div class="text-sm text-zinc-500 dark:text-zinc-400">{{ $invoice->due_date ? $invoice->due_date->format('M d, Y') : 'No date' }}</div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-6 py-4 whitespace-nowrap" data-label="Client">
                                     <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $invoice->client->name ?? 'No client' }}</div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-6 py-4 whitespace-nowrap" data-label="Status">
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                         @if($invoice->status === 'paid') bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400
                                         @elseif($invoice->status === 'partial') bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400
@@ -406,7 +406,7 @@ new class extends Component {
                                         {{ ucfirst($invoice->status) }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-900 dark:text-zinc-100">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-900 dark:text-zinc-100" data-label="Amount">
                                     {{ Auth::user()->getCurrencySymbol() }}{{ number_format($invoice->total, 2) }}
                                 </td>
                             </tr>

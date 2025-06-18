@@ -114,6 +114,54 @@ select:focus[data-flux-control] {
     @apply px-4 py-2 text-sm text-zinc-500 dark:text-zinc-400 italic;
 }
 
+/* Responsive Table Styles */
+.responsive-table {
+    @apply w-full;
+}
+
+/* Desktop view (default) */
+.responsive-table thead {
+    @apply bg-zinc-50 dark:bg-zinc-700;
+}
+
+.responsive-table th {
+    @apply px-4 py-2 text-left text-xs font-medium text-zinc-500 dark:text-zinc-300 uppercase tracking-wider;
+}
+
+.responsive-table td {
+    @apply px-4 py-3 text-sm;
+}
+
+/* Mobile view */
+@media (max-width: 767px) {
+    .responsive-table thead {
+        @apply hidden;
+    }
+
+    .responsive-table tbody tr {
+        @apply block border border-zinc-200 dark:border-zinc-700 rounded-lg mb-3 shadow-sm bg-white dark:bg-zinc-800;
+    }
+
+    .responsive-table tbody td {
+        @apply block px-4 py-2 text-right border-b border-zinc-100 dark:border-zinc-700 last:border-b-0;
+    }
+
+    .responsive-table tbody td::before {
+        content: attr(data-label);
+        @apply float-left font-medium text-zinc-700 dark:text-zinc-100;
+    }
+
+    /* Remove whitespace-nowrap on mobile */
+    .responsive-table .whitespace-nowrap {
+        @apply whitespace-normal;
+    }
+
+    /* Adjust action buttons on mobile */
+    .responsive-table td:last-child {
+        @apply text-center;
+    }
+}
+
 /* Print styles */
 @media print {
     /* Hide everything by default */

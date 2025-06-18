@@ -130,9 +130,12 @@
             </flux:dropdown>
         </flux:sidebar>
 
-        <!-- Mobile User Menu -->
+        <!-- Mobile Header -->
         <flux:header class="lg:hidden">
-            <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
+            <a href="{{ route('dashboard') }}" class="flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
+                <x-app-logo-icon />
+                <span class="text-lg font-semibold">{{ config('app.name', 'TailorFit') }}</span>
+            </a>
 
             <flux:spacer />
 
@@ -164,14 +167,6 @@
 
                     <flux:menu.separator />
 
-                    <flux:menu.radio.group>
-                        @if(auth()->user()->hasPermission('view_profile') || auth()->user()->hasPermission('change_password') || auth()->user()->hasPermission('manage_appearance') || auth()->user()->hasPermission('manage_roles_permissions'))
-                            <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
-                        @endif
-                    </flux:menu.radio.group>
-
-                    <flux:menu.separator />
-
                     <form method="POST" action="{{ route('logout') }}" class="w-full">
                         @csrf
                         <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
@@ -182,8 +177,66 @@
             </flux:dropdown>
         </flux:header>
 
-        {{ $slot }}
+            {{ $slot }}
+
+
+        <!-- Mobile Bottom Navigation -->
+        <div  class=" fixed bottom-0 left-0 z-50 w-full h-16 bg-white border-t border-zinc-200 dark:bg-zinc-900 dark:border-zinc-700 lg:hidden">
+            <div class="grid h-full grid-cols-5 mx-auto">
+                <a href="{{ route('dashboard') }}" class="flex flex-col items-center justify-center {{ request()->routeIs('dashboard') ? 'text-primary-600 dark:text-primary-500 font-medium' : 'text-zinc-500 dark:text-zinc-400' }}" wire:navigate>
+                    <flux:icon name="home" class="w-6 h-6" />
+                    <span class="text-xs mt-1">{{ __('Home') }}</span>
+                </a>
+
+                @if(auth()->user()->hasPermission('view_clients'))
+                <a href="{{ route('clients.index') }}" class="flex flex-col items-center justify-center {{ request()->routeIs('clients.*') ? 'text-primary-600 dark:text-primary-500 font-medium' : 'text-zinc-500 dark:text-zinc-400' }}" wire:navigate>
+                    <flux:icon name="users" class="w-6 h-6" />
+                    <span class="text-xs mt-1">{{ __('Clients') }}</span>
+                </a>
+                @endif
+
+                @if(auth()->user()->hasPermission('view_orders'))
+                <a href="{{ route('orders.index') }}" class="flex flex-col items-center justify-center {{ request()->routeIs('orders.*') ? 'text-primary-600 dark:text-primary-500 font-medium' : 'text-zinc-500 dark:text-zinc-400' }}" wire:navigate>
+                    <flux:icon name="clipboard-document-list" class="w-6 h-6" />
+                    <span class="text-xs mt-1">{{ __('Orders') }}</span>
+                </a>
+                @endif
+
+                @if(auth()->user()->hasPermission('view_appointments'))
+                <a href="{{ route('appointments.index') }}" class="flex flex-col items-center justify-center {{ request()->routeIs('appointments.*') ? 'text-primary-600 dark:text-primary-500 font-medium' : 'text-zinc-500 dark:text-zinc-400' }}" wire:navigate>
+                    <flux:icon name="calendar" class="w-6 h-6" />
+                    <span class="text-xs mt-1">{{ __('Calendar') }}</span>
+                </a>
+                @endif
+
+                <flux:dropdown position="top" align="end" class="flex flex-col items-center justify-center">
+                    <button type="button" class="flex flex-col items-center justify-center w-full h-full text-zinc-500 dark:text-zinc-400">
+                        <flux:icon name="ellipsis-horizontal" class="w-6 h-6" />
+                        <span class="text-xs mt-1">{{ __('More') }}</span>
+                    </button>
+
+                    <flux:menu class="mb-2 w-48">
+                        @if(auth()->user()->hasPermission('view_invoices'))
+                        <flux:menu.item :href="route('invoices.index')" icon="document-text" wire:navigate>{{ __('Invoices') }}</flux:menu.item>
+                        @endif
+
+                        @if(auth()->user()->hasPermission('view_inventory'))
+                        <flux:menu.item :href="route('inventory.index')" icon="cube" wire:navigate>{{ __('Inventory') }}</flux:menu.item>
+                        @endif
+
+                        @if(auth()->user()->hasPermission('view_team'))
+                        <flux:menu.item :href="route('team.index')" icon="user-group" wire:navigate>{{ __('Team') }}</flux:menu.item>
+                        @endif
+
+                        @if(auth()->user()->hasPermission('view_profile') || auth()->user()->hasPermission('change_password') || auth()->user()->hasPermission('manage_appearance') || auth()->user()->hasPermission('manage_roles_permissions'))
+                        <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+                        @endif
+                    </flux:menu>
+                </flux:dropdown>
+            </div>
+        </div>
 
         @fluxScripts
+
     </body>
 </html>
