@@ -21,6 +21,19 @@ new class extends Component {
         $this->invoice->status = 'paid';
         $this->invoice->save();
 
+        // Create a payment record for this invoice
+        \App\Models\Payment::updateOrCreate(['invoice_id' => $this->invoice->id],[
+            'user_id' => $this->invoice->user_id,
+            'client_id' => $this->invoice->client_id,
+            'invoice_id' => $this->invoice->id,
+            'order_id' => $this->invoice->order_id,
+            'amount' => $this->invoice->total,
+            'payment_date' => now(),
+            'payment_method' => 'bank_transfer',
+            'description' => 'Payment for Invoice #' . $this->invoice->invoice_number,
+            'status' => 'completed',
+        ]);
+
         session()->flash('status', 'Invoice marked as paid successfully!');
         $this->redirect(route('invoices.show', $this->invoice));
     }

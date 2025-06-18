@@ -4,7 +4,7 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <flux:header container class="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+        <flux:header container class="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 shadow-sm sticky top-0 z-40 backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95">
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
 
             <a href="{{ route('dashboard') }}" class="ms-2 me-5 flex items-center space-x-2 rtl:space-x-reverse lg:ms-0" wire:navigate>
@@ -12,7 +12,7 @@
             </a>
 
             <flux:navbar class="-mb-px max-lg:hidden">
-                <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
+                <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" class="hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-200 rounded-md" wire:navigate>
                     {{ __('Dashboard') }}
                 </flux:navbar.item>
             </flux:navbar>
@@ -21,11 +21,11 @@
 
             <flux:navbar class="me-1.5 space-x-0.5 rtl:space-x-reverse py-0!">
                 <flux:tooltip :content="__('Search')" position="bottom">
-                    <flux:navbar.item class="!h-10 [&>div>svg]:size-5" icon="magnifying-glass" href="#" :label="__('Search')" />
+                    <flux:navbar.item class="!h-10 [&>div>svg]:size-5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200 rounded-full" icon="magnifying-glass" href="#" :label="__('Search')" />
                 </flux:tooltip>
                 <flux:tooltip :content="__('Repository')" position="bottom">
                     <flux:navbar.item
-                        class="h-10 max-lg:hidden [&>div>svg]:size-5"
+                        class="h-10 max-lg:hidden [&>div>svg]:size-5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200 rounded-full"
                         icon="folder-git-2"
                         href="https://github.com/laravel/livewire-starter-kit"
                         target="_blank"
@@ -34,7 +34,7 @@
                 </flux:tooltip>
                 <flux:tooltip :content="__('Documentation')" position="bottom">
                     <flux:navbar.item
-                        class="h-10 max-lg:hidden [&>div>svg]:size-5"
+                        class="h-10 max-lg:hidden [&>div>svg]:size-5 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200 rounded-full"
                         icon="book-open-text"
                         href="https://laravel.com/docs/starter-kits#livewire"
                         target="_blank"
@@ -46,11 +46,11 @@
             <!-- Desktop User Menu -->
             <flux:dropdown position="top" align="end">
                 <flux:profile
-                    class="cursor-pointer"
+                    class="cursor-pointer hover:ring-2 hover:ring-primary-500 hover:ring-opacity-50 transition-all duration-200"
                     :initials="auth()->user()->initials()"
                 />
 
-                <flux:menu>
+                <flux:menu class="shadow-xl rounded-xl overflow-hidden">
                     <flux:menu.radio.group>
                         <div class="p-0 text-sm font-normal">
                             <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
@@ -116,6 +116,14 @@
                 </flux:navlist.item>
             </flux:navlist>
         </flux:sidebar>
+
+        <!-- Breadcrumbs -->
+        <div class="bg-white dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700 px-4 py-2 sm:px-6 lg:px-8 shadow-sm">
+            <flux:breadcrumbs class="text-sm">
+                <flux:breadcrumbs.item href="{{ route('dashboard') }}" class="hover:text-primary-500 transition-colors duration-200">{{ __('Dashboard') }}</flux:breadcrumbs.item>
+                @yield('breadcrumbs')
+            </flux:breadcrumbs>
+        </div>
 
         {{ $slot }}
 

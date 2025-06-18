@@ -1,3 +1,7 @@
+@section('breadcrumbs')
+    <flux:breadcrumbs.item href="{{ route('appointments.index') }}" current>{{ __('Appointments') }}</flux:breadcrumbs.item>
+@endsection
+
 <?php
 
 use App\Models\Appointment;

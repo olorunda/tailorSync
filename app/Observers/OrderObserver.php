@@ -7,6 +7,9 @@ use App\Notifications\OrderStatusNotification;
 
 class OrderObserver
 {
+    // Store old status values temporarily
+    protected static $oldStatusValues = [];
+
     /**
      * Handle the Order "updating" event.
      */
@@ -16,8 +19,8 @@ class OrderObserver
         if ($order->isDirty('status')) {
             $oldStatus = $order->getOriginal('status');
 
-            // Store the old status to use in the notification
-            $order->old_status = $oldStatus;
+            // Store the old status in a static property instead of on the model
+            self::$oldStatusValues[$order->id] = $oldStatus;
         }
     }
 
@@ -28,7 +31,13 @@ class OrderObserver
     {
         // Check if the status was changed
         if ($order->wasChanged('status')) {
-            $oldStatus = $order->old_status ?? null;
+            // Get the old status from our static property
+            $oldStatus = self::$oldStatusValues[$order->id] ?? null;
+
+            // Clean up after use
+            if (isset(self::$oldStatusValues[$order->id])) {
+                unset(self::$oldStatusValues[$order->id]);
+            }
 
             // Notify the client
             if ($order->client) {

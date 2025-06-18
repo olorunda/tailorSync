@@ -26,6 +26,14 @@
     --color-accent: var(--color-neutral-800);
     --color-accent-content: var(--color-neutral-800);
     --color-accent-foreground: var(--color-white);
+
+    /* Animation variables */
+    --transition-fast: 150ms;
+    --transition-normal: 250ms;
+    --transition-slow: 350ms;
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);
 }
 
 @layer theme {
@@ -37,13 +45,27 @@
 }
 
 @layer base {
-
     *,
     ::after,
     ::before,
     ::backdrop,
     ::file-selector-button {
         border-color: var(--color-gray-200, currentColor);
+    }
+
+    /* Add smooth scrolling to the entire page */
+    html {
+        scroll-behavior: smooth;
+    }
+
+    /* Default transition for interactive elements */
+    a, button, input, select, textarea, [role="button"] {
+        transition: all var(--transition-fast) var(--ease-out);
+    }
+
+    /* Improve focus styles for better accessibility and visual appeal */
+    :focus-visible {
+        @apply outline-none ring-2 ring-primary-500 ring-offset-2;
     }
 }
 
@@ -160,6 +182,72 @@ select:focus[data-flux-control] {
     .responsive-table td:last-child {
         @apply text-center;
     }
+}
+
+/* Enhanced UI Components */
+/* Card hover effects */
+.card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+}
+
+/* Button hover effects */
+button:not([disabled]),
+a[role="button"]:not([disabled]),
+[type="button"]:not([disabled]),
+[type="reset"]:not([disabled]),
+[type="submit"]:not([disabled]) {
+    @apply hover:shadow-md active:scale-95 transform transition-all;
+}
+
+/* Navigation item hover effects */
+[data-flux-navlist-item],
+[data-flux-navbar-item],
+[data-flux-menu-item] {
+    @apply transition-colors duration-200;
+}
+
+/* Dropdown animation */
+[data-flux-dropdown-content] {
+    @apply transition-all duration-200 ease-out origin-top-right scale-95 opacity-0;
+}
+
+[data-flux-dropdown-content][data-open] {
+    @apply scale-100 opacity-100;
+}
+
+/* Sidebar animation */
+[data-flux-sidebar] {
+    @apply transition-transform duration-300 ease-in-out;
+}
+
+/* Icon hover effects */
+[data-flux-icon] {
+    @apply transition-transform duration-200;
+}
+
+button:hover [data-flux-icon],
+a:hover [data-flux-icon] {
+    @apply scale-110;
+}
+
+/* Form control focus effects */
+[data-flux-control]:focus {
+    @apply transition-shadow duration-200;
+}
+
+/* Page transition animations */
+main, [x-transition] {
+    @apply transition-opacity duration-300 ease-in-out;
+}
+
+/* Livewire page loading indicator */
+[wire\:loading], [wire\:loading\.delay], [wire\:loading\.inline-block], [wire\:loading\.inline], [wire\:loading\.block], [wire\:loading\.flex], [wire\:loading\.table], [wire\:loading\.grid], [wire\:loading\.inline-flex] {
+    @apply transition-opacity duration-300;
+}
+
+/* Subtle animation for cards and panels */
+.card, .panel, [data-flux-card], [data-flux-panel] {
+    @apply transition-all duration-300 hover:shadow-md;
 }
 
 /* Print styles */
