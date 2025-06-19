@@ -29,6 +29,7 @@ class User extends Authenticatable
         'role_id',
         'parent_id',
         'onboarding_completed',
+        'booking_hash',
     ];
 
     /**
@@ -580,5 +581,71 @@ class User extends Authenticatable
     public function businessDetail()
     {
         return $this->hasOne(BusinessDetail::class);
+    }
+
+    /**
+     * Generate a unique booking hash for the user.
+     * This is used for public appointment booking URLs.
+     *
+     * @return string
+     */
+    public function generateBookingHash(): string
+    {
+        $hash = \Illuminate\Support\Str::random(32);
+        $this->update(['booking_hash' => $hash]);
+        return $hash;
+    }
+
+    /**
+     * Get the booking hash for the user, generating one if it doesn't exist.
+     * Only parent accounts can have booking hashes.
+     *
+     * @return string|null
+     */
+    public function getBookingHash(): ?string
+    {
+        // Only parent accounts can have booking hashes
+        if ($this->parent_id) {
+            return null;
+        }
+
+        // Generate a hash if one doesn't exist
+        if (empty($this->booking_hash)) {
+            return $this->generateBookingHash();
+        }
+
+        return $this->booking_hash;
+    }
+
+    /**
+     * Get the public booking URL for the user.
+     *
+     * @return string|null
+     */
+    public function getBookingUrl(): ?string
+    {
+        $hash = $this->getBookingHash();
+
+        if (!$hash) {
+            return null;
+        }
+
+        return route('appointments.public.booking', ['hash' => $hash]);
+    }
+
+    /**
+     * Get the public business profile URL for the user.
+     *
+     * @return string|null
+     */
+    public function getBusinessProfileUrl(): ?string
+    {
+        $hash = $this->getBookingHash();
+
+        if (!$hash) {
+            return null;
+        }
+
+        return route('business.public', ['hash' => $hash]);
     }
 }

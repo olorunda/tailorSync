@@ -13,6 +13,15 @@ Route::view('offline', 'offline')->name('offline');
 // Public order viewing route
 Route::get('orders/public/{hash}', [\App\Http\Controllers\PublicOrderController::class, 'show'])->name('orders.public');
 
+// Public appointment booking routes
+Route::get('appointments/public/{hash}', [\App\Http\Controllers\PublicAppointmentController::class, 'show'])->name('appointments.public.booking');
+Route::post('appointments/public/{hash}', [\App\Http\Controllers\PublicAppointmentController::class, 'store'])->name('appointments.public.store');
+Route::get('appointments/public/{hash}/confirmation/{appointment}', [\App\Http\Controllers\PublicAppointmentController::class, 'confirmation'])->name('appointments.public.confirmation');
+Route::get('appointments/public/{hash}/time-slots', [\App\Http\Controllers\PublicAppointmentController::class, 'getAvailableTimeSlots'])->name('appointments.public.time-slots');
+
+// Public business profile route
+Route::get('business/public/{hash}', \App\Livewire\PublicBusinessProfile::class)->name('business.public');
+
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified', \App\Http\Middleware\CheckOnboardingStatus::class])
     ->name('dashboard');
@@ -52,6 +61,12 @@ Route::middleware(['auth', \App\Http\Middleware\CheckOnboardingStatus::class])->
 
     // Business settings (only for parent accounts)
     Volt::route('settings/business', 'settings.business')->name('settings.business');
+
+    // Business profile page (only for parent accounts)
+    Route::get('settings/business-profile', \App\Livewire\Settings\BusinessProfile::class)->name('settings.business-profile');
+
+    // Public booking settings (only for parent accounts)
+    Volt::route('settings/public-booking', 'settings.public-booking')->name('settings.public-booking');
 
     // Client Routes
     Route::middleware(['permission:view_clients'])->group(function () {

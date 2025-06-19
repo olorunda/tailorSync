@@ -6,6 +6,8 @@
             <flux:navlist.item :href="route('settings.appearance')" wire:navigate>{{ __('Appearance') }}</flux:navlist.item>
             @if(auth()->user()->parent_id === null)
                 <flux:navlist.item :href="route('settings.business')" wire:navigate>{{ __('Business') }}</flux:navlist.item>
+                <flux:navlist.item :href="route('settings.business-profile')" wire:navigate>{{ __('Business Profile') }}</flux:navlist.item>
+                <flux:navlist.item :href="route('settings.public-booking')" wire:navigate>{{ __('Public Booking') }}</flux:navlist.item>
             @endif
             @if(auth()->user()->hasRole('admin'))
                 <flux:navlist.item :href="route('settings.roles')" wire:navigate>{{ __('Roles') }}</flux:navlist.item>
