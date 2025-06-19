@@ -19,9 +19,7 @@ new class extends Component {
             return $this->redirect(route('dashboard'));
         }
 
-        if (!in_array($appointment->user_id,[Auth::id(),Auth::user()->parent_id])) {
-            return $this->redirect(route('appointments.index'));
-        }
+
 
         $this->appointment = $appointment;
     }

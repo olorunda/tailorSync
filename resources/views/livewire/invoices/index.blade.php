@@ -127,7 +127,7 @@ new class extends Component {
                 <div>
                     <p class="text-sm text-zinc-500 dark:text-zinc-400">Total Invoices</p>
                     <p class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ $totalInvoices }}</p>
-                    <p class="text-sm text-zinc-500 dark:text-zinc-400">${{ number_format($totalAmount, 2) }}</p>
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400">{{Auth::user()->getCurrencySymbol()}}{{ number_format($totalAmount, 2) }}</p>
                 </div>
             </div>
         </div>
@@ -142,7 +142,7 @@ new class extends Component {
                 <div>
                     <p class="text-sm text-zinc-500 dark:text-zinc-400">Paid</p>
                     <p class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ $paidInvoices }}</p>
-                    <p class="text-sm text-zinc-500 dark:text-zinc-400">${{ number_format($paidAmount, 2) }}</p>
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400">{{Auth::user()->getCurrencySymbol()}}{{ number_format($paidAmount, 2) }}</p>
                 </div>
             </div>
         </div>
@@ -157,7 +157,7 @@ new class extends Component {
                 <div>
                     <p class="text-sm text-zinc-500 dark:text-zinc-400">Pending</p>
                     <p class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{{ $pendingInvoices }}</p>
-                    <p class="text-sm text-zinc-500 dark:text-zinc-400">${{ number_format($pendingAmount, 2) }}</p>
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400">{{Auth::user()->getCurrencySymbol()}}{{ number_format($pendingAmount, 2) }}</p>
                 </div>
             </div>
         </div>
@@ -302,7 +302,7 @@ new class extends Component {
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100" data-label="Amount">
-                                ${{ number_format($invoice->total_amount, 2) }}
+                                {{Auth::user()->getCurrencySymbol()}}{{ number_format($invoice->total_amount, 2) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap" data-label="Status">
                                 @if ($invoice->status === 'paid')

@@ -15,6 +15,7 @@ new class extends Component {
 
     public function mount(): void
     {
+        $this->reference_number=random_int(10000000,99999999);
         // Set default date to today
         $this->date = now()->format('Y-m-d');
     }

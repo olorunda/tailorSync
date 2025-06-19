@@ -426,9 +426,9 @@ new class extends Component {
 </div>
 
 <!-- ApexCharts JS -->
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 <script>
+
     // Define charts as global variables
     let revenueExpensesChart = null;
     let ordersStatusChart = null;

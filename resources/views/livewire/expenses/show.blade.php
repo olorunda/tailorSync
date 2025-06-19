@@ -10,7 +10,7 @@ new class extends Component {
     public function mount(Expense $expense)
     {
 
-        if (!in_array($expense->user_id,[Auth::id(),Auth::user()->parent_id])) {
+        if (!array_intersect([$expense->user_id,$expense->user->parent_id],[Auth::id(),Auth::user()->parent_id])) {
             return $this->redirect(route('expenses.index'));
         }
 

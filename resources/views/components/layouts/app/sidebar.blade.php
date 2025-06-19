@@ -271,5 +271,80 @@
 
         @fluxScripts
 
+        <!-- System-wide Modal for Session Messages -->
+        <div x-data="{
+            show: {{ session('error') || session('status') || session('info') ? 'true' : 'false' }},
+            type: '{{ session('error') ? 'error' : (session('status') ? 'status' : (session('info') ? 'info' : '')) }}',
+            message: '{{ session('error') ?? session('status') ?? session('info') ?? '' }}'
+        }">
+            <x-modal name="system-message-modal" :show="session('error') || session('status') || session('info') ? true : false">
+                <div class="p-0 max-h-[80vh] overflow-y-auto w-full max-w-md mx-auto">
+                    <div class="relative p-6 rounded-lg"
+                        :class="{
+                            'bg-red-50/80 dark:bg-red-900/80': type === 'error',
+                            'bg-green-50/80 dark:bg-green-900/80': type === 'status',
+                            'bg-blue-50/80 dark:bg-blue-900/80': type === 'info'
+                        }">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 p-2 rounded-full"
+                                    :class="{
+                                        'bg-red-100 dark:bg-red-800': type === 'error',
+                                        'bg-green-100 dark:bg-green-800': type === 'status',
+                                        'bg-blue-100 dark:bg-blue-800': type === 'info'
+                                    }">
+                                    <svg x-show="type === 'error'" class="w-6 h-6 text-red-600 dark:text-red-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <svg x-show="type === 'status'" class="w-6 h-6 text-green-600 dark:text-green-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    <svg x-show="type === 'info'" class="w-6 h-6 text-blue-600 dark:text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-lg font-medium"
+                                        :class="{
+                                            'text-red-800 dark:text-red-200': type === 'error',
+                                            'text-green-800 dark:text-green-200': type === 'status',
+                                            'text-blue-800 dark:text-blue-200': type === 'info'
+                                        }">
+                                        <span x-show="type === 'error'">Error</span>
+                                        <span x-show="type === 'status'">Success</span>
+                                        <span x-show="type === 'info'">Information</span>
+                                    </h3>
+                                    <div class="mt-2 text-sm"
+                                        :class="{
+                                            'text-red-700 dark:text-red-300': type === 'error',
+                                            'text-green-700 dark:text-green-300': type === 'status',
+                                            'text-blue-700 dark:text-blue-300': type === 'info'
+                                        }">
+                                        <p x-text="message"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <button x-on:click="$dispatch('close')" class="inline-flex text-gray-400 hover:text-gray-500 focus:outline-none">
+                                <span class="sr-only">Close</span>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="mt-4 text-right">
+                            <button x-on:click="$dispatch('close')" class="px-4 py-2 text-sm font-medium rounded-md"
+                                :class="{
+                                    'bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-800 dark:text-red-100 dark:hover:bg-red-700': type === 'error',
+                                    'bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-800 dark:text-green-100 dark:hover:bg-green-700': type === 'status',
+                                    'bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-800 dark:text-blue-100 dark:hover:bg-blue-700': type === 'info'
+                                }">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </x-modal>
+        </div>
+
     </body>
 </html>

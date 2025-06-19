@@ -9,10 +9,6 @@ new class extends Component {
 
     public function mount(Payment $payment)
     {
-        if (!in_array($payment->user_id ,[Auth::id(),Auth::user()->parent_id])) {
-            return $this->redirect(route('payments.index'));
-        }
-
         $this->payment = $payment;
     }
 

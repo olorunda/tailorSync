@@ -11,7 +11,7 @@ new class extends Component {
 
     public function mount(Invoice $invoice)
     {
-        if (!in_array($invoice->user->parent_id,[Auth::id(),Auth::user()->parent_id]) && !in_array($invoice->user_id,[Auth::id(),Auth::user()->parent_id])) {
+        if (!array_intersect([$invoice->user->parent_id,$invoice->user_id],[Auth::id(),Auth::user()->parent_id]) && !in_array($invoice->user_id,[Auth::id(),Auth::user()->parent_id])) {
             return $this->redirect(route('invoices.index'));
         }
 

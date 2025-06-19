@@ -15,9 +15,8 @@ new class extends Component {
         $this->order->load('client', 'design');
 
         // Check if an invoice exists for this order
-        $this->invoice = Invoice::where('order_id', $this->order->id)
-            ->where('user_id', Auth::id())
-            ->first();
+        // Check if an invoice exists for this order
+        $this->invoice = Auth::user()->allInvoices()->where('order_id', $this->order->id)->first();
     }
 
     public function updateStatus($status): void

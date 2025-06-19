@@ -14,11 +14,6 @@ new class extends Component {
             return $this->redirect(route('dashboard'));
         }
 
-
-        if (!in_array($task->user_id,[Auth::id(),Auth::user()->parent_id]) && $task->assigned_to !== Auth::id()) {
-            return $this->redirect(route('tasks.index'));
-        }
-
         $this->task = $task;
     }
 

@@ -9,37 +9,15 @@ new class extends Component {
 
     public function mount(InventoryItem $inventoryItem)
     {
-        $user = Auth::user();
-
-        // Check if the inventory item belongs to the current user
-        if ($inventoryItem->user_id === $user->id) {
-            // Allow access
-        }
-        // Check if the user is a child user and the inventory item belongs to their parent
-        else if ($user->parent_id && $inventoryItem->user_id === $user->parent_id) {
-            // Allow access
-        }
-        // Check if the user is a parent user and the inventory item belongs to one of their children
-        else if (!$user->parent_id) {
-            $childrenIds = $user->children()->pluck('id')->toArray();
-            if (in_array($inventoryItem->user_id, $childrenIds)) {
-                // Allow access
-            } else {
-                // Deny access
-                session()->flash('error', 'You do not have permission to view this inventory item.');
-                return $this->redirect(route('inventory.index'));
-            }
-        } else {
-            // Deny access
-            session()->flash('error', 'You do not have permission to view this inventory item.');
-            return $this->redirect(route('inventory.index'));
-        }
-
         $this->inventoryItem = $inventoryItem;
     }
 
     public function delete()
     {
+        if (!auth()->user()->hasPermission('delete_inventory')) {
+            session()->flash('error', 'You Do Not Have Permission to Delte Inventory!');
+            return $this->redirect(route('inventory.index'));
+        }
         $this->inventoryItem->delete();
         session()->flash('status', 'Inventory item deleted successfully!');
         return $this->redirect(route('inventory.index'));
