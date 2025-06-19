@@ -28,6 +28,7 @@ class User extends Authenticatable
         'role',
         'role_id',
         'parent_id',
+        'onboarding_completed',
     ];
 
     /**
@@ -554,5 +555,30 @@ class User extends Authenticatable
             // If any error occurs during permission check, return false
             return false;
         }
+    }
+
+    /**
+     * Check if the user needs to complete the onboarding process.
+     * Only parent accounts need to complete onboarding.
+     *
+     * @return bool
+     */
+    public function needsOnboarding(): bool
+    {
+        // Only parent accounts need onboarding
+        if ($this->parent_id) {
+            return false;
+        }
+
+        // Check if onboarding has been completed
+        return !$this->onboarding_completed;
+    }
+
+    /**
+     * Get the business details associated with the user.
+     */
+    public function businessDetail()
+    {
+        return $this->hasOne(BusinessDetail::class);
     }
 }

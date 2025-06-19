@@ -14,10 +14,15 @@ Route::view('offline', 'offline')->name('offline');
 Route::get('orders/public/{hash}', [\App\Http\Controllers\PublicOrderController::class, 'show'])->name('orders.public');
 
 Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', \App\Http\Middleware\CheckOnboardingStatus::class])
     ->name('dashboard');
 
+// Onboarding Routes
 Route::middleware(['auth'])->group(function () {
+    Volt::route('onboarding', 'onboarding.wizard')->name('onboarding.wizard');
+});
+
+Route::middleware(['auth', \App\Http\Middleware\CheckOnboardingStatus::class])->group(function () {
     // Notifications Routes
     Volt::route('notifications', 'notifications.index')->name('notifications.index');
 
@@ -44,6 +49,9 @@ Route::middleware(['auth'])->group(function () {
         Volt::route('settings/roles', 'settings.roles')->name('settings.roles');
         Volt::route('settings/permissions', 'settings.permissions')->name('settings.permissions');
     });
+
+    // Business settings (only for parent accounts)
+    Volt::route('settings/business', 'settings.business')->name('settings.business');
 
     // Client Routes
     Route::middleware(['permission:view_clients'])->group(function () {

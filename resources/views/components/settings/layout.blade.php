@@ -4,6 +4,9 @@
             <flux:navlist.item :href="route('settings.profile')" wire:navigate>{{ __('Profile') }}</flux:navlist.item>
             <flux:navlist.item :href="route('settings.password')" wire:navigate>{{ __('Password') }}</flux:navlist.item>
             <flux:navlist.item :href="route('settings.appearance')" wire:navigate>{{ __('Appearance') }}</flux:navlist.item>
+            @if(auth()->user()->parent_id === null)
+                <flux:navlist.item :href="route('settings.business')" wire:navigate>{{ __('Business') }}</flux:navlist.item>
+            @endif
             @if(auth()->user()->hasRole('admin'))
                 <flux:navlist.item :href="route('settings.roles')" wire:navigate>{{ __('Roles') }}</flux:navlist.item>
                 <flux:navlist.item :href="route('settings.permissions')" wire:navigate>{{ __('Permissions') }}</flux:navlist.item>

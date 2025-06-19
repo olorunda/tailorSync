@@ -26,7 +26,8 @@ new #[Layout('components.layouts.auth')] class extends Component {
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
-
+        $validated['role']= 'admin';
+        $validated['role_id']=\App\Models\Role::where('name','admin')->value('id');
         event(new Registered(($user = User::create($validated))));
 
         Auth::login($user);

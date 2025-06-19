@@ -237,6 +237,7 @@ new class extends Component {
                                     <div>
                                         <h3 class="font-medium text-zinc-900 dark:text-zinc-100">Order #{{ $order->id }}</h3>
                                         <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ $order->created_at->format('M d, Y') }}</p>
+                                        <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Amount: {{Auth::user()->getCurrencySymbol()}}{{ number_format($order->total_amount, 2) }}</p>
                                         <div class="mt-1">
                                             <span class="px-2 py-1 text-xs rounded-full
                                                 @if($order->status === 'completed') bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400

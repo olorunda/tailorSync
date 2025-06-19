@@ -188,13 +188,13 @@ new class extends Component {
                         <div>
                             <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-1">Total Amount</p>
                             <p class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-                                {{ $order->total_amount ? '$' . number_format($order->total_amount, 2) : 'Not set' }}
+                                {{ $order->total_amount ? Auth::user()->getCurrencySymbol() . number_format($order->total_amount, 2) : 'Not set' }}
                             </p>
                         </div>
                         <div>
                             <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-1">Deposit</p>
                             <p class="text-zinc-900 dark:text-zinc-100">
-                                {{ $order->deposit_amount ? '$' . number_format($order->deposit_amount, 2) : 'Not set' }}
+                                {{ $order->deposit_amount ? Auth::user()->getCurrencySymbol() . number_format($order->deposit_amount, 2) : 'Not set' }}
                             </p>
                         </div>
                     </div>
@@ -252,6 +252,7 @@ new class extends Component {
 
                     <div>
                         <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-2">Update Status</p>
+                        <div class="space-y-2">
                         <div class="space-y-2">
                             <button wire:click="updateStatus('pending')" class="w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors
                                 @if($order->status === 'pending') bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400
