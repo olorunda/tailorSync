@@ -331,10 +331,10 @@ new class extends Component {
     public function with(): array
     {
         return [
-            'clients' => Client::where('user_id', Auth::id())
+            'clients' => Auth::user()->allClients()
                 ->orderBy('name')
                 ->get(),
-            'orders' => Order::where('user_id', Auth::id())
+            'orders' => Auth::user()->allOrders()
                 ->whereNotNull('client_id')
                 ->orderBy('created_at', 'desc')
                 ->get(),

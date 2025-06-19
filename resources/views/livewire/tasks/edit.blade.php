@@ -74,7 +74,7 @@ new class extends Component {
     {
         return [
             'team_members' => User::where('id', '!=', Auth::id())->orderBy('name')->get(),
-            'orders' => Order::where('user_id', Auth::id())->orderBy('created_at', 'desc')->get(),
+            'orders' => Auth::user()->allOrders()->orderBy('created_at', 'desc')->get(),
         ];
     }
 }; ?>

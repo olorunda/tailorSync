@@ -56,8 +56,8 @@ new class extends Component {
     public function with(): array
     {
         return [
-            'clients' => Client::where('user_id', Auth::id())->orderBy('name')->get(),
-            'invoices' => Invoice::where('user_id', Auth::id())->orderBy('created_at', 'desc')->get(),
+            'clients' => Auth::user()->allClients()->orderBy('name')->get(),
+            'invoices' => Auth::user()->allInvoices()->orderBy('created_at', 'desc')->get(),
         ];
     }
 }; ?>

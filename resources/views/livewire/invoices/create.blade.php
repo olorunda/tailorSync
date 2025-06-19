@@ -33,7 +33,7 @@ new class extends Component {
         $this->due_date = now()->addDays(30)->format('Y-m-d');
 
         // Generate invoice number
-        $latestInvoice = Invoice::where('user_id', Auth::id())->latest()->first();
+        $latestInvoice = Auth::user()->allInvoices()->latest()->first();
         $nextInvoiceNumber = $latestInvoice ? (intval(substr($latestInvoice->invoice_number, 3)) + 1) : 1;
         $this->invoice_number = 'INV' . str_pad($nextInvoiceNumber, 5, '0', STR_PAD_LEFT);
 
@@ -357,10 +357,10 @@ new class extends Component {
     public function with(): array
     {
         return [
-            'clients' => Client::where('user_id', Auth::id())
+            'clients' => Auth::user()->allClients()
                 ->orderBy('name')
                 ->get(),
-            'orders' => Order::where('user_id', Auth::id())
+            'orders' => Auth::user()->allOrders()
                 ->whereNotNull('client_id')
                 ->orderBy('created_at', 'desc')
                 ->get(),

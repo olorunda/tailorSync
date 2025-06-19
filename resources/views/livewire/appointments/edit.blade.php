@@ -56,7 +56,7 @@ new class extends Component {
     public function with(): array
     {
         return [
-            'clients' => Client::where('user_id', Auth::id())->orderBy('name')->get(),
+            'clients' => Auth::user()->allClients()->orderBy('name')->get(),
         ];
     }
 }; ?>
