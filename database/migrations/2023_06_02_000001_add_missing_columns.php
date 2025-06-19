@@ -21,7 +21,7 @@ return new class extends Migration
 
         // Add total_amount column to orders table
         Schema::table('orders', function (Blueprint $table) {
-            $table->decimal('total_amount', 10, 2)->after('status');
+//            $table->decimal('total_amount', 10, 2)->after('status');
         });
 
         // Add subject column to messages table
