@@ -131,7 +131,7 @@
                             Thank you for booking an appointment with us. If you need to make any changes to your appointment, please contact us directly.
                         </p>
                         <div class="mt-4">
-                            <a href="{{ route('appointments.public.booking', ['hash' => $user->booking_hash]) }}" class="inline-flex items-center px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md text-sm font-medium transition-colors">
+                            <a href="{{ route('appointments.public.booking', ['slug' => $user->getBusinessSlug()]) }}" class="inline-flex items-center px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md text-sm font-medium transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
                                 </svg>

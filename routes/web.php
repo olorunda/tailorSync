@@ -14,13 +14,13 @@ Route::view('offline', 'offline')->name('offline');
 Route::get('orders/public/{hash}', [\App\Http\Controllers\PublicOrderController::class, 'show'])->name('orders.public');
 
 // Public appointment booking routes
-Route::get('appointments/public/{hash}', [\App\Http\Controllers\PublicAppointmentController::class, 'show'])->name('appointments.public.booking');
-Route::post('appointments/public/{hash}', [\App\Http\Controllers\PublicAppointmentController::class, 'store'])->name('appointments.public.store');
-Route::get('appointments/public/{hash}/confirmation/{appointment}', [\App\Http\Controllers\PublicAppointmentController::class, 'confirmation'])->name('appointments.public.confirmation');
-Route::get('appointments/public/{hash}/time-slots', [\App\Http\Controllers\PublicAppointmentController::class, 'getAvailableTimeSlots'])->name('appointments.public.time-slots');
+Route::get('appointments/public/{slug}', [\App\Http\Controllers\PublicAppointmentController::class, 'show'])->name('appointments.public.booking');
+Route::post('appointments/public/{slug}', [\App\Http\Controllers\PublicAppointmentController::class, 'store'])->name('appointments.public.store');
+Route::get('appointments/public/{slug}/confirmation/{appointment}', [\App\Http\Controllers\PublicAppointmentController::class, 'confirmation'])->name('appointments.public.confirmation');
+Route::get('appointments/public/{slug}/time-slots', [\App\Http\Controllers\PublicAppointmentController::class, 'getAvailableTimeSlots'])->name('appointments.public.time-slots');
 
 // Public business profile route
-Route::get('business/public/{hash}', \App\Livewire\PublicBusinessProfile::class)->name('business.public');
+Route::get('business/public/{slug}', \App\Livewire\PublicBusinessProfile::class)->name('business.public');
 
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified', \App\Http\Middleware\CheckOnboardingStatus::class])

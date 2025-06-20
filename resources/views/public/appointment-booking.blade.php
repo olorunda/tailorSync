@@ -58,7 +58,7 @@
                             </div>
                         @endif
 
-                        <form method="POST" action="{{ route('appointments.public.store', ['hash' => $user->booking_hash]) }}" id="booking-form">
+                        <form method="POST" action="{{ route('appointments.public.store', ['slug' => $user->getBusinessSlug()]) }}" id="booking-form">
                             @csrf
                             <div class="space-y-4">
                                 <!-- Name -->
@@ -189,7 +189,7 @@
                 timeSlotSelect.innerHTML = '<option value="">Loading time slots...</option>';
 
                 // Fetch available time slots from the server
-                fetch(`{{ route('appointments.public.time-slots', ['hash' => $user->booking_hash]) }}?date=${date}`, {
+                fetch(`{{ route('appointments.public.time-slots', ['slug' => $user->getBusinessSlug()]) }}?date=${date}`, {
                     headers: {
                         'Accept': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest'

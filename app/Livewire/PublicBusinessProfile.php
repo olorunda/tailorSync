@@ -15,10 +15,14 @@ class PublicBusinessProfile extends Component
     public $bookingUrl;
     public $user;
 
-    public function mount($hash)
+    public function mount($slug)
     {
-        // Find the user by booking hash
-        $this->user = User::where('booking_hash', $hash)->first();
+        // Extract user ID from slug (format: business-name_userId)
+        $parts = explode('_', $slug);
+        $userId = end($parts);
+
+        // Find the user by ID
+        $this->user = User::find($userId);
 
         if (!$this->user) {
             abort(404, 'Business not found');

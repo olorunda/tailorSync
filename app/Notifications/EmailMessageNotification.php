@@ -40,9 +40,11 @@ class EmailMessageNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
+
+//        $name=$notifiable['email'];
         return (new MailMessage)
             ->subject($this->subject)
-            ->greeting("Hello {$notifiable->name},")
+            ->greeting("Hello {$notifiable->routes['mail']},")
             ->line("You have received a new message from {$this->senderName}.")
             ->line("Message:")
             ->line(nl2br($this->messageContent))

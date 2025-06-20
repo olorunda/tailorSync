@@ -618,19 +618,46 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the business name slug for the user.
+     * This is used for public URLs.
+     *
+     * @return string|null
+     */
+    public function getBusinessSlug(): ?string
+    {
+        // Only parent accounts can have business slugs
+        if ($this->parent_id) {
+            return null;
+        }
+
+        // Get business name from business details
+        $businessDetail = $this->businessDetail;
+        $businessName = $businessDetail ? $businessDetail->business_name : $this->name;
+
+        if (empty($businessName)) {
+            return null;
+        }
+
+        // Create slug from business name and append user ID
+        $slug = \Illuminate\Support\Str::slug($businessName) . '_' . $this->id;
+
+        return $slug;
+    }
+
+    /**
      * Get the public booking URL for the user.
      *
      * @return string|null
      */
     public function getBookingUrl(): ?string
     {
-        $hash = $this->getBookingHash();
+        $slug = $this->getBusinessSlug();
 
-        if (!$hash) {
+        if (!$slug) {
             return null;
         }
 
-        return route('appointments.public.booking', ['hash' => $hash]);
+        return route('appointments.public.booking', ['slug' => $slug]);
     }
 
     /**
@@ -640,12 +667,12 @@ class User extends Authenticatable
      */
     public function getBusinessProfileUrl(): ?string
     {
-        $hash = $this->getBookingHash();
+        $slug = $this->getBusinessSlug();
 
-        if (!$hash) {
+        if (!$slug) {
             return null;
         }
 
-        return route('business.public', ['hash' => $hash]);
+        return route('business.public', ['slug' => $slug]);
     }
 }

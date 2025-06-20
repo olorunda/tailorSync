@@ -1,6 +1,6 @@
 <div>
     <div class="min-h-screen bg-gray-100 dark:bg-zinc-900 py-12">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="w-full max-w-5xl mx-auto px-2 sm:px-6 lg:px-8">
             <div class="mb-8 text-center">
                 <h1 class="text-3xl font-bold text-zinc-900 dark:text-white">Business Profile</h1>
                 <p class="mt-2 text-lg text-zinc-600 dark:text-zinc-400">View business information and booking details</p>
@@ -17,7 +17,7 @@
 {{--                        </button>--}}
 {{--                    </div>--}}
                     <!-- Combined Business Information and QR Code Card -->
-                    <div class="print_this_only bg-gradient-to-b from-orange-50 to-zinc-50 dark:from-zinc-700/50 dark:to-zinc-800/50 p-6 rounded-xl shadow-md border border-orange-100 dark:border-zinc-600 transform transition-all duration-300 hover:shadow-lg">
+                    <div class="print_this_only bg-gradient-to-b from-orange-50 to-zinc-50 dark:from-zinc-700/50 dark:to-zinc-800/50 p-3 sm:p-6 rounded-xl shadow-md border border-orange-100 dark:border-zinc-600 transform transition-all duration-300 hover:shadow-lg">
                         <!-- Business Logo and Header -->
                         <div class="flex flex-col md:flex-row items-center mb-8">
                             <div class="flex-shrink-0 mb-6 md:mb-0 md:mr-8">
@@ -44,7 +44,7 @@
                         <div class="grid grid-cols-1 lg:grid-cols-1 gap-8">
                             <!-- Business Information -->
                             <div>
-                                <div class="bg-white dark:bg-zinc-800/60 p-6 rounded-xl shadow-sm border border-orange-100 dark:border-zinc-700 h-full">
+                                <div class="bg-white dark:bg-zinc-800/60 p-3 sm:p-6 rounded-xl shadow-sm border border-orange-100 dark:border-zinc-700 h-full">
                                     <h3 class="text-lg font-semibold text-orange-700 dark:text-orange-300 mb-4 flex items-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -218,7 +218,7 @@
                                     <div class="flex flex-col sm:flex-row">
                                         <div class="flex justify-center w-full">
                                             <div id="qrcode"
-                                                 class="flex justify-center p-6 bg-white dark:bg-zinc-800 rounded-xl shadow-lg border border-orange-100 dark:border-zinc-700 transition-all duration-300"></div>
+                                                 class="flex justify-center p-3 sm:p-6 bg-white dark:bg-zinc-800 rounded-xl shadow-lg border border-orange-100 dark:border-zinc-700 transition-all duration-300"></div>
                                         </div>
                                     </div>
 
@@ -263,7 +263,7 @@
                                         });
                                     </script>
                                 @else
-                                    <div class="text-center p-6">
+                                    <div class="text-center p-3 sm:p-6">
                                         <div class="bg-zinc-100 dark:bg-zinc-800 p-6 rounded-full inline-block mb-4">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />

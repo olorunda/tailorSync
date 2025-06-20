@@ -14,13 +14,17 @@ class PublicAppointmentController extends Controller
     /**
      * Display the public appointment booking page.
      *
-     * @param  string  $hash
+     * @param  string  $slug
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
-    public function show($hash)
+    public function show($slug)
     {
-        // Find the user by booking hash
-        $user = User::where('booking_hash', $hash)->first();
+        // Extract user ID from slug (format: business-name_userId)
+        $parts = explode('_', $slug);
+        $userId = end($parts);
+
+        // Find the user by ID
+        $user = User::find($userId);
 
         // If no user is found, return 404
         if (!$user) {
@@ -47,13 +51,17 @@ class PublicAppointmentController extends Controller
      * Store a new appointment from the public booking page.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  string  $hash
+     * @param  string  $slug
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request, $hash)
+    public function store(Request $request, $slug)
     {
-        // Find the user by booking hash
-        $user = User::where('booking_hash', $hash)->first();
+        // Extract user ID from slug (format: business-name_userId)
+        $parts = explode('_', $slug);
+        $userId = end($parts);
+
+        // Find the user by ID
+        $user = User::find($userId);
 
         // If no user is found, return 404
         if (!$user) {
@@ -136,7 +144,7 @@ class PublicAppointmentController extends Controller
 
         // Redirect to confirmation page
         return redirect()->route('appointments.public.confirmation', [
-            'hash' => $hash,
+            'slug' => $slug,
             'appointment' => $appointment->id
         ])->with('success', 'Your appointment has been booked successfully!');
     }
@@ -144,14 +152,18 @@ class PublicAppointmentController extends Controller
     /**
      * Display the appointment confirmation page.
      *
-     * @param  string  $hash
+     * @param  string  $slug
      * @param  int  $appointmentId
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
-    public function confirmation($hash, $appointmentId)
+    public function confirmation($slug, $appointmentId)
     {
-        // Find the user by booking hash
-        $user = User::where('booking_hash', $hash)->first();
+        // Extract user ID from slug (format: business-name_userId)
+        $parts = explode('_', $slug);
+        $userId = end($parts);
+
+        // Find the user by ID
+        $user = User::find($userId);
 
         // If no user is found, return 404
         if (!$user) {
@@ -183,13 +195,17 @@ class PublicAppointmentController extends Controller
      * Get available time slots for a specific date.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  string  $hash
+     * @param  string  $slug
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getAvailableTimeSlots(Request $request, $hash)
+    public function getAvailableTimeSlots(Request $request, $slug)
     {
-        // Find the user by booking hash
-        $user = User::where('booking_hash', $hash)->first();
+        // Extract user ID from slug (format: business-name_userId)
+        $parts = explode('_', $slug);
+        $userId = end($parts);
+
+        // Find the user by ID
+        $user = User::find($userId);
 
         // If no user is found, return error
         if (!$user) {
