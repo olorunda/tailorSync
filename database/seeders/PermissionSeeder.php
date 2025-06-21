@@ -32,6 +32,7 @@ class PermissionSeeder extends Seeder
                 ['name' => 'create_measurements', 'description' => 'Create new measurements'],
                 ['name' => 'edit_measurements', 'description' => 'Edit existing measurements'],
                 ['name' => 'delete_measurements', 'description' => 'Delete measurements'],
+                ['name' => 'manage_measurements', 'description' => 'Manage custom measurement types'],
             ],
             'orders' => [
                 ['name' => 'view_orders', 'description' => 'View orders'],

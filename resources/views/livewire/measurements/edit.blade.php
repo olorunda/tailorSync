@@ -2,6 +2,8 @@
 
 use App\Models\Client;
 use App\Models\Measurement;
+use App\Models\MeasurementType;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Volt\Component;
 use Livewire\WithFileUploads;
@@ -26,6 +28,8 @@ new class extends Component {
     public array $existingPhotos = [];
     public $newPhotos = [];
     public array $photosToDelete = [];
+    public array $customMeasurements = [];
+    public array $measurementTypes = [];
 
     public function mount(Client $client, Measurement $measurement): void
     {
@@ -38,10 +42,15 @@ new class extends Component {
         // Load existing measurements
         $measurements = $measurement->measurements ?? [];
 
+        // Load custom measurements
+        $this->loadMeasurementTypes();
+        $this->loadCustomMeasurements();
+
         // For debugging
         \Log::info('Loading measurement data', [
             'measurement_id' => $measurement->id,
-            'measurements' => $measurements
+            'measurements' => $measurements,
+            'additional_measurements' => $this->measurement->additional_measurements
         ]);
 
         foreach ($this->measurementData as $key => $value) {
@@ -51,9 +60,34 @@ new class extends Component {
         }
     }
 
+    public function loadMeasurementTypes(): void
+    {
+        $this->measurementTypes = MeasurementType::where('user_id', Auth::id())
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get()
+            ->toArray();
+    }
+
+    public function loadCustomMeasurements(): void
+    {
+        // Initialize custom measurements array with empty values
+        foreach ($this->measurementTypes as $type) {
+            $this->customMeasurements[$type['name']] = '';
+        }
+
+        // Load existing custom measurements
+        $additionalMeasurements = $this->measurement->additional_measurements ?? [];
+        foreach ($additionalMeasurements as $key => $value) {
+            if (isset($this->customMeasurements[$key])) {
+                $this->customMeasurements[$key] = $value;
+            }
+        }
+    }
+
     public function save(): void
     {
-        $validated = $this->validate([
+        $validationRules = [
             'name' => ['nullable', 'string', 'max:255'],
             'measurementData.chest' => ['nullable', 'string', 'max:50'],
             'measurementData.waist' => ['nullable', 'string', 'max:50'],
@@ -65,7 +99,14 @@ new class extends Component {
             'measurementData.thigh' => ['nullable', 'string', 'max:50'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'newPhotos.*' => ['nullable', 'image', 'max:1024'],
-        ]);
+        ];
+
+        // Add validation rules for custom measurements
+        foreach (array_keys($this->customMeasurements) as $key) {
+            $validationRules["customMeasurements.$key"] = ['nullable', 'string', 'max:50'];
+        }
+
+        $validated = $this->validate($validationRules);
 
         // Delete photos marked for deletion
         $updatedPhotos = $this->existingPhotos;
@@ -91,12 +132,14 @@ new class extends Component {
             'measurement_id' => $this->measurement->id,
             'name' => $this->name,
             'measurementData' => $this->measurementData,
+            'customMeasurements' => $this->customMeasurements,
             'notes' => $this->notes,
             'photos' => $updatedPhotos
         ]);
 
         $this->measurement->name = $this->name ?: 'Measurement ' . date('Y-m-d');
         $this->measurement->measurements = $this->measurementData;
+        $this->measurement->additional_measurements = $this->customMeasurements;
         $this->measurement->notes = $this->notes;
         $this->measurement->photos = $updatedPhotos;
         $this->measurement->measurement_date = now()->toDateString();
@@ -209,6 +252,39 @@ new class extends Component {
                     </div>
                 </div>
             </div>
+
+            <!-- Custom Measurements Section -->
+            @if(count($measurementTypes) > 0)
+                <div class="mt-8">
+                    <h3 class="font-medium text-zinc-900 dark:text-zinc-100 mb-3">Custom Measurements</h3>
+                    <flux:separator variant="subtle" class="mb-4" />
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @foreach($measurementTypes as $type)
+                            <div>
+                                <label for="custom-{{ $type['id'] }}" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">{{ $type['name'] }} ({{ $type['unit'] }})</label>
+                                <input
+                                    wire:model="customMeasurements.{{ $type['name'] }}"
+                                    type="text"
+                                    id="custom-{{ $type['id'] }}"
+                                    placeholder="e.g. 25 {{ $type['unit'] }}"
+                                    class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5"
+                                >
+                                @error('customMeasurements.' . $type['name']) <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                @if($type['description'])
+                                    <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{{ $type['description'] }}</p>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <div class="mt-2 text-sm">
+                        <a href="{{ route('settings.measurements') }}" class="text-orange-600 dark:text-orange-500 hover:text-orange-700 dark:hover:text-orange-400" target="_blank">
+                            {{ __('Manage custom measurement types') }} →
+                        </a>
+                    </div>
+                </div>
+            @endif
 
             <!-- Existing Photos -->
             @if (count($existingPhotos) > 0)

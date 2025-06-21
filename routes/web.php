@@ -68,6 +68,11 @@ Route::middleware(['auth', \App\Http\Middleware\CheckOnboardingStatus::class])->
     // Public booking settings (only for parent accounts)
     Volt::route('settings/public-booking', 'settings.public-booking')->name('settings.public-booking');
 
+    // Measurement settings
+    Route::middleware(['permission:manage_measurements'])->group(function () {
+        Route::get('settings/measurements', \App\Livewire\Settings\Measurements::class)->name('settings.measurements');
+    });
+
     // Client Routes
     Route::middleware(['permission:view_clients'])->group(function () {
         Volt::route('clients', 'clients.index')->name('clients.index');
@@ -89,6 +94,10 @@ Route::middleware(['auth', \App\Http\Middleware\CheckOnboardingStatus::class])->
     // Measurement Routes
     Route::middleware(['permission:create_measurements'])->group(function () {
         Volt::route('clients/{client}/measurements/create', 'measurements.create')->name('measurements.create');
+    });
+
+    Route::middleware(['permission:view_measurements'])->group(function () {
+        Route::get('clients/{client}/measurements/{measurement}', \App\Livewire\Measurements\View::class)->name('measurements.view');
     });
 
     Route::middleware(['permission:edit_measurements'])->group(function () {

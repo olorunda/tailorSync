@@ -18,6 +18,10 @@ class BusinessDetail extends Model
         'business_phone',
         'business_email',
         'logo_path',
+        'facebook_handle',
+        'instagram_handle',
+        'tiktok_handle',
+        'whatsapp_handle',
     ];
 
     /**

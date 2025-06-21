@@ -41,14 +41,20 @@ new class extends Component {
         $this->dispatch('hideCopiedMessage');
     }
 }; ?>
+<section class="w-full">
+    @include('partials.settings-heading')
+
+    <x-settings.layout>
+
+        <x-slot:heading>
+            {{ __('Public Appointment Booking') }}
+        </x-slot>
+        <x-slot:subheading>
+            {{ __('Manage your public appointment booking URL') }}
+        </x-slot>
 
 <div class="w-full">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Public Appointment Booking</h1>
-            <p class="text-zinc-600 dark:text-zinc-400">Manage your public appointment booking URL</p>
-        </div>
-    </div>
+
 
     <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
         <div class="p-6">
@@ -195,3 +201,5 @@ new class extends Component {
         </div>
     </div>
 </div>
+    </x-settings.layout>
+</section>

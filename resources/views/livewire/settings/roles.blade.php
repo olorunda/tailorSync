@@ -106,6 +106,8 @@ new class extends Component {
 
         $this->loadRoles();
         $this->dispatch('role-created');
+        $this->dispatch('alert', ['status'=>'success','message'=>'Role Successfully Created']);
+
     }
 
     /**
@@ -151,6 +153,8 @@ new class extends Component {
         $this->isEditingRole = false;
         $this->loadRoles();
         $this->dispatch('role-updated');
+        $this->dispatch('alert', ['status'=>'success','message'=>'Role Successfully Updated']);
+
     }
 
     /**
@@ -186,6 +190,8 @@ new class extends Component {
 
         $this->loadRoles();
         $this->dispatch('role-deleted');
+        $this->dispatch('alert', ['status'=>'success','message'=>'Role Successfully Deleted']);
+
     }
 
     /**
@@ -204,6 +210,8 @@ new class extends Component {
         $this->rolePermissions2=(array_values(array_unique((array)array_merge($this->rolePermissions2, $this->rolePermissions))));
         $this->selectedRole->permissions()->sync($this->rolePermissions2);
         $this->dispatch('permissions-updated');
+        $this->dispatch('alert', ['status'=>'success','message'=>'Permission Successfully Updated']);
+
     }
 
     /**

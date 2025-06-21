@@ -20,6 +20,7 @@ class Measurement extends Model
         'user_id',
         'name',
         'measurements',
+        'additional_measurements',
         'photos',
         'notes',
         'measurement_date',

@@ -94,6 +94,7 @@ new class extends Component {
      */
     public function createRole(): void
     {
+
         $this->validate([
             'newRole.name' => 'required|string|max:255|unique:roles,name',
             'newRole.description' => 'required|string|max:255',
@@ -110,7 +111,9 @@ new class extends Component {
         ];
 
         $this->loadRoles();
-        $this->dispatch('role-created');
+//        $this->dispatch('role-created');
+        $this->dispatch('alert', ['status'=>'success','message'=>'Role SuccessFully Created']);
+
     }
 
     /**
@@ -146,6 +149,8 @@ new class extends Component {
         $this->isEditingRole = false;
         $this->loadRoles();
         $this->dispatch('role-updated');
+        $this->dispatch('alert', ['status'=>'success','message'=>'Role Successfully Updated']);
+
     }
 
     /**
@@ -225,6 +230,8 @@ new class extends Component {
 
         $this->selectedRole->permissions()->sync($this->rolePermissions);
         $this->dispatch('permissions-updated');
+        $this->dispatch('alert', ['status'=>'success','message'=>'Permission SuccessFully Updated']);
+
     }
 
     /**
@@ -378,7 +385,9 @@ new class extends Component {
 
                             <x-action-message class="me-3" on="permissions-updated">
                                 {{ __('Saved.') }}
+
                             </x-action-message>
+
                         </div>
                     </form>
                 </div>

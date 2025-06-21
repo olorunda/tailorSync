@@ -13,6 +13,7 @@ use Database\Seeders\ExpenseSeeder;
 use Database\Seeders\InventoryItemSeeder;
 use Database\Seeders\InvoiceSeeder;
 use Database\Seeders\MeasurementSeeder;
+use Database\Seeders\MeasurementTypeSeeder;
 use Database\Seeders\MessageSeeder;
 use Database\Seeders\OrderSeeder;
 use Database\Seeders\PaymentSeeder;
@@ -73,6 +74,9 @@ class DatabaseSeeder extends Seeder
             'email' => 'accountant@example.com',
             'role_id' => $accountantRole->id,
         ]);
+
+        // Seed custom measurement types
+        $this->call(MeasurementTypeSeeder::class);
 
         // Seed all other models with up to 100 records each
 //        $this->call([

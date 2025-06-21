@@ -9,6 +9,9 @@
                 <flux:navlist.item :href="route('settings.business-profile')" wire:navigate>{{ __('Business Profile') }}</flux:navlist.item>
                 <flux:navlist.item :href="route('settings.public-booking')" wire:navigate>{{ __('Public Booking') }}</flux:navlist.item>
             @endif
+            @if(auth()->user()->hasPermission('manage_measurements'))
+                <flux:navlist.item :href="route('settings.measurements')" wire:navigate>{{ __('Measurements') }}</flux:navlist.item>
+            @endif
             @if(auth()->user()->hasRole('admin'))
                 <flux:navlist.item :href="route('settings.roles')" wire:navigate>{{ __('Roles') }}</flux:navlist.item>
                 <flux:navlist.item :href="route('settings.permissions')" wire:navigate>{{ __('Permissions') }}</flux:navlist.item>

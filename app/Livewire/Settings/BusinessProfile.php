@@ -16,6 +16,10 @@ class BusinessProfile extends Component
     public $businessDetail;
     public $bookingUrl;
     public $businessProfileUrl;
+    public $facebookHandle;
+    public $instagramHandle;
+    public $tiktokHandle;
+    public $whatsappHandle;
 
     public function mount()
     {
@@ -35,6 +39,10 @@ class BusinessProfile extends Component
             $this->businessPhone = $this->businessDetail->business_phone;
             $this->businessEmail = $this->businessDetail->business_email;
             $this->logo = $this->businessDetail->logo_path;
+            $this->facebookHandle = $this->businessDetail->facebook_handle;
+            $this->instagramHandle = $this->businessDetail->instagram_handle;
+            $this->tiktokHandle = $this->businessDetail->tiktok_handle;
+            $this->whatsappHandle = $this->businessDetail->whatsapp_handle;
         }
 
         // Get booking URL

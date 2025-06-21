@@ -1,3 +1,6 @@
+import Swal from 'sweetalert2'
+
+window.Swal = Swal
 // Import Tom Select
 import TomSelect from 'tom-select';
 

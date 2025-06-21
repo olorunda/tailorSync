@@ -63,6 +63,8 @@ new class extends Component {
         $user->save();
 
         $this->dispatch('profile-updated', name: $user->name);
+        $this->dispatch('alert', ['status'=>'success','message'=>'Profile SuccessFully Updated']);
+
     }
 
     /**
