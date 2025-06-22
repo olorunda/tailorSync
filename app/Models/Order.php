@@ -34,6 +34,14 @@ class Order extends Model
         'notes',
         'total_amount',
         'photos',
+        'is_store_order',
+        'payment_status',
+        'shipping_address',
+        'billing_address',
+        'shipping_method',
+        'shipping_cost',
+        'tax',
+        'tracking_number',
     ];
 
     /**
@@ -49,6 +57,9 @@ class Order extends Model
         'balance' => 'decimal:2',
         'total_amount' => 'decimal:2',
         'photos' => 'array',
+        'is_store_order' => 'boolean',
+        'shipping_cost' => 'decimal:2',
+        'tax' => 'decimal:2',
     ];
 
     /**
@@ -115,5 +126,31 @@ class Order extends Model
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
+    }
+
+    /**
+     * Get the order items for the order.
+     */
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * Check if the order is a store order.
+     */
+    public function isStoreOrder(): bool
+    {
+        return $this->is_store_order;
+    }
+
+    /**
+     * Get the products for the order.
+     */
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'order_items')
+            ->withPivot('quantity', 'price', 'total', 'options', 'custom_design_data')
+            ->withTimestamps();
     }
 }

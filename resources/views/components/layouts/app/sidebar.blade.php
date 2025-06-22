@@ -76,6 +76,20 @@
                         @endif
                     </flux:navlist.group>
                 @endif
+
+                @if(auth()->user()->hasPermission('view_store_products') || auth()->user()->hasPermission('view_store_orders') || auth()->user()->hasPermission('view_store_purchases'))
+                    <flux:navlist.group :heading="__('Store Management')" class="grid">
+                        @if(auth()->user()->hasPermission('view_store_products'))
+                            <flux:navlist.item icon="shopping-bag" :href="route('store.products.index')" :current="request()->routeIs('store.products.*')" wire:navigate>{{ __('Products') }}</flux:navlist.item>
+                        @endif
+                        @if(auth()->user()->hasPermission('view_store_orders'))
+                            <flux:navlist.item icon="shopping-cart" :href="route('store.orders.index')" :current="request()->routeIs('store.orders.*')" wire:navigate>{{ __('Store Orders') }}</flux:navlist.item>
+                        @endif
+                        @if(auth()->user()->hasPermission('view_store_purchases'))
+                            <flux:navlist.item icon="credit-card" :href="route('store.purchases.index')" :current="request()->routeIs('store.purchases.*')" wire:navigate>{{ __('Purchases') }}</flux:navlist.item>
+                        @endif
+                    </flux:navlist.group>
+                @endif
             </flux:navlist>
 
             <flux:spacer />
@@ -259,6 +273,18 @@
 
                         @if(auth()->user()->hasPermission('view_team'))
                         <flux:menu.item :href="route('team.index')" icon="user-group" wire:navigate>{{ __('Team') }}</flux:menu.item>
+                        @endif
+
+                        @if(auth()->user()->hasPermission('view_store_products'))
+                        <flux:menu.item :href="route('store.products.index')" icon="shopping-bag" wire:navigate>{{ __('Store Products') }}</flux:menu.item>
+                        @endif
+
+                        @if(auth()->user()->hasPermission('view_store_orders'))
+                        <flux:menu.item :href="route('store.orders.index')" icon="shopping-cart" wire:navigate>{{ __('Store Orders') }}</flux:menu.item>
+                        @endif
+
+                        @if(auth()->user()->hasPermission('view_store_purchases'))
+                        <flux:menu.item :href="route('store.purchases.index')" icon="credit-card" wire:navigate>{{ __('Store Purchases') }}</flux:menu.item>
                         @endif
 
                         @if(auth()->user()->hasPermission('view_profile') || auth()->user()->hasPermission('change_password') || auth()->user()->hasPermission('manage_appearance') || auth()->user()->hasPermission('manage_roles_permissions'))

@@ -22,6 +22,94 @@ Route::get('appointments/public/{slug}/time-slots', [\App\Http\Controllers\Publi
 // Public business profile route
 Route::get('business/public/{slug}', \App\Livewire\PublicBusinessProfile::class)->name('business.public');
 
+// Store routes
+Route::prefix('store')->name('store.')->middleware(['auth', \App\Http\Middleware\CheckOnboardingStatus::class])->group(function () {
+    Route::middleware(['permission:manage_store'])->group(function () {
+        Route::get('settings', [\App\Http\Controllers\StoreSettingsController::class, 'index'])->name('settings');
+        Route::post('settings', [\App\Http\Controllers\StoreSettingsController::class, 'update'])->name('settings.update');
+        Route::get('preview', [\App\Http\Controllers\StoreSettingsController::class, 'preview'])->name('preview');
+    });
+
+    // Product management routes
+    Route::middleware(['permission:view_store_products'])->group(function () {
+        Route::get('products', [\App\Http\Controllers\ProductController::class, 'index'])->name('products.index');
+    });
+
+    Route::middleware(['permission:create_store_products'])->group(function () {
+        Route::get('products/create', [\App\Http\Controllers\ProductController::class, 'create'])->name('products.create');
+        Route::post('products', [\App\Http\Controllers\ProductController::class, 'store'])->name('products.store');
+        Volt::route('products/import', 'store.products.import')->name('products.import');
+    });
+
+    Route::middleware(['permission:view_store_products'])->group(function () {
+        Route::get('products/{product}', [\App\Http\Controllers\ProductController::class, 'show'])->name('products.show');
+    });
+
+    Route::middleware(['permission:edit_store_products'])->group(function () {
+        Route::get('products/{product}/edit', [\App\Http\Controllers\ProductController::class, 'edit'])->name('products.edit');
+        Route::put('products/{product}', [\App\Http\Controllers\ProductController::class, 'update'])->name('products.update');
+        Route::patch('products/{product}', [\App\Http\Controllers\ProductController::class, 'update']);
+    });
+
+    Route::middleware(['permission:delete_store_products'])->group(function () {
+        Route::delete('products/{product}', [\App\Http\Controllers\ProductController::class, 'destroy'])->name('products.destroy');
+    });
+
+    // Store orders management
+    Route::middleware(['permission:view_store_orders'])->group(function () {
+        Route::get('orders', [\App\Http\Controllers\StoreOrderController::class, 'index'])->name('orders.index');
+        Route::get('orders/{order}', [\App\Http\Controllers\StoreOrderController::class, 'show'])->name('orders.show');
+    });
+
+    Route::middleware(['permission:create_store_orders'])->group(function () {
+        // Add routes for creating store orders if needed
+    });
+
+    Route::middleware(['permission:edit_store_orders|manage_store_orders'])->group(function () {
+        Route::get('orders/{order}/edit', [\App\Http\Controllers\StoreOrderController::class, 'edit'])->name('orders.edit');
+        Route::put('orders/{order}', [\App\Http\Controllers\StoreOrderController::class, 'update'])->name('orders.update');
+        Route::post('orders/{order}/mark-as-paid', [\App\Http\Controllers\StoreOrderController::class, 'markAsPaid'])->name('orders.mark-as-paid');
+        Route::post('orders/{order}/cancel', [\App\Http\Controllers\StoreOrderController::class, 'cancelOrder'])->name('orders.cancel');
+    });
+
+    Route::middleware(['permission:delete_store_orders|manage_store_orders'])->group(function () {
+        // Add routes for deleting store orders if needed
+    });
+
+    // Store purchases management
+    Route::middleware(['permission:view_store_purchases'])->group(function () {
+        Route::get('purchases', [\App\Http\Controllers\StorePurchaseController::class, 'index'])->name('purchases.index');
+        Route::get('purchases/{purchase}', [\App\Http\Controllers\StorePurchaseController::class, 'show'])->name('purchases.show');
+    });
+
+    Route::middleware(['permission:create_store_purchases'])->group(function () {
+        // Add routes for creating store purchases if needed
+    });
+
+    Route::middleware(['permission:edit_store_purchases|manage_store_purchases'])->group(function () {
+        Route::get('purchases/{purchase}/edit', [\App\Http\Controllers\StorePurchaseController::class, 'edit'])->name('purchases.edit');
+        Route::put('purchases/{purchase}', [\App\Http\Controllers\StorePurchaseController::class, 'update'])->name('purchases.update');
+    });
+
+    Route::middleware(['permission:delete_store_purchases|manage_store_purchases'])->group(function () {
+        // Add routes for deleting store purchases if needed
+    });
+});
+
+// Public storefront routes
+Route::prefix('shop/{slug}')->name('storefront.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\StorefrontController::class, 'index'])->name('index');
+    Route::get('/products', [\App\Http\Controllers\StorefrontController::class, 'products'])->name('products');
+    Route::get('/product/{product}', [\App\Http\Controllers\StorefrontController::class, 'product'])->name('product');
+    Route::get('/cart', [\App\Http\Controllers\StorefrontController::class, 'cart'])->name('cart');
+    Route::post('/cart/add', [\App\Http\Controllers\StorefrontController::class, 'addToCart'])->name('cart.add');
+    Route::post('/cart/update', [\App\Http\Controllers\StorefrontController::class, 'updateCart'])->name('cart.update');
+    Route::get('/cart/remove/{cartItem}', [\App\Http\Controllers\StorefrontController::class, 'removeFromCart'])->name('cart.remove');
+    Route::get('/checkout', [\App\Http\Controllers\StorefrontController::class, 'checkout'])->name('checkout');
+    Route::post('/checkout', [\App\Http\Controllers\StorefrontController::class, 'processCheckout'])->name('checkout.process');
+    Route::get('/order/confirmation/{order}', [\App\Http\Controllers\StorefrontController::class, 'orderConfirmation'])->name('order.confirmation');
+});
+
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified', \App\Http\Middleware\CheckOnboardingStatus::class])
     ->name('dashboard');
@@ -67,6 +155,12 @@ Route::middleware(['auth', \App\Http\Middleware\CheckOnboardingStatus::class])->
 
     // Public booking settings (only for parent accounts)
     Volt::route('settings/public-booking', 'settings.public-booking')->name('settings.public-booking');
+
+    // Store settings (only for parent accounts)
+    Route::middleware(['permission:manage_store'])->group(function () {
+        Route::get('settings/store', \App\Livewire\Settings\Store::class)->name('settings.store');
+        Route::get('settings/store/preview', \App\Livewire\Settings\StorePreview::class)->name('settings.store.preview');
+    });
 
     // Measurement settings
     Route::middleware(['permission:manage_measurements'])->group(function () {

@@ -8,6 +8,9 @@
                 <flux:navlist.item :href="route('settings.business')" wire:navigate>{{ __('Business') }}</flux:navlist.item>
                 <flux:navlist.item :href="route('settings.business-profile')" wire:navigate>{{ __('Business Profile') }}</flux:navlist.item>
                 <flux:navlist.item :href="route('settings.public-booking')" wire:navigate>{{ __('Public Booking') }}</flux:navlist.item>
+                @if(auth()->user()->hasPermission('manage_store'))
+                    <flux:navlist.item :href="route('settings.store')" wire:navigate>{{ __('Store') }}</flux:navlist.item>
+                @endif
             @endif
             @if(auth()->user()->hasPermission('manage_measurements'))
                 <flux:navlist.item :href="route('settings.measurements')" wire:navigate>{{ __('Measurements') }}</flux:navlist.item>

@@ -22,6 +22,19 @@ class BusinessDetail extends Model
         'instagram_handle',
         'tiktok_handle',
         'whatsapp_handle',
+        'store_enabled',
+        'store_slug',
+        'store_theme_color',
+        'store_secondary_color',
+        'store_accent_color',
+        'store_description',
+        'store_banner_image',
+        'store_featured_categories',
+        'store_social_links',
+        'store_announcement',
+        'store_show_featured_products',
+        'store_show_new_arrivals',
+        'store_show_custom_designs',
     ];
 
     /**
@@ -31,4 +44,17 @@ class BusinessDetail extends Model
     {
         return $this->belongsTo(User::class);
     }
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'store_enabled' => 'boolean',
+        'store_featured_categories' => 'array',
+        'store_social_links' => 'array',
+        'store_show_featured_products' => 'boolean',
+        'store_show_new_arrivals' => 'boolean',
+        'store_show_custom_designs' => 'boolean',
+    ];
 }

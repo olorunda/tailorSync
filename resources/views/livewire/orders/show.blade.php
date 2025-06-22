@@ -24,12 +24,19 @@ new class extends Component {
         try {
             $oldStatus = $this->order->status;
             $this->order->status = $status;
+
+            // If the status is being set to cancelled, also set the payment status to cancelled
+            if ($status === 'cancelled') {
+                $this->order->payment_status = 'cancelled';
+            }
+
             $this->order->save();
 
             \Log::info('Order status updated', [
                 'order_id' => $this->order->id,
                 'old_status' => $oldStatus,
-                'new_status' => $status
+                'new_status' => $status,
+                'payment_status' => $this->order->payment_status
             ]);
 
             session()->flash('success', 'Order status updated to ' . ucfirst(str_replace('_', ' ', $status)));
@@ -252,7 +259,6 @@ new class extends Component {
 
                     <div>
                         <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-2">Update Status</p>
-                        <div class="space-y-2">
                         <div class="space-y-2">
                             <button wire:click="updateStatus('pending')" class="w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors
                                 @if($order->status === 'pending') bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400

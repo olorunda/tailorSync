@@ -39,6 +39,17 @@ class OrderObserver
                 unset(self::$oldStatusValues[$order->id]);
             }
 
+            // If the order is cancelled, restore the product quantities
+            if ($order->status === 'cancelled') {
+                foreach ($order->orderItems as $orderItem) {
+                    $product = $orderItem->product;
+                    if ($product) {
+                        $product->stock_quantity += $orderItem->quantity;
+                        $product->save();
+                    }
+                }
+            }
+
             // Notify the client
             if ($order->client) {
                 $order->client->notify(new OrderStatusNotification($order, $oldStatus));

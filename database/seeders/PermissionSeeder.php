@@ -20,6 +20,7 @@ class PermissionSeeder extends Seeder
                 ['name' => 'change_password', 'description' => 'Change password'],
                 ['name' => 'manage_appearance', 'description' => 'Manage appearance settings'],
                 ['name' => 'manage_roles_permissions', 'description' => 'Manage roles and permissions'],
+                ['name' => 'manage_store', 'description' => 'Manage store settings and configuration'],
             ],
             'clients' => [
                 ['name' => 'view_clients', 'description' => 'View clients'],
@@ -85,6 +86,22 @@ class PermissionSeeder extends Seeder
                 ['name' => 'create_tasks', 'description' => 'Create new tasks'],
                 ['name' => 'edit_tasks', 'description' => 'Edit existing tasks'],
                 ['name' => 'delete_tasks', 'description' => 'Delete tasks'],
+            ],
+            'store' => [
+                ['name' => 'view_store_products', 'description' => 'View store products'],
+                ['name' => 'create_store_products', 'description' => 'Create new store products'],
+                ['name' => 'edit_store_products', 'description' => 'Edit existing store products'],
+                ['name' => 'delete_store_products', 'description' => 'Delete store products'],
+                ['name' => 'view_store_orders', 'description' => 'View store orders'],
+                ['name' => 'create_store_orders', 'description' => 'Create new store orders'],
+                ['name' => 'edit_store_orders', 'description' => 'Edit existing store orders'],
+                ['name' => 'delete_store_orders', 'description' => 'Delete store orders'],
+                ['name' => 'manage_store_orders', 'description' => 'Manage store orders (legacy)'],
+                ['name' => 'view_store_purchases', 'description' => 'View store purchases'],
+                ['name' => 'create_store_purchases', 'description' => 'Create new store purchases'],
+                ['name' => 'edit_store_purchases', 'description' => 'Edit existing store purchases'],
+                ['name' => 'delete_store_purchases', 'description' => 'Delete store purchases'],
+                ['name' => 'manage_store_purchases', 'description' => 'Manage store purchases (legacy)'],
             ],
         ];
 

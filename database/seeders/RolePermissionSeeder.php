@@ -31,9 +31,20 @@ class RolePermissionSeeder extends Seeder
             $query->where('category', '!=', 'settings')
                   ->orWhere(function ($q) {
                       $q->where('category', 'settings')
-                        ->whereNotIn('name', ['manage_roles_permissions']);
-                  });
+                        ->whereNotIn('name', ['manage_roles_permissions'])
+                        ->orWhere('name', 'manage_store');
+                  })
+                  ->orWhere('category', 'store');
         })->get();
+
+        // Ensure that managers who had manage_store_orders and manage_store_purchases
+        // also get the new granular permissions
+        $managerPermissions = $managerPermissions->merge(
+            Permission::whereIn('name', [
+                'create_store_orders', 'edit_store_orders', 'delete_store_orders',
+                'create_store_purchases', 'edit_store_purchases', 'delete_store_purchases'
+            ])->get()
+        );
         $managerRole->permissions()->sync($managerPermissions->pluck('id')->toArray());
 
         // Tailor permissions

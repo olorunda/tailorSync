@@ -63,7 +63,7 @@ class User extends Authenticatable
         return Str::of($this->name)
             ->explode(' ')
             ->take(2)
-            ->map(fn ($word) => Str::substr($word, 0, 1))
+            ->map(fn($word) => Str::substr($word, 0, 1))
             ->implode('');
     }
 
@@ -84,7 +84,7 @@ class User extends Authenticatable
             // Child account: see own clients and parent's clients
             return Client::where(function ($query) {
                 $query->where('user_id', $this->id)
-                      ->orWhere('user_id', $this->parent_id);
+                    ->orWhere('user_id', $this->parent_id);
             });
         } else {
             // Parent account: see own clients and all children's clients
@@ -92,7 +92,7 @@ class User extends Authenticatable
             if (!empty($childrenIds)) {
                 return Client::where(function ($query) use ($childrenIds) {
                     $query->where('user_id', $this->id)
-                          ->orWhereIn('user_id', $childrenIds);
+                        ->orWhereIn('user_id', $childrenIds);
                 });
             }
         }
@@ -117,7 +117,7 @@ class User extends Authenticatable
             // Child account: see own orders and parent's orders
             return Order::where(function ($query) {
                 $query->where('user_id', $this->id)
-                      ->orWhere('user_id', $this->parent_id);
+                    ->orWhere('user_id', $this->parent_id);
             });
         } else {
             // Parent account: see own orders and all children's orders
@@ -125,7 +125,7 @@ class User extends Authenticatable
             if (!empty($childrenIds)) {
                 return Order::where(function ($query) use ($childrenIds) {
                     $query->where('user_id', $this->id)
-                          ->orWhereIn('user_id', $childrenIds);
+                        ->orWhereIn('user_id', $childrenIds);
                 });
             }
         }
@@ -150,7 +150,7 @@ class User extends Authenticatable
             // Child account: see own designs and parent's designs
             return Design::where(function ($query) {
                 $query->where('user_id', $this->id)
-                      ->orWhere('user_id', $this->parent_id);
+                    ->orWhere('user_id', $this->parent_id);
             });
         } else {
             // Parent account: see own designs and all children's designs
@@ -158,7 +158,7 @@ class User extends Authenticatable
             if (!empty($childrenIds)) {
                 return Design::where(function ($query) use ($childrenIds) {
                     $query->where('user_id', $this->id)
-                          ->orWhereIn('user_id', $childrenIds);
+                        ->orWhereIn('user_id', $childrenIds);
                 });
             }
         }
@@ -183,7 +183,7 @@ class User extends Authenticatable
             // Child account: see own inventory items and parent's inventory items
             return InventoryItem::where(function ($query) {
                 $query->where('user_id', $this->id)
-                      ->orWhere('user_id', $this->parent_id);
+                    ->orWhere('user_id', $this->parent_id);
             });
         } else {
             // Parent account: see own inventory items and all children's inventory items
@@ -191,7 +191,7 @@ class User extends Authenticatable
             if (!empty($childrenIds)) {
                 return InventoryItem::where(function ($query) use ($childrenIds) {
                     $query->where('user_id', $this->id)
-                          ->orWhereIn('user_id', $childrenIds);
+                        ->orWhereIn('user_id', $childrenIds);
                 });
             }
         }
@@ -216,7 +216,7 @@ class User extends Authenticatable
             // Child account: see own messages and parent's messages
             return Message::where(function ($query) {
                 $query->where('user_id', $this->id)
-                      ->orWhere('user_id', $this->parent_id);
+                    ->orWhere('user_id', $this->parent_id);
             });
         } else {
             // Parent account: see own messages and all children's messages
@@ -224,7 +224,7 @@ class User extends Authenticatable
             if (!empty($childrenIds)) {
                 return Message::where(function ($query) use ($childrenIds) {
                     $query->where('user_id', $this->id)
-                          ->orWhereIn('user_id', $childrenIds);
+                        ->orWhereIn('user_id', $childrenIds);
                 });
             }
         }
@@ -249,7 +249,7 @@ class User extends Authenticatable
             // Child account: see own appointments and parent's appointments
             return Appointment::where(function ($query) {
                 $query->where('user_id', $this->id)
-                      ->orWhere('user_id', $this->parent_id);
+                    ->orWhere('user_id', $this->parent_id);
             });
         } else {
             // Parent account: see own appointments and all children's appointments
@@ -257,7 +257,7 @@ class User extends Authenticatable
             if (!empty($childrenIds)) {
                 return Appointment::where(function ($query) use ($childrenIds) {
                     $query->where('user_id', $this->id)
-                          ->orWhereIn('user_id', $childrenIds);
+                        ->orWhereIn('user_id', $childrenIds);
                 });
             }
         }
@@ -282,7 +282,7 @@ class User extends Authenticatable
             // Child account: see own invoices and parent's invoices
             return Invoice::where(function ($query) {
                 $query->where('user_id', $this->id)
-                      ->orWhere('user_id', $this->parent_id);
+                    ->orWhere('user_id', $this->parent_id);
             });
         } else {
             // Parent account: see own invoices and all children's invoices
@@ -290,7 +290,7 @@ class User extends Authenticatable
             if (!empty($childrenIds)) {
                 return Invoice::where(function ($query) use ($childrenIds) {
                     $query->where('user_id', $this->id)
-                          ->orWhereIn('user_id', $childrenIds);
+                        ->orWhereIn('user_id', $childrenIds);
                 });
             }
         }
@@ -315,7 +315,7 @@ class User extends Authenticatable
             // Child account: see own payments and parent's payments
             return Payment::where(function ($query) {
                 $query->where('user_id', $this->id)
-                      ->orWhere('user_id', $this->parent_id);
+                    ->orWhere('user_id', $this->parent_id);
             });
         } else {
             // Parent account: see own payments and all children's payments
@@ -323,7 +323,7 @@ class User extends Authenticatable
             if (!empty($childrenIds)) {
                 return Payment::where(function ($query) use ($childrenIds) {
                     $query->where('user_id', $this->id)
-                          ->orWhereIn('user_id', $childrenIds);
+                        ->orWhereIn('user_id', $childrenIds);
                 });
             }
         }
@@ -348,7 +348,7 @@ class User extends Authenticatable
             // Child account: see own expenses and parent's expenses
             return Expense::where(function ($query) {
                 $query->where('user_id', $this->id)
-                      ->orWhere('user_id', $this->parent_id);
+                    ->orWhere('user_id', $this->parent_id);
             });
         } else {
             // Parent account: see own expenses and all children's expenses
@@ -356,7 +356,7 @@ class User extends Authenticatable
             if (!empty($childrenIds)) {
                 return Expense::where(function ($query) use ($childrenIds) {
                     $query->where('user_id', $this->id)
-                          ->orWhereIn('user_id', $childrenIds);
+                        ->orWhereIn('user_id', $childrenIds);
                 });
             }
         }
@@ -381,7 +381,7 @@ class User extends Authenticatable
             // Child account: see own team members and parent's team members
             return User::where(function ($query) {
                 $query->where('id', $this->id)
-                      ->orWhere('parent_id', $this->parent_id);
+                    ->orWhere('parent_id', $this->parent_id);
             });
         } else {
             // Parent account: see own team members and all children's team members
@@ -390,7 +390,7 @@ class User extends Authenticatable
                 return User::where(function ($query) use ($childrenIds) {
                     $query
                         //->where('id', $this->id)
-                          ->orWhereIn('id', $childrenIds);
+                        ->orWhereIn('id', $childrenIds);
                 });
             }
         }
@@ -415,7 +415,7 @@ class User extends Authenticatable
             // Child account: see own tasks and parent's tasks
             return Task::where(function ($query) {
                 $query->where('user_id', $this->id)
-                      ->orWhere('user_id', $this->parent_id);
+                    ->orWhere('user_id', $this->parent_id);
             });
         } else {
             // Parent account: see own tasks and all children's tasks
@@ -423,7 +423,7 @@ class User extends Authenticatable
             if (!empty($childrenIds)) {
                 return Task::where(function ($query) use ($childrenIds) {
                     $query->where('user_id', $this->id)
-                          ->orWhereIn('user_id', $childrenIds);
+                        ->orWhereIn('user_id', $childrenIds);
                 });
             }
         }
@@ -448,7 +448,7 @@ class User extends Authenticatable
             // Child account: see own measurements and parent's measurements
             return Measurement::where(function ($query) {
                 $query->where('user_id', $this->id)
-                      ->orWhere('user_id', $this->parent_id);
+                    ->orWhere('user_id', $this->parent_id);
             });
         } else {
             // Parent account: see own measurements and all children's measurements
@@ -456,7 +456,7 @@ class User extends Authenticatable
             if (!empty($childrenIds)) {
                 return Measurement::where(function ($query) use ($childrenIds) {
                     $query->where('user_id', $this->id)
-                          ->orWhereIn('user_id', $childrenIds);
+                        ->orWhereIn('user_id', $childrenIds);
                 });
             }
         }
@@ -469,7 +469,7 @@ class User extends Authenticatable
      */
     public function getCurrencySymbol(): string
     {
-        return match($this->currency) {
+        return match ($this->currency) {
             'USD' => '$',
             'EUR' => '€',
             'GBP' => '£',
@@ -551,6 +551,14 @@ class User extends Authenticatable
         // Check if user has permission through their role
         // First ensure that role_id exists and the role relationship is loaded
         try {
+            if (str_contains($permissionName, '|')) {
+                $permissions = explode('|', $permissionName);
+                foreach ($permissions as $permission) {
+                    if ($this->roleRelation->permissions->contains('name', $permission)) {
+                        return $this->role_id && $this->roleRelation && $this->roleRelation->permissions && $this->roleRelation->permissions->contains('name', $permission);
+                    }
+                }
+            }
             return $this->role_id && $this->roleRelation && $this->roleRelation->permissions && $this->roleRelation->permissions->contains('name', $permissionName);
         } catch (\Throwable $e) {
             // If any error occurs during permission check, return false
