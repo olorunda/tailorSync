@@ -101,7 +101,7 @@
                                 <div>
                                     <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-1">Total Amount</p>
                                     <p class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-                                        {{ $order->total_amount ? '$' . number_format($order->total_amount, 2) : 'Not set' }}
+                                        {{ $order->total_amount ? $currencySymbol . number_format($order->total_amount, 2) : 'Not set' }}
                                     </p>
                                 </div>
                                 <div>
@@ -220,10 +220,10 @@
                                                 {{ $item['quantity'] }}
                                             </td>
                                             <td class="px-4 py-4 text-right whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400" data-label="Unit Price">
-                                                ${{ number_format($item['unit_price'], 2) }}
+                                                {{ $currencySymbol }}{{ number_format($item['unit_price'], 2) }}
                                             </td>
                                             <td class="px-4 py-4 text-right whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100" data-label="Amount">
-                                                ${{ number_format($item['quantity'] * $item['unit_price'], 2) }}
+                                                {{ $currencySymbol }}{{ number_format($item['quantity'] * $item['unit_price'], 2) }}
                                             </td>
                                         </tr>
                                     @endforeach
@@ -236,26 +236,26 @@
                             <div class="w-full md:w-1/3 space-y-3">
                                 <div class="flex justify-between">
                                     <span class="text-sm font-medium text-zinc-600 dark:text-zinc-400">Subtotal:</span>
-                                    <span class="text-sm text-zinc-900 dark:text-zinc-100">${{ number_format($invoice->subtotal, 2) }}</span>
+                                    <span class="text-sm text-zinc-900 dark:text-zinc-100">{{ $currencySymbol }}{{ number_format($invoice->subtotal, 2) }}</span>
                                 </div>
 
                                 @if ($invoice->tax_rate > 0)
                                     <div class="flex justify-between">
                                         <span class="text-sm font-medium text-zinc-600 dark:text-zinc-400">Tax ({{ $invoice->tax_rate }}%):</span>
-                                        <span class="text-sm text-zinc-900 dark:text-zinc-100">${{ number_format($invoice->tax_amount, 2) }}</span>
+                                        <span class="text-sm text-zinc-900 dark:text-zinc-100">{{ $currencySymbol }}{{ number_format($invoice->tax_amount, 2) }}</span>
                                     </div>
                                 @endif
 
                                 @if ($invoice->discount_amount > 0)
                                     <div class="flex justify-between">
                                         <span class="text-sm font-medium text-zinc-600 dark:text-zinc-400">Discount:</span>
-                                        <span class="text-sm text-zinc-900 dark:text-zinc-100">-${{ number_format($invoice->discount_amount, 2) }}</span>
+                                        <span class="text-sm text-zinc-900 dark:text-zinc-100">-{{ $currencySymbol }}{{ number_format($invoice->discount_amount, 2) }}</span>
                                     </div>
                                 @endif
 
                                 <div class="flex justify-between pt-3 border-t border-zinc-200 dark:border-zinc-700">
                                     <span class="text-base font-medium text-zinc-900 dark:text-zinc-100">Total:</span>
-                                    <span class="text-base font-bold text-orange-600 dark:text-orange-500">${{ number_format($invoice->total_amount, 2) }}</span>
+                                    <span class="text-base font-bold text-orange-600 dark:text-orange-500">{{ $currencySymbol }}{{ number_format($invoice->total_amount, 2) }}</span>
                                 </div>
                             </div>
                         </div>

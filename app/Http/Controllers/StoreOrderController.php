@@ -94,7 +94,10 @@ class StoreOrderController extends Controller
 
         $orders = $query->paginate(10)->withQueryString();
 
-        return view('store.orders.index', compact('orders'));
+        // Get currency symbol
+        $currencySymbol = $this->getCurrencySymbol(auth()->id());
+
+        return view('store.orders.index', compact('orders', 'currencySymbol'));
     }
 
     /**
@@ -106,7 +109,19 @@ class StoreOrderController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        return view('store.orders.show', compact('order'));
+        // Get currency symbol
+        $currencySymbol = $this->getCurrencySymbol($order->user_id);
+
+        return view('store.orders.show', compact('order', 'currencySymbol'));
+    }
+
+    /**
+     * Get the currency symbol for the store owner.
+     */
+    private function getCurrencySymbol($userId)
+    {
+        $user = \App\Models\User::find($userId);
+        return $user ? $user->getCurrencySymbol() : '$';
     }
 
     /**
@@ -118,7 +133,10 @@ class StoreOrderController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        return view('store.orders.edit', compact('order'));
+        // Get currency symbol
+        $currencySymbol = $this->getCurrencySymbol($order->user_id);
+
+        return view('store.orders.edit', compact('order', 'currencySymbol'));
     }
 
     /**

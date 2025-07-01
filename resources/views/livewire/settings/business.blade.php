@@ -74,6 +74,317 @@
                 </div>
 
                 <div class="mt-6">
+                    <h3 class="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-4">Tax Settings</h3>
+                    <div class="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg mb-4">
+                        <p class="text-sm text-orange-800 dark:text-orange-300">
+                            Configure tax settings for invoices according to your country's tax laws. These settings will affect how taxes are calculated on invoices.
+                        </p>
+                    </div>
+
+                    @if(!$canManageTaxSettings)
+                        <div class="bg-zinc-100 dark:bg-zinc-800 p-4 rounded-lg mb-4">
+                            <p class="text-zinc-600 dark:text-zinc-400 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                                You don't have permission to manage tax settings. Please contact your administrator.
+                            </p>
+                        </div>
+                    @endif
+
+                    <div class="space-y-4" @if(!$canManageTaxSettings) x-data="" x-on:click.prevent="" class="opacity-60 pointer-events-none" @endif>
+                        <div>
+                            <label for="taxEnabled" class="flex items-center">
+                                <input type="checkbox" id="taxEnabled" wire:model="taxEnabled" class="rounded border-zinc-300 text-orange-600 shadow-sm focus:border-orange-300 focus:ring focus:ring-orange-200 focus:ring-opacity-50">
+                                <span class="ml-2 text-sm text-zinc-700 dark:text-zinc-300">Enable tax calculation on invoices</span>
+                            </label>
+                        </div>
+
+                        <div>
+                            <label for="taxNumber" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Tax Identification Number</label>
+                            <input type="text" id="taxNumber" wire:model="taxNumber" placeholder="e.g., VAT number, EIN, GST number" class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                            @error('taxNumber') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label for="taxCountry" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Tax Country</label>
+                            <select id="taxCountry" wire:model="taxCountry"
+                                    wire:change="setTaxCountry($event.target.value)"
+                                    class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                <option value="none">None</option>
+                                <option value="canada">Canada</option>
+                                <option value="us">United States</option>
+                                <option value="uk">United Kingdom</option>
+                                <option value="nigeria">Nigeria</option>
+                            </select>
+                            @error('taxCountry') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        </div>
+
+                        <!-- Canadian Tax Settings -->
+                        @if($taxCountry === 'canada')
+                        <div class="p-4 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800">
+                            <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-3">Canadian Tax Settings</h4>
+
+                            <div class="space-y-3">
+                                <div>
+                                    <label for="canadaProvince" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Province</label>
+                                    <select id="canadaProvince" wire:model="canadaProvince" wire:change="setProvince($event.target.value)"class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                        <option value="">Select Province</option>
+                                        <option value="alberta">Alberta</option>
+                                        <option value="british_columbia">British Columbia</option>
+                                        <option value="manitoba">Manitoba</option>
+                                        <option value="new_brunswick">New Brunswick</option>
+                                        <option value="newfoundland_and_labrador">Newfoundland and Labrador</option>
+                                        <option value="northwest_territories">Northwest Territories</option>
+                                        <option value="nova_scotia">Nova Scotia</option>
+                                        <option value="nunavut">Nunavut</option>
+                                        <option value="ontario">Ontario</option>
+                                        <option value="prince_edward_island">Prince Edward Island</option>
+                                        <option value="quebec">Quebec</option>
+                                        <option value="saskatchewan">Saskatchewan</option>
+                                        <option value="yukon">Yukon</option>
+                                    </select>
+                                    @error('canadaProvince') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+
+                                <!-- GST/HST/PST Rates -->
+                                @if(in_array($canadaProvince, ['ontario', 'new_brunswick', 'newfoundland_and_labrador', 'nova_scotia', 'prince_edward_island']))
+                                    <div>
+                                        <label for="canadaHstRate" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">HST Rate (%)</label>
+                                        <input type="number" step="0.01" min="0" max="100" id="canadaHstRate" wire:model="canadaHstRate" class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                        @error('canadaHstRate') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    </div>
+                                @else
+                                    <div>
+                                        <label for="canadaGstRate" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">GST Rate (%)</label>
+                                        <input type="number" step="0.01" min="0" max="100" id="canadaGstRate" wire:model="canadaGstRate" class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                        @error('canadaGstRate') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    </div>
+
+                                    <div>
+                                        <label for="canadaPstRate" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">PST/QST Rate (%)</label>
+                                        <input type="number" step="0.01" min="0" max="100" id="canadaPstRate" wire:model="canadaPstRate" class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                        @error('canadaPstRate') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- US Tax Settings -->
+                        @if($taxCountry === 'us')
+                        <div class="p-4 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800">
+                            <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-3">US Tax Settings</h4>
+
+                            <div class="space-y-3">
+                                <div>
+                                    <label for="usState" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">State</label>
+                                    <select id="usState" wire:model="usState" class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                        <option value="">Select State</option>
+                                        <option value="alabama">Alabama</option>
+                                        <option value="alaska">Alaska</option>
+                                        <option value="arizona">Arizona</option>
+                                        <option value="arkansas">Arkansas</option>
+                                        <option value="california">California</option>
+                                        <option value="colorado">Colorado</option>
+                                        <option value="connecticut">Connecticut</option>
+                                        <option value="delaware">Delaware</option>
+                                        <option value="florida">Florida</option>
+                                        <option value="georgia">Georgia</option>
+                                        <option value="hawaii">Hawaii</option>
+                                        <option value="idaho">Idaho</option>
+                                        <option value="illinois">Illinois</option>
+                                        <option value="indiana">Indiana</option>
+                                        <option value="iowa">Iowa</option>
+                                        <option value="kansas">Kansas</option>
+                                        <option value="kentucky">Kentucky</option>
+                                        <option value="louisiana">Louisiana</option>
+                                        <option value="maine">Maine</option>
+                                        <option value="maryland">Maryland</option>
+                                        <option value="massachusetts">Massachusetts</option>
+                                        <option value="michigan">Michigan</option>
+                                        <option value="minnesota">Minnesota</option>
+                                        <option value="mississippi">Mississippi</option>
+                                        <option value="missouri">Missouri</option>
+                                        <option value="montana">Montana</option>
+                                        <option value="nebraska">Nebraska</option>
+                                        <option value="nevada">Nevada</option>
+                                        <option value="new_hampshire">New Hampshire</option>
+                                        <option value="new_jersey">New Jersey</option>
+                                        <option value="new_mexico">New Mexico</option>
+                                        <option value="new_york">New York</option>
+                                        <option value="north_carolina">North Carolina</option>
+                                        <option value="north_dakota">North Dakota</option>
+                                        <option value="ohio">Ohio</option>
+                                        <option value="oklahoma">Oklahoma</option>
+                                        <option value="oregon">Oregon</option>
+                                        <option value="pennsylvania">Pennsylvania</option>
+                                        <option value="rhode_island">Rhode Island</option>
+                                        <option value="south_carolina">South Carolina</option>
+                                        <option value="south_dakota">South Dakota</option>
+                                        <option value="tennessee">Tennessee</option>
+                                        <option value="texas">Texas</option>
+                                        <option value="utah">Utah</option>
+                                        <option value="vermont">Vermont</option>
+                                        <option value="virginia">Virginia</option>
+                                        <option value="washington">Washington</option>
+                                        <option value="west_virginia">West Virginia</option>
+                                        <option value="wisconsin">Wisconsin</option>
+                                        <option value="wyoming">Wyoming</option>
+                                        <option value="district_of_columbia">District of Columbia</option>
+                                    </select>
+                                    @error('usState') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div>
+                                    <label for="usStateRate" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">State Tax Rate (%)</label>
+                                    <input type="number" step="0.01" min="0" max="100" id="usStateRate" wire:model="usStateRate" class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                    @error('usStateRate') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div>
+                                    <label for="usLocalRate" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Local Tax Rate (%)</label>
+                                    <input type="number" step="0.01" min="0" max="100" id="usLocalRate" wire:model="usLocalRate" class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                    @error('usLocalRate') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- UK Tax Settings -->
+                        @if($taxCountry === 'uk')
+                        <div class="p-4 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800">
+                            <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-3">UK Tax Settings</h4>
+
+                            <div>
+                                <label for="ukVatRate" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">VAT Rate (%)</label>
+                                <input type="number" step="0.01" min="0" max="100" id="ukVatRate" wire:model="ukVatRate" class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                @error('ukVatRate') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- Nigeria Tax Settings -->
+                        @if($taxCountry === 'nigeria')
+                        <div class="p-4 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800">
+                            <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-3">Nigeria Tax Settings</h4>
+
+                            <div>
+                                <label for="nigeriaVatRate" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">VAT Rate (%)</label>
+                                <input type="number" step="0.01" min="0" max="100" id="nigeriaVatRate" wire:model="nigeriaVatRate" class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                @error('nigeriaVatRate') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <h3 class="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-4">Payment Settings</h3>
+                    <div class="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg mb-4">
+                        <p class="text-sm text-orange-800 dark:text-orange-300">
+                            Configure payment gateway settings to accept payments for invoices and store purchases. These settings will determine how payments are processed.
+                        </p>
+                    </div>
+
+                    @if(!$canManagePaymentSettings)
+                        <div class="bg-zinc-100 dark:bg-zinc-800 p-4 rounded-lg mb-4">
+                            <p class="text-zinc-600 dark:text-zinc-400 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                                You don't have permission to manage payment settings. Please contact your administrator.
+                            </p>
+                        </div>
+                    @endif
+
+                    <div class="space-y-4" @if(!$canManagePaymentSettings) x-data="" x-on:click.prevent="" class="opacity-60 pointer-events-none" @endif>
+                        <div>
+                            <label for="paymentEnabled" class="flex items-center">
+                                <input type="checkbox" id="paymentEnabled" wire:model="paymentEnabled" class="rounded border-zinc-300 text-orange-600 shadow-sm focus:border-orange-300 focus:ring focus:ring-orange-200 focus:ring-opacity-50">
+                                <span class="ml-2 text-sm text-zinc-700 dark:text-zinc-300">Enable payment processing</span>
+                            </label>
+                        </div>
+
+                        <div>
+                            <label for="defaultPaymentGateway" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Default Payment Gateway</label>
+                            <select id="defaultPaymentGateway" wire:model="defaultPaymentGateway"
+                                    wire:change="setPaymentGateway($event.target.value)"
+                                    class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                <option value="none">None</option>
+                                <option value="paystack">Paystack</option>
+                                <option value="flutterwave">Flutterwave</option>
+                                <option value="stripe">Stripe</option>
+                            </select>
+                            @error('defaultPaymentGateway') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        </div>
+
+                        <!-- Paystack Settings -->
+                        @if($defaultPaymentGateway === 'paystack')
+                        <div class="p-4 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800">
+                            <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-3">Paystack Settings</h4>
+
+                            <div class="space-y-3">
+                                <div>
+                                    <label for="paystackPublicKey" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Public Key</label>
+                                    <input type="text" id="paystackPublicKey" wire:model="paystackPublicKey" class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                    @error('paystackPublicKey') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div>
+                                    <label for="paystackSecretKey" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Secret Key</label>
+                                    <input type="password" id="paystackSecretKey" wire:model="paystackSecretKey" class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                    @error('paystackSecretKey') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- Flutterwave Settings -->
+                        @if($defaultPaymentGateway === 'flutterwave')
+                        <div class="p-4 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800">
+                            <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-3">Flutterwave Settings</h4>
+
+                            <div class="space-y-3">
+                                <div>
+                                    <label for="flutterwavePublicKey" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Public Key</label>
+                                    <input type="text" id="flutterwavePublicKey" wire:model="flutterwavePublicKey" class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                    @error('flutterwavePublicKey') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div>
+                                    <label for="flutterwaveSecretKey" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Secret Key</label>
+                                    <input type="password" id="flutterwaveSecretKey" wire:model="flutterwaveSecretKey" class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                    @error('flutterwaveSecretKey') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- Stripe Settings -->
+                        @if($defaultPaymentGateway === 'stripe')
+                        <div class="p-4 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800">
+                            <h4 class="font-medium text-zinc-900 dark:text-zinc-100 mb-3">Stripe Settings</h4>
+
+                            <div class="space-y-3">
+                                <div>
+                                    <label for="stripePublicKey" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Publishable Key</label>
+                                    <input type="text" id="stripePublicKey" wire:model="stripePublicKey" class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                    @error('stripePublicKey') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div>
+                                    <label for="stripeSecretKey" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Secret Key</label>
+                                    <input type="password" id="stripeSecretKey" wire:model="stripeSecretKey" class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                    @error('stripeSecretKey') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="mt-6">
                     <h3 class="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-4">Social Media Handles</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>

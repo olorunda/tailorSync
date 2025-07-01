@@ -3,6 +3,8 @@
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\Order;
+use App\Models\BusinessDetail;
+use App\Services\TaxService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Volt\Component;
 
@@ -25,6 +27,9 @@ new class extends Component {
     public float $total_amount = 0;
     public string $notes = '';
     public string $terms = '';
+    public $businessDetail = null;
+    public $taxEnabled = false;
+    public $taxCountry = 'none';
 
     public function mount()
     {
@@ -37,8 +42,27 @@ new class extends Component {
         $nextInvoiceNumber = $latestInvoice ? (intval(substr($latestInvoice->invoice_number, 3)) + 1) : 1;
         $this->invoice_number = 'INV' . str_pad($nextInvoiceNumber, 5, '0', STR_PAD_LEFT);
 
+        // Get business details and tax settings
+        $this->businessDetail = Auth::user()->businessDetail;
+        if ($this->businessDetail) {
+            $this->taxEnabled = $this->businessDetail->tax_enabled;
+            $this->taxCountry = $this->businessDetail->tax_country;
+
+            // Set default tax rate based on business settings if tax is enabled
+            if ($this->taxEnabled && $this->taxCountry !== 'none') {
+                // We'll calculate the actual tax in calculateTotals()
+                // Just initialize with a default for now
+                $this->tax_rate = 0;
+            } else {
+                // Use default tax rate if tax is not enabled
+                $this->tax_rate = 7.5;
+            }
+        } else {
+            // Use default tax rate if no business details
+            $this->tax_rate = 7.5;
+        }
+
         // Initialize properties with default values
-        $this->tax_rate = 7.5;
         $this->discount_amount = 0;
         $this->subtotal = 0;
         $this->tax_amount = 0;
@@ -169,8 +193,25 @@ new class extends Component {
             $this->discount_amount = 0;
         }
 
-        // Calculate tax amount and total
-        $this->tax_amount = $this->subtotal * ($this->tax_rate / 100);
+        // Calculate tax amount based on business tax settings if enabled
+        if ($this->businessDetail && $this->taxEnabled && $this->taxCountry !== 'none') {
+            // Create a temporary invoice object to calculate tax
+            $tempInvoice = new Invoice();
+            $tempInvoice->subtotal = $this->subtotal;
+
+            // Use TaxService to calculate tax
+            $taxService = new TaxService($this->businessDetail);
+            $taxResult = $taxService->calculateInvoiceTax($tempInvoice);
+
+            // Update tax rate and amount from the calculation
+            $this->tax_rate = $taxResult['tax_rate'];
+            $this->tax_amount = $taxResult['tax_amount'];
+        } else {
+            // Use manual tax rate if tax settings are not enabled
+            $this->tax_amount = $this->subtotal * ($this->tax_rate / 100);
+        }
+
+        // Calculate total amount
         $this->total_amount = $this->subtotal + $this->tax_amount - $this->discount_amount;
     }
 
@@ -513,6 +554,7 @@ new class extends Component {
                                     <td class="px-4 py-2" data-label="Quantity">
                                         <input
                                             wire:model="items.{{ $index }}.quantity"
+                                            wire:keyup="calculateTotals"
                                             type="number"
                                             min="0.01"
                                             step="0.01"
@@ -529,6 +571,7 @@ new class extends Component {
                                             <input
                                                 wire:model="items.{{ $index }}.unit_price"
                                                 type="number"
+                                                wire:keyup="calculateTotals"
                                                 min="0"
                                                 step="0.01"
                                                 class="pl-7 bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5"
@@ -589,7 +632,12 @@ new class extends Component {
                         </div>
 
                         <div class="flex items-center justify-between">
-                            <label for="tax_rate" class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Tax Rate (%):</label>
+                            <label for="tax_rate" class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                                Tax Rate (%):
+                                @if($taxEnabled && $taxCountry !== 'none')
+                                    <span class="text-xs text-orange-600 dark:text-orange-400 ml-1">(Auto-calculated)</span>
+                                @endif
+                            </label>
                             <div class="w-24">
                                 <input
                                     wire:model.live.debounce.500ms="tax_rate"
@@ -598,9 +646,15 @@ new class extends Component {
                                     step="0.01"
                                     id="tax_rate"
                                     class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5"
+                                    @if($taxEnabled && $taxCountry !== 'none') readonly @endif
                                 >
                             </div>
                         </div>
+                        @if($taxEnabled && $taxCountry !== 'none')
+                            <div class="text-xs text-zinc-500 dark:text-zinc-400 italic">
+                                Tax is automatically calculated based on your {{ ucfirst($taxCountry) }} tax settings.
+                            </div>
+                        @endif
 
                         <div class="flex justify-between">
                             <span class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Tax Amount:</span>

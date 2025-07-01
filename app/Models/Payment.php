@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Payment extends Model
 {
@@ -22,12 +21,15 @@ class Payment extends Model
         'order_id',
         'description',
         'amount',
+        'currency',
         'payment_date',
         'payment_method',
-        'reference_number',
-        'notes',
-        'cost',
         'status',
+        'reference_number',
+        'reference',
+        'notes',
+        'metadata',
+        'gateway_response',
     ];
 
     /**
@@ -36,31 +38,22 @@ class Payment extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'payment_date' => 'date',
-        'amount' => 'decimal:2',
-        'status' => 'string',
+        'payment_date' => 'datetime',
+        'metadata' => 'array',
     ];
 
     /**
      * Get the user that owns the payment.
      */
-    public function user(): BelongsTo
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
 
     /**
-     * Get the client that owns the payment.
-     */
-    public function client(): BelongsTo
-    {
-        return $this->belongsTo(Client::class);
-    }
-
-    /**
      * Get the invoice associated with the payment.
      */
-    public function invoice(): BelongsTo
+    public function invoice()
     {
         return $this->belongsTo(Invoice::class);
     }
@@ -68,24 +61,16 @@ class Payment extends Model
     /**
      * Get the order associated with the payment.
      */
-    public function order(): BelongsTo
+    public function order()
     {
         return $this->belongsTo(Order::class);
     }
 
     /**
-     * Scope a query to only include payments within a date range.
+     * Get the client associated with the payment.
      */
-    public function scopeDateBetween($query, $startDate, $endDate)
+    public function client()
     {
-        return $query->whereBetween('payment_date', [$startDate, $endDate]);
-    }
-
-    /**
-     * Scope a query to only include payments with a specific payment method.
-     */
-    public function scopeMethod($query, $method)
-    {
-        return $query->where('payment_method', $method);
+        return $this->belongsTo(Client::class);
     }
 }

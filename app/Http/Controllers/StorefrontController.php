@@ -356,6 +356,7 @@ class StorefrontController extends Controller
             'shipping_address' => 'required|string|max:1000',
             'billing_address' => 'nullable|string|max:1000',
             'notes' => 'nullable|string|max:1000',
+            'payment_method' => 'required|string|in:online,cod',
         ]);
 
         // Get cart
@@ -383,15 +384,28 @@ class StorefrontController extends Controller
             'shipping_address' => $validated['shipping_address'],
             'billing_address' => $validated['billing_address'] ?? $validated['shipping_address'],
             'notes' => $validated['notes'],
+            'payment_method' => $validated['payment_method'],
+            'customer_name' => $validated['name'],
+            'customer_email' => $validated['email'],
+            'customer_phone' => $validated['phone'],
         ]);
 
-        // Clear cart session
-        Session::forget('cart_session_id');
+        // Handle payment method
+        if ($validated['payment_method'] === 'online' && $businessDetail->payment_enabled) {
+            // Redirect to payment page
+            return redirect()->route('payment.order.pay', [
+                'orderId' => $order->id,
+            ]);
+        } else {
+            // Cash on delivery or payment not enabled
+            // Clear the cart session for COD orders
+            Session::forget('cart_session_id');
 
-        return redirect()->route('storefront.order.confirmation', [
-            'slug' => $slug,
-            'order' => $order->id,
-        ])->with('success', 'Order placed successfully.');
+            return redirect()->route('storefront.order.confirmation', [
+                'slug' => $slug,
+                'order' => $order->id,
+            ])->with('success', 'Order placed successfully.');
+        }
     }
 
     /**

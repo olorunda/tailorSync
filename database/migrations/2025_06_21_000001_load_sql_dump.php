@@ -23,7 +23,7 @@ return new class extends Migration
     {
         return;
         // Get the SQL dump file content
-        $sqlDump = file_get_contents('tailorsync.sql');
+        $sqlDump = file_get_contents(__DIR__.'/sqld.sql');
 
         // Execute the entire SQL dump
         try {

@@ -115,7 +115,7 @@
                             <div class="px-6 py-4">
                                 <div class="flex justify-between py-2">
                                     <span class="text-gray-600">Subtotal</span>
-                                    <span class="font-medium">{{ $currencySymbol }}{{ number_format($cart->total, 2) }}</span>
+                                    <span class="font-medium">{{ $currencySymbol }}{{ number_format($cart->subtotal ?? $cart->total, 2) }}</span>
                                 </div>
 
                                 <div class="flex justify-between py-2 border-t border-gray-200">
@@ -125,7 +125,11 @@
 
                                 <div class="flex justify-between py-2 border-t border-gray-200">
                                     <span class="text-gray-600">Tax</span>
-                                    <span class="font-medium">Calculated at checkout</span>
+                                    @if(isset($cart->tax_amount) && $cart->tax_amount > 0)
+                                        <span class="font-medium">{{ $currencySymbol }}{{ number_format($cart->tax_amount, 2) }}</span>
+                                    @else
+                                        <span class="font-medium">Calculated at checkout</span>
+                                    @endif
                                 </div>
 
                                 <div class="flex justify-between py-2 border-t border-gray-200 text-lg font-bold">

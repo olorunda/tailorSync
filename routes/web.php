@@ -327,6 +327,11 @@ Route::middleware(['auth', \App\Http\Middleware\CheckOnboardingStatus::class])->
         Volt::route('expenses/{expense}/edit', 'expenses.edit')->name('expenses.edit');
     });
 
+    // Finance Routes - Tax Report
+    Route::middleware(['permission:view_tax_reports'])->group(function () {
+        Route::get('reports/tax', \App\Livewire\TaxReport::class)->name('reports.tax');
+    });
+
     // Team Routes
     Route::middleware(['permission:view_team'])->group(function () {
         Volt::route('team', 'team.index')->name('team.index');
@@ -363,3 +368,6 @@ Route::middleware(['auth', \App\Http\Middleware\CheckOnboardingStatus::class])->
 });
 
 require __DIR__.'/auth.php';
+
+// Include payment routes
+require __DIR__.'/payment.php';

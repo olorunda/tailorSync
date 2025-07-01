@@ -45,10 +45,14 @@ class PublicOrderController extends Controller
         // Find the invoice for this order
         $invoice = Invoice::where('order_id', $order->id)->first();
 
+        // Get currency symbol
+        $currencySymbol = $this->getCurrencySymbol($order->user_id);
+
         // Return the view with the order and invoice
         return view('public.order', [
             'order' => $order,
             'invoice' => $invoice,
+            'currencySymbol' => $currencySymbol,
         ]);
     }
 
@@ -84,5 +88,14 @@ class PublicOrderController extends Controller
             ]);
             return null;
         }
+    }
+
+    /**
+     * Get the currency symbol for the store owner.
+     */
+    private function getCurrencySymbol($userId)
+    {
+        $user = \App\Models\User::find($userId);
+        return $user ? $user->getCurrencySymbol() : '$';
     }
 }

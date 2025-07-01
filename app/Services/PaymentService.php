@@ -1,0 +1,496 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\BusinessDetail;
+use App\Models\User;
+use Exception;
+use Illuminate\Support\Facades\Log;
+
+class PaymentService
+{
+    protected $user;
+    protected $businessDetail;
+    protected $gateway;
+    protected $settings;
+
+    /**
+     * Create a new payment service instance.
+     *
+     * @param User $user
+     * @return void
+     */
+    public function __construct(User $user)
+    {
+        $this->user = $user;
+        $this->businessDetail = $user->businessDetail;
+
+        if (!$this->businessDetail || !$this->businessDetail->payment_enabled) {
+            throw new Exception('Payment processing is not enabled for this business.');
+        }
+
+        $this->gateway = $this->businessDetail->default_payment_gateway;
+        $this->settings = $this->businessDetail->payment_settings;
+
+        if ($this->gateway === 'none' || empty($this->settings)) {
+            throw new Exception('No payment gateway is configured.');
+        }
+    }
+
+    /**
+     * Initialize a payment transaction.
+     *
+     * @param float $amount
+     * @param string $reference
+     * @param string $email
+     * @param string $callbackUrl
+     * @param array $metadata
+     * @return array
+     */
+    public function initializePayment($amount, $reference, $email, $callbackUrl, $metadata = [])
+    {
+        switch ($this->gateway) {
+            case 'paystack':
+                return $this->initializePaystackPayment($amount, $reference, $email, $callbackUrl, $metadata);
+            case 'flutterwave':
+                return $this->initializeFlutterwavePayment($amount, $reference, $email, $callbackUrl, $metadata);
+            case 'stripe':
+                return $this->initializeStripePayment($amount, $reference, $email, $callbackUrl, $metadata);
+            default:
+                throw new Exception('Unsupported payment gateway.');
+        }
+    }
+
+    /**
+     * Verify a payment transaction.
+     *
+     * @param string $reference
+     * @return array
+     */
+    public function verifyPayment($reference)
+    {
+        switch ($this->gateway) {
+            case 'paystack':
+                return $this->verifyPaystackPayment($reference);
+            case 'flutterwave':
+                return $this->verifyFlutterwavePayment($reference);
+            case 'stripe':
+                return $this->verifyStripePayment($reference);
+            default:
+                throw new Exception('Unsupported payment gateway.');
+        }
+    }
+
+    /**
+     * Initialize a Paystack payment.
+     *
+     * @param float $amount
+     * @param string $reference
+     * @param string $email
+     * @param string $callbackUrl
+     * @param array $metadata
+     * @return array
+     */
+    protected function initializePaystackPayment($amount, $reference, $email, $callbackUrl, $metadata = [])
+    {
+        $publicKey = $this->settings['paystack']['public_key'] ?? null;
+        $secretKey = $this->settings['paystack']['secret_key'] ?? null;
+
+        if (!$publicKey || !$secretKey) {
+            throw new Exception('Paystack API keys are not configured.');
+        }
+
+        // Convert amount to kobo (Paystack uses the smallest currency unit)
+        $amount = $amount * 100;
+
+        $url = "https://api.paystack.co/transaction/initialize";
+        $fields = [
+            'email' => $email,
+            'amount' => $amount,
+            'reference' => $reference,
+            'callback_url' => $callbackUrl,
+            'metadata' => $metadata
+        ];
+
+        $headers = [
+            'Authorization: Bearer ' . $secretKey,
+            'Content-Type: application/json',
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            Log::error('Paystack API Error: ' . $err);
+            throw new Exception('Error communicating with Paystack: ' . $err);
+        }
+
+        $result = json_decode($response, true);
+
+        if (!$result['status']) {
+            Log::error('Paystack Payment Error: ' . ($result['message'] ?? 'Unknown error'));
+            throw new Exception('Error initializing Paystack payment: ' . ($result['message'] ?? 'Unknown error'));
+        }
+
+        return [
+            'success' => true,
+            'redirect_url' => $result['data']['authorization_url'],
+            'reference' => $reference,
+            'gateway' => 'paystack'
+        ];
+    }
+
+    /**
+     * Verify a Paystack payment.
+     *
+     * @param string $reference
+     * @return array
+     */
+    protected function verifyPaystackPayment($reference)
+    {
+        $secretKey = $this->settings['paystack']['secret_key'] ?? null;
+
+        if (!$secretKey) {
+            throw new Exception('Paystack API keys are not configured.');
+        }
+
+        $url = "https://api.paystack.co/transaction/verify/" . rawurlencode($reference);
+        $headers = [
+            'Authorization: Bearer ' . $secretKey,
+            'Content-Type: application/json',
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            Log::error('Paystack API Error: ' . $err);
+            throw new Exception('Error communicating with Paystack: ' . $err);
+        }
+
+        $result = json_decode($response, true);
+
+        if (!$result['status']) {
+            Log::error('Paystack Verification Error: ' . ($result['message'] ?? 'Unknown error'));
+            throw new Exception('Error verifying Paystack payment: ' . ($result['message'] ?? 'Unknown error'));
+        }
+
+        $paymentData = $result['data'];
+        $success = $paymentData['status'] === 'success';
+
+        return [
+            'success' => $success,
+            'reference' => $reference,
+            'gateway' => 'paystack',
+            'amount' => $paymentData['amount'] / 100, // Convert from kobo to naira
+            'currency' => $paymentData['currency'],
+            'payment_date' => $paymentData['paid_at'],
+            'metadata' => $paymentData['metadata'] ?? [],
+            'gateway_response' => $paymentData['gateway_response'] ?? '',
+            'raw_response' => $paymentData
+        ];
+    }
+
+    /**
+     * Initialize a Flutterwave payment.
+     *
+     * @param float $amount
+     * @param string $reference
+     * @param string $email
+     * @param string $callbackUrl
+     * @param array $metadata
+     * @return array
+     */
+    protected function initializeFlutterwavePayment($amount, $reference, $email, $callbackUrl, $metadata = [])
+    {
+        $publicKey = $this->settings['flutterwave']['public_key'] ?? null;
+        $secretKey = $this->settings['flutterwave']['secret_key'] ?? null;
+
+        if (!$publicKey || !$secretKey) {
+            throw new Exception('Flutterwave API keys are not configured.');
+        }
+
+        $url = "https://api.flutterwave.com/v3/payments";
+        $fields = [
+            'tx_ref' => $reference,
+            'amount' => $amount,
+            'currency' => 'NGN',
+            'redirect_url' => $callbackUrl,
+            'customer' => [
+                'email' => $email
+            ],
+            'meta' => $metadata,
+            'customizations' => [
+                'title' => $this->businessDetail->business_name . ' Payment',
+                'description' => 'Payment for services'
+            ]
+        ];
+
+        $headers = [
+            'Authorization: Bearer ' . $secretKey,
+            'Content-Type: application/json',
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            Log::error('Flutterwave API Error: ' . $err);
+            throw new Exception('Error communicating with Flutterwave: ' . $err);
+        }
+
+        $result = json_decode($response, true);
+
+        if ($result['status'] !== 'success') {
+            Log::error('Flutterwave Payment Error: ' . ($result['message'] ?? 'Unknown error'));
+            throw new Exception('Error initializing Flutterwave payment: ' . ($result['message'] ?? 'Unknown error'));
+        }
+
+        return [
+            'success' => true,
+            'redirect_url' => $result['data']['link'],
+            'reference' => $reference,
+            'gateway' => 'flutterwave'
+        ];
+    }
+
+    /**
+     * Verify a Flutterwave payment.
+     *
+     * @param string $reference
+     * @return array
+     */
+    protected function verifyFlutterwavePayment($reference)
+    {
+        $secretKey = $this->settings['flutterwave']['secret_key'] ?? null;
+
+        if (!$secretKey) {
+            throw new Exception('Flutterwave API keys are not configured.');
+        }
+
+        $url = "https://api.flutterwave.com/v3/transactions/verify_by_reference?tx_ref=" . rawurlencode($reference);
+        $headers = [
+            'Authorization: Bearer ' . $secretKey,
+            'Content-Type: application/json',
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            Log::error('Flutterwave API Error: ' . $err);
+            throw new Exception('Error communicating with Flutterwave: ' . $err);
+        }
+
+        $result = json_decode($response, true);
+
+        if ($result['status'] !== 'success') {
+            Log::error('Flutterwave Verification Error: ' . ($result['message'] ?? 'Unknown error'));
+            throw new Exception('Error verifying Flutterwave payment: ' . ($result['message'] ?? 'Unknown error'));
+        }
+
+        $paymentData = $result['data'];
+        $success = $paymentData['status'] === 'successful';
+
+        return [
+            'success' => $success,
+            'reference' => $reference,
+            'gateway' => 'flutterwave',
+            'amount' => $paymentData['amount'],
+            'currency' => $paymentData['currency'],
+            'payment_date' => $paymentData['created_at'],
+            'metadata' => $paymentData['meta'] ?? [],
+            'gateway_response' => $paymentData['processor_response'] ?? '',
+            'raw_response' => $paymentData
+        ];
+    }
+
+    /**
+     * Initialize a Stripe payment.
+     *
+     * @param float $amount
+     * @param string $reference
+     * @param string $email
+     * @param string $callbackUrl
+     * @param array $metadata
+     * @return array
+     */
+    protected function initializeStripePayment($amount, $reference, $email, $callbackUrl, $metadata = [])
+    {
+        $publicKey = $this->settings['stripe']['public_key'] ?? null;
+        $secretKey = $this->settings['stripe']['secret_key'] ?? null;
+
+        if (!$publicKey || !$secretKey) {
+            throw new Exception('Stripe API keys are not configured.');
+        }
+
+        // Convert amount to cents (Stripe uses the smallest currency unit)
+        $amount = $amount * 100;
+
+        $url = "https://api.stripe.com/v1/checkout/sessions";
+        $fields = [
+            'payment_method_types[]' => 'card',
+            'line_items[0][price_data][currency]' => 'usd',
+            'line_items[0][price_data][unit_amount]' => $amount,
+            'line_items[0][price_data][product_data][name]' => $this->businessDetail->business_name . ' Payment',
+            'line_items[0][quantity]' => 1,
+            'mode' => 'payment',
+            'success_url' => $callbackUrl . '?session_id={CHECKOUT_SESSION_ID}&reference=' . $reference,
+            'cancel_url' => $callbackUrl . '?canceled=true&reference=' . $reference,
+            'client_reference_id' => $reference,
+            'customer_email' => $email,
+            'metadata[reference]' => $reference
+        ];
+
+        // Add custom metadata
+        foreach ($metadata as $key => $value) {
+            $fields['metadata[' . $key . ']'] = $value;
+        }
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($fields));
+        curl_setopt($ch, CURLOPT_USERPWD, $secretKey . ":");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            Log::error('Stripe API Error: ' . $err);
+            throw new Exception('Error communicating with Stripe: ' . $err);
+        }
+
+        $result = json_decode($response, true);
+
+        if (isset($result['error'])) {
+            Log::error('Stripe Payment Error: ' . ($result['error']['message'] ?? 'Unknown error'));
+            throw new Exception('Error initializing Stripe payment: ' . ($result['error']['message'] ?? 'Unknown error'));
+        }
+
+        return [
+            'success' => true,
+            'redirect_url' => $result['url'],
+            'reference' => $reference,
+            'gateway' => 'stripe',
+            'session_id' => $result['id']
+        ];
+    }
+
+    /**
+     * Verify a Stripe payment.
+     *
+     * @param string $reference
+     * @return array
+     */
+    protected function verifyStripePayment($reference)
+    {
+        $secretKey = $this->settings['stripe']['secret_key'] ?? null;
+
+        if (!$secretKey) {
+            throw new Exception('Stripe API keys are not configured.');
+        }
+
+        // First, find the session ID from the reference
+        $url = "https://api.stripe.com/v1/checkout/sessions?limit=1";
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url . '&client_reference_id=' . rawurlencode($reference));
+        curl_setopt($ch, CURLOPT_USERPWD, $secretKey . ":");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            Log::error('Stripe API Error: ' . $err);
+            throw new Exception('Error communicating with Stripe: ' . $err);
+        }
+
+        $result = json_decode($response, true);
+
+        if (isset($result['error'])) {
+            Log::error('Stripe Session Error: ' . ($result['error']['message'] ?? 'Unknown error'));
+            throw new Exception('Error retrieving Stripe session: ' . ($result['error']['message'] ?? 'Unknown error'));
+        }
+
+        if (empty($result['data'])) {
+            throw new Exception('No Stripe session found for reference: ' . $reference);
+        }
+
+        $session = $result['data'][0];
+        $sessionId = $session['id'];
+
+        // Now retrieve the payment intent
+        $paymentIntentId = $session['payment_intent'];
+        if (!$paymentIntentId) {
+            throw new Exception('No payment intent found for Stripe session: ' . $sessionId);
+        }
+
+        $url = "https://api.stripe.com/v1/payment_intents/" . $paymentIntentId;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_USERPWD, $secretKey . ":");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            Log::error('Stripe API Error: ' . $err);
+            throw new Exception('Error communicating with Stripe: ' . $err);
+        }
+
+        $paymentIntent = json_decode($response, true);
+
+        if (isset($paymentIntent['error'])) {
+            Log::error('Stripe Payment Intent Error: ' . ($paymentIntent['error']['message'] ?? 'Unknown error'));
+            throw new Exception('Error retrieving Stripe payment intent: ' . ($paymentIntent['error']['message'] ?? 'Unknown error'));
+        }
+
+        $success = $paymentIntent['status'] === 'succeeded';
+
+        return [
+            'success' => $success,
+            'reference' => $reference,
+            'gateway' => 'stripe',
+            'amount' => $paymentIntent['amount'] / 100, // Convert from cents to dollars
+            'currency' => $paymentIntent['currency'],
+            'payment_date' => date('Y-m-d H:i:s', $paymentIntent['created']),
+            'metadata' => $paymentIntent['metadata'] ?? [],
+            'gateway_response' => $paymentIntent['status'],
+            'raw_response' => $paymentIntent
+        ];
+    }
+}

@@ -76,6 +76,9 @@ class PermissionSeeder extends Seeder
                 ['name' => 'create_expenses', 'description' => 'Record new expenses'],
                 ['name' => 'edit_expenses', 'description' => 'Edit existing expenses'],
                 ['name' => 'delete_expenses', 'description' => 'Delete expenses'],
+                ['name' => 'manage_tax_settings', 'description' => 'Manage tax settings and configurations'],
+                ['name' => 'manage_payment_settings', 'description' => 'Manage payment gateway settings and configurations'],
+                ['name' => 'view_tax_reports', 'description' => 'View tax reports and calculations'],
             ],
             'team' => [
                 ['name' => 'view_team', 'description' => 'View team members'],

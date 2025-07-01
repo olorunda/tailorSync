@@ -27,6 +27,18 @@
                         </div>
 
                         <div>
+                            <h3 class="text-sm font-medium text-gray-500 mb-1">Subtotal</h3>
+                            <p class="text-base font-medium text-gray-900">{{ $currencySymbol }}{{ number_format($order->subtotal ?? $order->total_amount, 2) }}</p>
+                        </div>
+
+                        @if(isset($order->tax) && $order->tax > 0)
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500 mb-1">Tax</h3>
+                            <p class="text-base font-medium text-gray-900">{{ $currencySymbol }}{{ number_format($order->tax, 2) }}</p>
+                        </div>
+                        @endif
+
+                        <div>
                             <h3 class="text-sm font-medium text-gray-500 mb-1">Total</h3>
                             <p class="text-base font-medium text-accent-custom">{{ $currencySymbol }}{{ number_format($order->total_amount, 2) }}</p>
                         </div>

@@ -171,7 +171,7 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100" data-label="Total">
-                                        ${{ number_format($order->total_amount, 2) }}
+                                        {{ $currencySymbol }}{{ number_format($order->total_amount, 2) }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" data-label="Actions">
                                         <a href="{{ route('store.orders.show', $order) }}" class="text-orange-600 dark:text-orange-400 hover:text-orange-900 dark:hover:text-orange-300 mr-3">View</a>

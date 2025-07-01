@@ -20,6 +20,8 @@ class ShoppingCart extends Model
         'session_id',
         'user_id',
         'total',
+        'subtotal',
+        'tax_amount',
     ];
 
     /**
@@ -29,6 +31,8 @@ class ShoppingCart extends Model
      */
     protected $casts = [
         'total' => 'decimal:2',
+        'subtotal' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
     ];
 
     /**
@@ -115,15 +119,57 @@ class ShoppingCart extends Model
     }
 
     /**
+     * Calculate tax for the cart based on business settings.
+     */
+    public function calculateTax(): float
+    {
+        // Get the business details for the user
+        $businessDetail = $this->user->businessDetail;
+
+        // If no business details or tax not enabled, return 0
+        if (!$businessDetail || !$businessDetail->tax_enabled) {
+            return 0;
+        }
+
+        // Calculate subtotal
+        $subtotal = $this->items->sum(function ($item) {
+            return $item->price * $item->quantity;
+        });
+
+        // Use TaxService to calculate tax
+        $taxService = new \App\Services\TaxService($businessDetail);
+
+        // Create a temporary invoice object to calculate tax
+        $tempInvoice = new \App\Models\Invoice();
+        $tempInvoice->subtotal = $subtotal;
+
+        $taxResult = $taxService->calculateInvoiceTax($tempInvoice);
+
+        return $taxResult['tax_amount'];
+    }
+
+    /**
      * Update the total price of the cart.
      */
     public function updateTotal(): void
     {
-        $total = $this->items->sum(function ($item) {
+        // Calculate subtotal
+        $subtotal = $this->items->sum(function ($item) {
             return $item->price * $item->quantity;
         });
 
-        $this->update(['total' => $total]);
+        // Calculate tax
+        $taxAmount = $this->calculateTax();
+
+        // Calculate total (subtotal + tax)
+        $total = $subtotal + $taxAmount;
+
+        // Update the cart
+        $this->update([
+            'subtotal' => $subtotal,
+            'tax_amount' => $taxAmount,
+            'total' => $total
+        ]);
     }
 
     /**
@@ -139,16 +185,43 @@ class ShoppingCart extends Model
      */
     public function convertToOrder(array $orderData): Order
     {
+        // Make sure totals are up to date
+        $this->updateTotal();
+
+        // Get tax rate if available
+        $taxRate = 0;
+        $businessDetail = $this->user->businessDetail;
+        if ($businessDetail && $businessDetail->tax_enabled) {
+            $taxService = new \App\Services\TaxService($businessDetail);
+            $tempInvoice = new \App\Models\Invoice();
+            $tempInvoice->subtotal = $this->subtotal;
+            $taxResult = $taxService->calculateInvoiceTax($tempInvoice);
+            $taxRate = $taxResult['tax_rate'];
+        }
+
+        // Calculate tax amount directly
+        $taxAmount = 0;
+        if ($businessDetail && $businessDetail->tax_enabled) {
+            $taxService = new \App\Services\TaxService($businessDetail);
+            $tempInvoice = new \App\Models\Invoice();
+            $tempInvoice->subtotal = $this->subtotal;
+            $taxResult = $taxService->calculateInvoiceTax($tempInvoice);
+            $taxAmount = $taxResult['tax_amount'];
+        }
+
         // Create the order
         $order = Order::create(array_merge([
             'user_id' => $this->user_id,
             'client_id' => $orderData['client_id'] ?? null,
             'order_number' => 'ORD-' . time(),
             'status' => 'pending',
-            'total_amount' => $this->total,
+            'subtotal' => $this->subtotal,
+            'tax_rate' => $taxRate,
+            'tax' => $taxAmount, // Use the directly calculated tax amount
+            'total_amount' => $this->subtotal + $taxAmount, // Recalculate total with the directly calculated tax
             'is_store_order' => true,
             'payment_status' => 'pending',
-            'cost'=>$this->total,
+            'cost' => $this->subtotal, // Cost should be the subtotal without tax
             'due_date' => $orderData['due_date'] ?? now()->addDays(7), // Default due date is 7 days from now
         ], $orderData));
 
@@ -176,9 +249,6 @@ class ShoppingCart extends Model
                 // This would depend on your specific requirements
             }
         }
-
-        // Clear the cart
-        $this->clear();
 
         return $order;
     }

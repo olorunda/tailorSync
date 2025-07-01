@@ -35,6 +35,13 @@ class BusinessDetail extends Model
         'store_show_featured_products',
         'store_show_new_arrivals',
         'store_show_custom_designs',
+        'tax_country',
+        'tax_settings',
+        'tax_enabled',
+        'tax_number',
+        'payment_enabled',
+        'default_payment_gateway',
+        'payment_settings',
     ];
 
     /**
@@ -56,5 +63,9 @@ class BusinessDetail extends Model
         'store_show_featured_products' => 'boolean',
         'store_show_new_arrivals' => 'boolean',
         'store_show_custom_designs' => 'boolean',
+        'tax_settings' => 'array',
+        'tax_enabled' => 'boolean',
+        'payment_settings' => 'array',
+        'payment_enabled' => 'boolean',
     ];
 }

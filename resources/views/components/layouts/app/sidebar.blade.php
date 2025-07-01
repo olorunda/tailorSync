@@ -52,7 +52,7 @@
                     </flux:navlist.group>
                 @endif
 
-                @if(auth()->user()->hasPermission('view_invoices') || auth()->user()->hasPermission('view_payments') || auth()->user()->hasPermission('view_expenses'))
+                @if(auth()->user()->hasPermission('view_invoices') || auth()->user()->hasPermission('view_payments') || auth()->user()->hasPermission('view_expenses') || auth()->user()->hasPermission('view_tax_reports'))
                     <flux:navlist.group :heading="__('Finance')" class="grid">
                         @if(auth()->user()->hasPermission('view_invoices'))
                             <flux:navlist.item icon="document-text" :href="route('invoices.index')" :current="request()->routeIs('invoices.*')" wire:navigate>{{ __('Invoices') }}</flux:navlist.item>
@@ -62,6 +62,9 @@
                         @endif
                         @if(auth()->user()->hasPermission('view_expenses'))
                             <flux:navlist.item icon="receipt-percent" :href="route('expenses.index')" :current="request()->routeIs('expenses.*')" wire:navigate>{{ __('Expenses') }}</flux:navlist.item>
+                        @endif
+                        @if(auth()->user()->hasPermission('view_tax_reports'))
+                            <flux:navlist.item icon="chart-bar" :href="route('reports.tax')" :current="request()->routeIs('reports.tax')" wire:navigate>{{ __('Tax Report') }}</flux:navlist.item>
                         @endif
                     </flux:navlist.group>
                 @endif
@@ -285,6 +288,10 @@
 
                         @if(auth()->user()->hasPermission('view_store_purchases'))
                         <flux:menu.item :href="route('store.purchases.index')" icon="credit-card" wire:navigate>{{ __('Store Purchases') }}</flux:menu.item>
+                        @endif
+
+                        @if(auth()->user()->hasPermission('view_tax_reports'))
+                        <flux:menu.item :href="route('reports.tax')" icon="chart-bar" wire:navigate>{{ __('Tax Report') }}</flux:menu.item>
                         @endif
 
                         @if(auth()->user()->hasPermission('view_profile') || auth()->user()->hasPermission('change_password') || auth()->user()->hasPermission('manage_appearance') || auth()->user()->hasPermission('manage_roles_permissions'))

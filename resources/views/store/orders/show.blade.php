@@ -133,33 +133,43 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-zinc-800 divide-y divide-zinc-200 dark:divide-zinc-700">
-                            @foreach($order->products as $product)
+                            @foreach($order->orderItems as $item)
                                 <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700">
                                     <td class="px-6 py-4 whitespace-nowrap" data-label="Product">
                                         <div class="flex items-center">
-                                            @if($product->primary_image)
+                                            @if($item->product && $item->product->primary_image)
                                                 <div class="flex-shrink-0 h-10 w-10">
-                                                    <img class="h-10 w-10 rounded-md object-cover" src="{{ Storage::url($product->primary_image) }}" alt="{{ $product->name }}">
+                                                    <img class="h-10 w-10 rounded-md object-cover" src="{{ Storage::url($item->product->primary_image) }}" alt="{{ $item->product->name }}">
                                                 </div>
                                             @endif
                                             <div class="ml-4">
                                                 <div class="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                                                    {{ $product->name }}
+                                                    {{ $item->product ? $item->product->name : 'Product Not Available' }}
                                                 </div>
                                                 <div class="text-sm text-zinc-500 dark:text-zinc-400">
-                                                    SKU: {{ $product->sku }}
+                                                    @if($item->product)
+                                                        SKU: {{ $item->product->sku }}
+                                                    @endif
+
+                                                    @if(!empty($item->options))
+                                                        <div class="mt-1 text-xs">
+                                                            @foreach($item->options as $key => $value)
+                                                                <span class="mr-2">{{ ucfirst($key) }}: {{ $value }}</span>
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-500 dark:text-zinc-400" data-label="Price">
-                                        ${{ number_format($product->pivot->price, 2) }}
+                                        {{ $currencySymbol }}{{ number_format($item->price, 2) }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-500 dark:text-zinc-400" data-label="Quantity">
-                                        {{ $product->pivot->quantity }}
+                                        {{ $item->quantity }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100" data-label="Total">
-                                        ${{ number_format($product->pivot->total, 2) }}
+                                        {{ $currencySymbol }}{{ number_format($item->total, 2) }}
                                     </td>
                                 </tr>
                             @endforeach
@@ -200,20 +210,20 @@
                         <div class="bg-zinc-50 dark:bg-zinc-700/50 rounded-lg p-4">
                             <div class="flex justify-between py-2 text-sm">
                                 <span class="text-zinc-500 dark:text-zinc-400">Subtotal</span>
-                                <span class="text-zinc-900 dark:text-zinc-100 font-medium">${{ number_format($order->total_amount - ($order->shipping_cost + $order->tax), 2) }}</span>
+                                <span class="text-zinc-900 dark:text-zinc-100 font-medium">{{ $currencySymbol }}{{ number_format($order->total_amount - ($order->shipping_cost + $order->tax), 2) }}</span>
                             </div>
                             <div class="flex justify-between py-2 text-sm">
                                 <span class="text-zinc-500 dark:text-zinc-400">Shipping</span>
-                                <span class="text-zinc-900 dark:text-zinc-100 font-medium">${{ number_format($order->shipping_cost, 2) }}</span>
+                                <span class="text-zinc-900 dark:text-zinc-100 font-medium">{{ $currencySymbol }}{{ number_format($order->shipping_cost, 2) }}</span>
                             </div>
                             <div class="flex justify-between py-2 text-sm">
                                 <span class="text-zinc-500 dark:text-zinc-400">Tax</span>
-                                <span class="text-zinc-900 dark:text-zinc-100 font-medium">${{ number_format($order->tax, 2) }}</span>
+                                <span class="text-zinc-900 dark:text-zinc-100 font-medium">{{ $currencySymbol }}{{ number_format($order->tax, 2) }}</span>
                             </div>
                             <div class="border-t border-zinc-200 dark:border-zinc-600 mt-2 pt-2">
                                 <div class="flex justify-between py-2 text-base font-medium">
                                     <span class="text-zinc-900 dark:text-zinc-100">Total</span>
-                                    <span class="text-zinc-900 dark:text-zinc-100">${{ number_format($order->total_amount, 2) }}</span>
+                                    <span class="text-zinc-900 dark:text-zinc-100">{{ $currencySymbol }}{{ number_format($order->total_amount, 2) }}</span>
                                 </div>
                             </div>
                         </div>

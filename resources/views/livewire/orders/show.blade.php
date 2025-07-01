@@ -12,7 +12,7 @@ new class extends Component {
     public function mount(Order $order): void
     {
         $this->order = $order;
-        $this->order->load('client', 'design');
+        $this->order->load('client', 'design', 'orderItems.product');
 
         // Check if an invoice exists for this order
         // Check if an invoice exists for this order
@@ -205,6 +205,43 @@ new class extends Component {
                             </p>
                         </div>
                     </div>
+
+                    <!-- Order Items for Store Orders -->
+                    @if ($order->isStoreOrder() && $order->orderItems->count() > 0)
+                        <div>
+                            <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-2">Purchased Items</p>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+                                    <thead class="bg-zinc-50 dark:bg-zinc-700/50">
+                                        <tr>
+                                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Product</th>
+                                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Quantity</th>
+                                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Price</th>
+                                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white dark:bg-zinc-800 divide-y divide-zinc-200 dark:divide-zinc-700">
+                                        @foreach ($order->orderItems as $item)
+                                            <tr>
+                                                <td class="px-3 py-2 whitespace-nowrap text-sm text-zinc-900 dark:text-zinc-100">
+                                                    {{ $item->product->name ?? 'Unknown Product' }}
+                                                </td>
+                                                <td class="px-3 py-2 whitespace-nowrap text-sm text-zinc-900 dark:text-zinc-100">
+                                                    {{ $item->quantity }}
+                                                </td>
+                                                <td class="px-3 py-2 whitespace-nowrap text-sm text-zinc-900 dark:text-zinc-100">
+                                                    {{ Auth::user()->getCurrencySymbol() . number_format($item->price, 2) }}
+                                                </td>
+                                                <td class="px-3 py-2 whitespace-nowrap text-sm text-zinc-900 dark:text-zinc-100">
+                                                    {{ Auth::user()->getCurrencySymbol() . number_format($item->total, 2) }}
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    @endif
 
                     <!-- Notes -->
                     @if ($order->notes)

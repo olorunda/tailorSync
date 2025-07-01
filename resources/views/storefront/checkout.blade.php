@@ -75,10 +75,50 @@
 
                             <div class="border-t border-gray-200 pt-6">
                                 <h3 class="text-lg font-medium text-secondary-custom mb-4">Payment Method</h3>
-                                <p class="text-sm text-gray-500 mb-4">Payment will be collected upon delivery or in-store pickup.</p>
+
+                                @if($businessDetail->payment_enabled)
+                                    <div class="mb-6">
+                                        <div class="space-y-4">
+                                            <div class="flex items-center">
+                                                <input id="payment_method_online" name="payment_method" type="radio" value="online" checked class="h-4 w-4 text-primary-custom focus:ring-primary-custom border-gray-300">
+                                                <label for="payment_method_online" class="ml-3 block text-sm font-medium text-gray-700">
+                                                    Pay Online
+                                                    <span class="text-xs text-gray-500 block mt-1">
+                                                        Secure payment via
+                                                        @if($businessDetail->default_payment_gateway === 'paystack')
+                                                            Paystack
+                                                        @elseif($businessDetail->default_payment_gateway === 'flutterwave')
+                                                            Flutterwave
+                                                        @elseif($businessDetail->default_payment_gateway === 'stripe')
+                                                            Stripe
+                                                        @else
+                                                            our payment processor
+                                                        @endif
+                                                    </span>
+                                                </label>
+                                            </div>
+
+                                            <div class="flex items-center">
+                                                <input id="payment_method_cod" name="payment_method" type="radio" value="cod" class="h-4 w-4 text-primary-custom focus:ring-primary-custom border-gray-300">
+                                                <label for="payment_method_cod" class="ml-3 block text-sm font-medium text-gray-700">
+                                                    Cash on Delivery
+                                                    <span class="text-xs text-gray-500 block mt-1">Pay when you receive your order</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @else
+                                    <p class="text-sm text-gray-500 mb-4">Payment will be collected upon delivery or in-store pickup.</p>
+                                    <input type="hidden" name="payment_method" value="cod">
+                                @endif
 
                                 <button type="submit" class="w-full flex justify-center items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-accent-custom hover:bg-opacity-90">
-                                    Place Order
+                                    @if($businessDetail->payment_enabled)
+                                        <span id="button_text_online">Proceed to Payment</span>
+                                        <span id="button_text_cod" class="hidden">Place Order</span>
+                                    @else
+                                        Place Order
+                                    @endif
                                 </button>
                             </div>
                         </form>
@@ -135,7 +175,7 @@
 
                             <div class="flex justify-between py-2">
                                 <span class="text-gray-600">Subtotal</span>
-                                <span class="font-medium">{{ $currencySymbol }}{{ number_format($cart->total, 2) }}</span>
+                                <span class="font-medium">{{ $currencySymbol }}{{ number_format($cart->subtotal ?? $cart->total, 2) }}</span>
                             </div>
 
                             <div class="flex justify-between py-2 border-t border-gray-200">
@@ -145,7 +185,11 @@
 
                             <div class="flex justify-between py-2 border-t border-gray-200">
                                 <span class="text-gray-600">Tax</span>
-                                <span class="font-medium">Calculated after order</span>
+                                @if(isset($cart->tax_amount) && $cart->tax_amount > 0)
+                                    <span class="font-medium">{{ $currencySymbol }}{{ number_format($cart->tax_amount, 2) }}</span>
+                                @else
+                                    <span class="font-medium">Calculated after order</span>
+                                @endif
                             </div>
 
                             <div class="flex justify-between py-2 border-t border-gray-200 text-lg font-bold">
@@ -177,6 +221,28 @@
                     billingAddressContainer.classList.remove('hidden');
                 }
             });
+
+            // Payment method toggle
+            const paymentMethodOnline = document.getElementById('payment_method_online');
+            const paymentMethodCod = document.getElementById('payment_method_cod');
+            const buttonTextOnline = document.getElementById('button_text_online');
+            const buttonTextCod = document.getElementById('button_text_cod');
+
+            if (paymentMethodOnline && paymentMethodCod) {
+                paymentMethodOnline.addEventListener('change', function() {
+                    if (this.checked) {
+                        buttonTextOnline.classList.remove('hidden');
+                        buttonTextCod.classList.add('hidden');
+                    }
+                });
+
+                paymentMethodCod.addEventListener('change', function() {
+                    if (this.checked) {
+                        buttonTextOnline.classList.add('hidden');
+                        buttonTextCod.classList.remove('hidden');
+                    }
+                });
+            }
         });
     </script>
 </x-storefront-layout>
