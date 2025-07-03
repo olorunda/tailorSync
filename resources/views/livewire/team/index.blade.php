@@ -46,6 +46,31 @@ new class extends Component {
 }; ?>
 
 <div class="w-full">
+    @php
+        // Get subscription plan details
+        $user = auth()->user();
+        $businessDetail = $user->businessDetail;
+        $planKey = $businessDetail->subscription_plan ?? 'free';
+        $plan = \App\Services\SubscriptionService::getPlan($planKey);
+        $maxTeamMembers = $plan['features']['max_team_members'] ?? 1;
+        $currentTeamCount = \App\Models\User::where('parent_id', $user->id)->count();
+        $isUnlimited = $maxTeamMembers === 'unlimited';
+        $isNearLimit = !$isUnlimited && $currentTeamCount >= ($maxTeamMembers * 0.8); // 80% of limit
+        $isAtLimit = !$isUnlimited && $currentTeamCount >= $maxTeamMembers;
+    @endphp
+
+    @if($isAtLimit)
+        <x-subscription-limit-notice
+            feature="team member limit"
+            message="You have reached the maximum number of team members ({{ $maxTeamMembers }}) allowed for your {{ ucfirst($planKey) }} plan."
+        />
+    @elseif($isNearLimit)
+        <x-subscription-limit-notice
+            feature="team member limit"
+            message="You are approaching the maximum number of team members allowed for your {{ ucfirst($planKey) }} plan. You have used {{ $currentTeamCount }} out of {{ $maxTeamMembers }} available team member slots."
+        />
+    @endif
+
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
             <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Team</h1>

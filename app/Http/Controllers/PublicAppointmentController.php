@@ -31,6 +31,12 @@ class PublicAppointmentController extends Controller
             abort(404, 'Booking page not found');
         }
 
+        // Check if the user's subscription plan allows public appointment booking
+        $businessDetail = $user->businessDetail;
+        if (!$businessDetail || !\App\Services\SubscriptionService::canUseFeature($businessDetail, 'public_appointments_enabled')) {
+            abort(403, 'Public appointment booking is not available for this business');
+        }
+
         // Get the business details
         $businessDetail = $user->businessDetail;
         $businessName = $businessDetail ? $businessDetail->business_name : $user->name;
@@ -66,6 +72,12 @@ class PublicAppointmentController extends Controller
         // If no user is found, return 404
         if (!$user) {
             abort(404, 'Booking page not found');
+        }
+
+        // Check if the user's subscription plan allows public appointment booking
+        $businessDetail = $user->businessDetail;
+        if (!$businessDetail || !\App\Services\SubscriptionService::canUseFeature($businessDetail, 'public_appointments_enabled')) {
+            abort(403, 'Public appointment booking is not available for this business');
         }
 
         // Validate the request
@@ -170,6 +182,12 @@ class PublicAppointmentController extends Controller
             abort(404, 'Booking page not found');
         }
 
+        // Check if the user's subscription plan allows public appointment booking
+        $businessDetail = $user->businessDetail;
+        if (!$businessDetail || !\App\Services\SubscriptionService::canUseFeature($businessDetail, 'public_appointments_enabled')) {
+            abort(403, 'Public appointment booking is not available for this business');
+        }
+
         // Find the appointment
         $appointment = Appointment::where('id', $appointmentId)
             ->where('user_id', $user->id)
@@ -210,6 +228,12 @@ class PublicAppointmentController extends Controller
         // If no user is found, return error
         if (!$user) {
             return response()->json(['error' => 'User not found'], 404);
+        }
+
+        // Check if the user's subscription plan allows public appointment booking
+        $businessDetail = $user->businessDetail;
+        if (!$businessDetail || !\App\Services\SubscriptionService::canUseFeature($businessDetail, 'public_appointments_enabled')) {
+            return response()->json(['error' => 'Public appointment booking is not available for this business'], 403);
         }
 
         // Validate the request

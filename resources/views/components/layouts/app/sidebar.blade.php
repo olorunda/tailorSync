@@ -25,6 +25,7 @@
                 <flux:navlist.group :heading="__('Platform')" class="grid">
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
                     <flux:navlist.item icon="bell" :href="route('notifications.index')" :current="request()->routeIs('notifications.*')" wire:navigate>{{ __('Notifications') }}</flux:navlist.item>
+                    <flux:navlist.item icon="credit-card" :href="route('subscriptions.index')" :current="request()->routeIs('subscriptions.*')" wire:navigate>{{ __('Subscription') }}</flux:navlist.item>
                 </flux:navlist.group>
 
                 @if(auth()->user()->hasPermission('view_clients') || auth()->user()->hasPermission('view_orders') || auth()->user()->hasPermission('view_appointments') || auth()->user()->hasPermission('view_messages'))
@@ -293,6 +294,8 @@
                         @if(auth()->user()->hasPermission('view_tax_reports'))
                         <flux:menu.item :href="route('reports.tax')" icon="chart-bar" wire:navigate>{{ __('Tax Report') }}</flux:menu.item>
                         @endif
+
+                        <flux:menu.item :href="route('subscriptions.index')" icon="credit-card" wire:navigate>{{ __('Subscription') }}</flux:menu.item>
 
                         @if(auth()->user()->hasPermission('view_profile') || auth()->user()->hasPermission('change_password') || auth()->user()->hasPermission('manage_appearance') || auth()->user()->hasPermission('manage_roles_permissions'))
                         <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>

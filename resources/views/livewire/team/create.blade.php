@@ -11,6 +11,7 @@ new class extends Component {
     use WithFileUploads;
 
     public string $name = '';
+    public string $currentPlan = '';
     public string $email = '';
     public string $password = '';
     public string $password_confirmation = '';
@@ -28,6 +29,9 @@ new class extends Component {
     {
         // Fetch roles from the database
         $this->roles = Role::all();
+        $currentUser = Auth::user();
+        $businessDetail = $currentUser->businessDetail;
+        $this->currentPlan = $businessDetail->subscription_plan ?? 'free';
     }
 
     public function save(): void
@@ -48,6 +52,24 @@ new class extends Component {
             'photo' => ['nullable', 'image', 'max:1024'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
+
+        // Check team member limit based on subscription plan
+        $currentUser = Auth::user();
+        $businessDetail = $currentUser->businessDetail;
+        $planKey = $businessDetail->subscription_plan ?? 'free';
+        $plan = \App\Services\SubscriptionService::getPlan($planKey);
+
+        // Get the max team members allowed for the subscription plan
+        $maxTeamMembers = $plan['features']['max_team_members'] ?? 1;
+
+        // Get the current team member count
+        $currentTeamCount = User::where('parent_id', $currentUser->id)->count();
+
+        // Check if the user has reached the team member limit
+        if ($maxTeamMembers !== 'unlimited' && $currentTeamCount >= $maxTeamMembers) {
+            session()->flash('subscription_limit_reached', "You have reached the maximum number of team members ({$maxTeamMembers}) allowed for your subscription plan. Please upgrade your plan to add more team members.");
+            return;
+        }
 
         $photoPath = null;
         if ($this->photo) {
@@ -91,7 +113,17 @@ new class extends Component {
         <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Add Team Member</h1>
         <p class="text-zinc-600 dark:text-zinc-400">Create a new account for a team member</p>
     </div>
-
+    @if (session('subscription_limit_reached'))
+        <x-subscription-limit-notice
+            feature="{{ session('subscription_feature') }}"
+            plan="{{ session('subscription_plan',  $currentPlan) }}"
+            message="{{ session('error') }}"
+        />
+    @elseif (session('error'))
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <span class="block sm:inline">{{ session('error') }}</span>
+        </div>
+    @endif
     <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
         <form wire:submit="save" class="p-6 space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -287,6 +287,15 @@
                                 </svg>
                                 Custom Designs
                             </a>
+                            @auth
+                                <a href="{{ route('storefront.orders', $businessDetail->store_slug) }}"
+                                   class="inline-flex items-center px-3 pt-1 border-b-2 {{ request()->routeIs('storefront.orders') ? 'border-accent-custom text-white' : 'border-transparent text-gray-200 hover:border-accent-custom hover:text-white' }} text-sm font-medium transition-all duration-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
+                                    </svg>
+                                    My Orders
+                                </a>
+                            @endauth
                         </div>
                     </div>
 
@@ -307,7 +316,7 @@
                         </button>
 
                         <a href="{{ route('storefront.cart', $businessDetail->store_slug) }}"
-                           class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-full text-white bg-accent-custom hover:bg-opacity-90 focus:outline-none transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 animate-pulse-subtle">
+                           class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-full text-white bg-accent-custom hover:bg-opacity-90 focus:outline-none transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 animate-pulse-subtle mr-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
@@ -318,6 +327,21 @@
                                 </span>
                             </span>
                         </a>
+
+                        @auth
+                            <div class="hidden sm:flex items-center">
+                                <span class="text-white text-sm mr-2">{{ Auth::user()->name }}</span>
+                                <form method="POST" action="{{ route('storefront.logout', $businessDetail->store_slug) }}">
+                                    @csrf
+                                    <button type="submit" class="text-gray-200 hover:text-white text-sm">Logout</button>
+                                </form>
+                            </div>
+                        @else
+                            <div class="hidden sm:flex space-x-4">
+                                <a href="{{ route('storefront.login', $businessDetail->store_slug) }}" class="text-gray-200 hover:text-white text-sm">Login</a>
+                                <a href="{{ route('storefront.register', $businessDetail->store_slug) }}" class="text-gray-200 hover:text-white text-sm">Register</a>
+                            </div>
+                        @endauth
                     </div>
                 </div>
             </div>
@@ -347,6 +371,45 @@
                         </svg>
                         Custom Designs
                     </a>
+
+                    @auth
+                        <a href="{{ route('storefront.orders', $businessDetail->store_slug) }}"
+                           class="flex items-center px-3 py-2 rounded-md {{ request()->routeIs('storefront.orders') ? 'bg-accent-custom text-white' : 'text-gray-200 hover:bg-accent-custom/80 hover:text-white' }} text-base font-medium transition-colors duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
+                            </svg>
+                            My Orders
+                        </a>
+
+                        <div class="border-t border-gray-700 my-2 pt-2">
+                            <div class="px-3 py-1 text-gray-300">
+                                Signed in as: {{ Auth::user()->name }}
+                            </div>
+                            <form method="POST" action="{{ route('storefront.logout', $businessDetail->store_slug) }}">
+                                @csrf
+                                <button type="submit" class="w-full text-left px-3 py-2 text-gray-200 hover:bg-accent-custom/80 hover:text-white text-base font-medium transition-colors duration-300">
+                                    Logout
+                                </button>
+                            </form>
+                        </div>
+                    @else
+                        <div class="border-t border-gray-700 my-2 pt-2">
+                            <a href="{{ route('storefront.login', $businessDetail->store_slug) }}"
+                               class="flex items-center px-3 py-2 rounded-md text-gray-200 hover:bg-accent-custom/80 hover:text-white text-base font-medium transition-colors duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                </svg>
+                                Login
+                            </a>
+                            <a href="{{ route('storefront.register', $businessDetail->store_slug) }}"
+                               class="flex items-center px-3 py-2 rounded-md text-gray-200 hover:bg-accent-custom/80 hover:text-white text-base font-medium transition-colors duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
+                                </svg>
+                                Register
+                            </a>
+                        </div>
+                    @endauth
                 </div>
             </div>
         </nav>

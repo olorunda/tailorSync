@@ -3,10 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\BusinessDetail;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\ShoppingCart;
+use App\Models\User;
+use App\Services\SubscriptionService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class StorefrontController extends Controller
@@ -17,8 +23,30 @@ class StorefrontController extends Controller
     public function index($slug)
     {
         $businessDetail = BusinessDetail::where('store_slug', $slug)
-            ->where('store_enabled', true)
             ->firstOrFail();
+
+        // Check if store is enabled
+        if (!$businessDetail->store_enabled) {
+            abort(404, 'Store not found');
+        }
+
+        // Check if the subscription plan allows store functionality
+        $planKey = $businessDetail->subscription_plan ?? 'free';
+        $plan = SubscriptionService::getPlan($planKey);
+
+        if (!$plan) {
+            abort(404, 'Store not found');
+        }
+
+        // Check if store is enabled in the subscription plan
+        if (!($plan['features']['store_enabled'] ?? false)) {
+            abort(404, 'Store not found');
+        }
+
+        // Check if subscription is active (except for free plan)
+        if ($planKey !== 'free' && !SubscriptionService::isActive($businessDetail)) {
+            abort(404, 'Store not found');
+        }
 
         $userId = $businessDetail->user_id;
 
@@ -331,10 +359,19 @@ class StorefrontController extends Controller
         // Get currency symbol
         $currencySymbol = $this->getCurrencySymbol($userId);
 
+        // Get client information if user is logged in
+        $client = null;
+        if (Auth::check()) {
+            $client = \App\Models\Client::where('email', Auth::user()->email)
+                ->where('user_id', $userId)
+                ->first();
+        }
+
         return view('storefront.checkout', compact(
             'businessDetail',
             'cart',
-            'currencySymbol'
+            'currencySymbol',
+            'client'
         ));
     }
 
@@ -466,5 +503,203 @@ class StorefrontController extends Controller
     {
         $user = \App\Models\User::find($userId);
         return $user ? $user->getCurrencySymbol() : '$';
+    }
+
+    /**
+     * Display the login form.
+     */
+    public function showLogin($slug)
+    {
+        $businessDetail = BusinessDetail::where('store_slug', $slug)
+            ->where('store_enabled', true)
+            ->firstOrFail();
+
+        $userId = $businessDetail->user_id;
+        $cart = $this->getCart($userId);
+        $currencySymbol = $this->getCurrencySymbol($userId);
+
+        return view('storefront.login', compact(
+            'businessDetail',
+            'cart',
+            'currencySymbol'
+        ));
+    }
+
+    /**
+     * Process the login request.
+     */
+    public function login($slug, Request $request)
+    {
+        $businessDetail = BusinessDetail::where('store_slug', $slug)
+            ->where('store_enabled', true)
+            ->firstOrFail();
+
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $credentials = $request->only('email', 'password');
+
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
+            return redirect()->route('storefront.index', $slug);
+        }
+
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->withInput();
+    }
+
+    /**
+     * Display the registration form.
+     */
+    public function showRegister($slug)
+    {
+        $businessDetail = BusinessDetail::where('store_slug', $slug)
+            ->where('store_enabled', true)
+            ->firstOrFail();
+
+        $userId = $businessDetail->user_id;
+        $cart = $this->getCart($userId);
+        $currencySymbol = $this->getCurrencySymbol($userId);
+
+        return view('storefront.register', compact(
+            'businessDetail',
+            'cart',
+            'currencySymbol'
+        ));
+    }
+
+    /**
+     * Process the registration request.
+     */
+    public function register($slug, Request $request)
+    {
+        $businessDetail = BusinessDetail::where('store_slug', $slug)
+            ->where('store_enabled', true)
+            ->firstOrFail();
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+
+        // Create a client record for the user
+        \App\Models\Client::firstOrCreate(
+            ['email' => $request->email, 'user_id' => $businessDetail->user_id],
+            [
+                'name' => $request->name,
+                'phone' => '',
+                'address' => '',
+            ]
+        );
+
+        Auth::login($user);
+
+        return redirect()->route('storefront.index', $slug);
+    }
+
+    /**
+     * Log the user out.
+     */
+    public function logout($slug, Request $request)
+    {
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('storefront.index', $slug);
+    }
+
+    /**
+     * Display the user's order history.
+     */
+    public function orderHistory($slug)
+    {
+        $businessDetail = BusinessDetail::where('store_slug', $slug)
+            ->where('store_enabled', true)
+            ->firstOrFail();
+
+        $userId = $businessDetail->user_id;
+        $cart = $this->getCart($userId);
+        $currencySymbol = $this->getCurrencySymbol($userId);
+
+        // Find the client record associated with the authenticated user's email
+        $client = \App\Models\Client::where('email', Auth::user()->email)
+            ->where('user_id', $userId)
+            ->first();
+
+        // Get the authenticated user's orders
+        $orders = collect();
+        if ($client) {
+            $orders = Order::where('client_id', $client->id)
+                ->where('is_store_order', true)
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+
+        return view('storefront.order-history', compact(
+            'businessDetail',
+            'cart',
+            'currencySymbol',
+            'orders'
+        ));
+    }
+
+    /**
+     * Display the details of a specific order.
+     */
+    public function orderDetails($slug, $orderId)
+    {
+        $businessDetail = BusinessDetail::where('store_slug', $slug)
+            ->where('store_enabled', true)
+            ->firstOrFail();
+
+        $userId = $businessDetail->user_id;
+        $cart = $this->getCart($userId);
+        $currencySymbol = $this->getCurrencySymbol($userId);
+
+        // Find the client record associated with the authenticated user's email
+        $client = \App\Models\Client::where('email', Auth::user()->email)
+            ->where('user_id', $userId)
+            ->first();
+
+        if (!$client) {
+            abort(404, 'Order not found');
+        }
+
+        // Get the order and ensure it belongs to the authenticated user
+        $order = Order::where('id', $orderId)
+            ->where('client_id', $client->id)
+            ->where('is_store_order', true)
+            ->firstOrFail();
+
+        return view('storefront.order-details', compact(
+            'businessDetail',
+            'cart',
+            'currencySymbol',
+            'order'
+        ));
     }
 }

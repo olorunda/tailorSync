@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\PlatformFee;
 use App\Services\PaymentService;
+use App\Services\SubscriptionService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -54,6 +56,22 @@ class PaymentController extends Controller
 
                 // Associate payment with invoice
                 $invoice->payments()->save($payment);
+
+                // Calculate and record platform fee
+                $businessDetail = $invoice->user->businessDetail;
+                $feeAmount = SubscriptionService::calculatePlatformFee($businessDetail, $paymentData['amount']);
+
+                // Create platform fee record
+                PlatformFee::create([
+                    'payment_id' => $payment->id,
+                    'user_id' => $invoice->user_id,
+                    'amount' => $paymentData['amount'],
+                    'fee_amount' => $feeAmount,
+                    'fee_percentage' => SubscriptionService::getTransactionFeePercentage($businessDetail->subscription_plan ?? 'free'),
+                    'currency' => $paymentData['currency'],
+                    'payment_reference' => $reference,
+                    'status' => 'pending',
+                ]);
 
                 // Update invoice status if fully paid
                 $totalPaid = $invoice->payments()->where('status', 'completed')->sum('amount');
@@ -119,6 +137,22 @@ class PaymentController extends Controller
 
                 // Associate payment with order
                 $order->payments()->save($payment);
+
+                // Calculate and record platform fee
+                $businessDetail = $storeOwner->businessDetail;
+                $feeAmount = SubscriptionService::calculatePlatformFee($businessDetail, $paymentData['amount']);
+
+                // Create platform fee record
+                PlatformFee::create([
+                    'payment_id' => $payment->id,
+                    'user_id' => $storeOwner->id,
+                    'amount' => $paymentData['amount'],
+                    'fee_amount' => $feeAmount,
+                    'fee_percentage' => SubscriptionService::getTransactionFeePercentage($businessDetail->subscription_plan ?? 'free'),
+                    'currency' => $paymentData['currency'],
+                    'payment_reference' => $reference,
+                    'status' => 'pending',
+                ]);
 
                 // Update order status if fully paid
                 $totalPaid = $order->payments()->where('status', 'completed')->sum('amount');

@@ -552,15 +552,8 @@ new class extends Component {
                                         @error("items.{$index}.description") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                     </td>
                                     <td class="px-4 py-2" data-label="Quantity">
-                                        <input
-                                            wire:model="items.{{ $index }}.quantity"
-                                            wire:keyup="calculateTotals"
-                                            type="number"
-                                            min="0.01"
-                                            step="0.01"
-                                            class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5"
-                                            required
-                                        >
+                                        value="{{ $item['quantity'] * $item['unit_price'] }}"
+                                        wire:keyup="calculateTotals"
                                         @error("items.{$index}.quantity") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                     </td>
                                     <td class="px-4 py-2" data-label="Unit Price">
@@ -571,7 +564,6 @@ new class extends Component {
                                             <input
                                                 wire:model="items.{{ $index }}.unit_price"
                                                 type="number"
-                                                wire:keyup="calculateTotals"
                                                 min="0"
                                                 step="0.01"
                                                 class="pl-7 bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5"

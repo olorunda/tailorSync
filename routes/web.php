@@ -23,7 +23,7 @@ Route::get('appointments/public/{slug}/time-slots', [\App\Http\Controllers\Publi
 Route::get('business/public/{slug}', \App\Livewire\PublicBusinessProfile::class)->name('business.public');
 
 // Store routes
-Route::prefix('store')->name('store.')->middleware(['auth', \App\Http\Middleware\CheckOnboardingStatus::class])->group(function () {
+Route::prefix('store')->name('store.')->middleware(['auth', 'onboarding.status'])->group(function () {
     Route::middleware(['permission:manage_store'])->group(function () {
         Route::get('settings', [\App\Http\Controllers\StoreSettingsController::class, 'index'])->name('settings');
         Route::post('settings', [\App\Http\Controllers\StoreSettingsController::class, 'update'])->name('settings.update');
@@ -31,11 +31,11 @@ Route::prefix('store')->name('store.')->middleware(['auth', \App\Http\Middleware
     });
 
     // Product management routes
-    Route::middleware(['permission:view_store_products'])->group(function () {
+    Route::middleware(['permission:view_store_products', 'subscription.restriction:store_enabled'])->group(function () {
         Route::get('products', [\App\Http\Controllers\ProductController::class, 'index'])->name('products.index');
     });
 
-    Route::middleware(['permission:create_store_products'])->group(function () {
+    Route::middleware(['permission:create_store_products', 'subscription.restriction:store_enabled'])->group(function () {
         Route::get('products/create', [\App\Http\Controllers\ProductController::class, 'create'])->name('products.create');
         Route::post('products', [\App\Http\Controllers\ProductController::class, 'store'])->name('products.store');
         Volt::route('products/import', 'store.products.import')->name('products.import');
@@ -45,53 +45,53 @@ Route::prefix('store')->name('store.')->middleware(['auth', \App\Http\Middleware
         Route::get('products/{product}', [\App\Http\Controllers\ProductController::class, 'show'])->name('products.show');
     });
 
-    Route::middleware(['permission:edit_store_products'])->group(function () {
+    Route::middleware(['permission:edit_store_products', 'subscription.restriction:store_enabled'])->group(function () {
         Route::get('products/{product}/edit', [\App\Http\Controllers\ProductController::class, 'edit'])->name('products.edit');
         Route::put('products/{product}', [\App\Http\Controllers\ProductController::class, 'update'])->name('products.update');
         Route::patch('products/{product}', [\App\Http\Controllers\ProductController::class, 'update']);
     });
 
-    Route::middleware(['permission:delete_store_products'])->group(function () {
+    Route::middleware(['permission:delete_store_products', 'subscription.restriction:store_enabled'])->group(function () {
         Route::delete('products/{product}', [\App\Http\Controllers\ProductController::class, 'destroy'])->name('products.destroy');
     });
 
     // Store orders management
-    Route::middleware(['permission:view_store_orders'])->group(function () {
+    Route::middleware(['permission:view_store_orders', 'subscription.restriction:store_enabled'])->group(function () {
         Route::get('orders', [\App\Http\Controllers\StoreOrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [\App\Http\Controllers\StoreOrderController::class, 'show'])->name('orders.show');
     });
 
-    Route::middleware(['permission:create_store_orders'])->group(function () {
+    Route::middleware(['permission:create_store_orders', 'subscription.restriction:store_enabled'])->group(function () {
         // Add routes for creating store orders if needed
     });
 
-    Route::middleware(['permission:edit_store_orders|manage_store_orders'])->group(function () {
+    Route::middleware(['permission:edit_store_orders|manage_store_orders', 'subscription.restriction:store_enabled'])->group(function () {
         Route::get('orders/{order}/edit', [\App\Http\Controllers\StoreOrderController::class, 'edit'])->name('orders.edit');
         Route::put('orders/{order}', [\App\Http\Controllers\StoreOrderController::class, 'update'])->name('orders.update');
         Route::post('orders/{order}/mark-as-paid', [\App\Http\Controllers\StoreOrderController::class, 'markAsPaid'])->name('orders.mark-as-paid');
         Route::post('orders/{order}/cancel', [\App\Http\Controllers\StoreOrderController::class, 'cancelOrder'])->name('orders.cancel');
     });
 
-    Route::middleware(['permission:delete_store_orders|manage_store_orders'])->group(function () {
+    Route::middleware(['permission:delete_store_orders|manage_store_orders', 'subscription.restriction:store_enabled'])->group(function () {
         // Add routes for deleting store orders if needed
     });
 
     // Store purchases management
-    Route::middleware(['permission:view_store_purchases'])->group(function () {
+    Route::middleware(['permission:view_store_purchases', 'subscription.restriction:store_enabled'])->group(function () {
         Route::get('purchases', [\App\Http\Controllers\StorePurchaseController::class, 'index'])->name('purchases.index');
         Route::get('purchases/{purchase}', [\App\Http\Controllers\StorePurchaseController::class, 'show'])->name('purchases.show');
     });
 
-    Route::middleware(['permission:create_store_purchases'])->group(function () {
+    Route::middleware(['permission:create_store_purchases', 'subscription.restriction:store_enabled'])->group(function () {
         // Add routes for creating store purchases if needed
     });
 
-    Route::middleware(['permission:edit_store_purchases|manage_store_purchases'])->group(function () {
+    Route::middleware(['permission:edit_store_purchases|manage_store_purchases', 'subscription.restriction:store_enabled'])->group(function () {
         Route::get('purchases/{purchase}/edit', [\App\Http\Controllers\StorePurchaseController::class, 'edit'])->name('purchases.edit');
         Route::put('purchases/{purchase}', [\App\Http\Controllers\StorePurchaseController::class, 'update'])->name('purchases.update');
     });
 
-    Route::middleware(['permission:delete_store_purchases|manage_store_purchases'])->group(function () {
+    Route::middleware(['permission:delete_store_purchases|manage_store_purchases', 'subscription.restriction:store_enabled'])->group(function () {
         // Add routes for deleting store purchases if needed
     });
 });
@@ -108,18 +108,31 @@ Route::prefix('shop/{slug}')->name('storefront.')->group(function () {
     Route::get('/checkout', [\App\Http\Controllers\StorefrontController::class, 'checkout'])->name('checkout');
     Route::post('/checkout', [\App\Http\Controllers\StorefrontController::class, 'processCheckout'])->name('checkout.process');
     Route::get('/order/confirmation/{order}', [\App\Http\Controllers\StorefrontController::class, 'orderConfirmation'])->name('order.confirmation');
+
+    // Authentication routes
+    Route::get('/login', [\App\Http\Controllers\StorefrontController::class, 'showLogin'])->name('login');
+    Route::post('/login', [\App\Http\Controllers\StorefrontController::class, 'login'])->name('login.process');
+    Route::get('/register', [\App\Http\Controllers\StorefrontController::class, 'showRegister'])->name('register');
+    Route::post('/register', [\App\Http\Controllers\StorefrontController::class, 'register'])->name('register.process');
+    Route::post('/logout', [\App\Http\Controllers\StorefrontController::class, 'logout'])->name('logout');
+
+    // Order history and tracking routes (protected by auth middleware)
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/orders', [\App\Http\Controllers\StorefrontController::class, 'orderHistory'])->name('orders');
+        Route::get('/orders/{order}', [\App\Http\Controllers\StorefrontController::class, 'orderDetails'])->name('orders.show');
+    });
 });
 
 Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified', \App\Http\Middleware\CheckOnboardingStatus::class])
+    ->middleware(['auth', 'verified', 'onboarding.status', 'redirect.client.users'])
     ->name('dashboard');
 
 // Onboarding Routes
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth','redirect.client.users'])->group(function () {
     Volt::route('onboarding', 'onboarding.wizard')->name('onboarding.wizard');
 });
 
-Route::middleware(['auth', \App\Http\Middleware\CheckOnboardingStatus::class])->group(function () {
+Route::middleware(['auth', 'onboarding.status', 'redirect.client.users'])->group(function () {
     // Notifications Routes
     Volt::route('notifications', 'notifications.index')->name('notifications.index');
 
@@ -251,19 +264,19 @@ Route::middleware(['auth', \App\Http\Middleware\CheckOnboardingStatus::class])->
     });
 
     // Appointment Routes
-    Route::middleware(['permission:view_appointments'])->group(function () {
+    Route::middleware(['permission:view_appointments', 'subscription.restriction:appointments_enabled'])->group(function () {
         Volt::route('appointments', 'appointments.index')->name('appointments.index');
     });
 
-    Route::middleware(['permission:create_appointments'])->group(function () {
+    Route::middleware(['permission:create_appointments', 'subscription.restriction:appointments_enabled'])->group(function () {
         Volt::route('appointments/create', 'appointments.create')->name('appointments.create');
     });
 
-    Route::middleware(['permission:view_appointments'])->group(function () {
+    Route::middleware(['permission:view_appointments', 'subscription.restriction:appointments_enabled'])->group(function () {
         Volt::route('appointments/{appointment}', 'appointments.show')->name('appointments.show');
     });
 
-    Route::middleware(['permission:edit_appointments'])->group(function () {
+    Route::middleware(['permission:edit_appointments', 'subscription.restriction:appointments_enabled'])->group(function () {
         Volt::route('appointments/{appointment}/edit', 'appointments.edit')->name('appointments.edit');
     });
 
@@ -328,7 +341,7 @@ Route::middleware(['auth', \App\Http\Middleware\CheckOnboardingStatus::class])->
     });
 
     // Finance Routes - Tax Report
-    Route::middleware(['permission:view_tax_reports'])->group(function () {
+    Route::middleware(['permission:view_tax_reports', 'subscription.restriction:tax_reports_enabled'])->group(function () {
         Route::get('reports/tax', \App\Livewire\TaxReport::class)->name('reports.tax');
     });
 
@@ -371,3 +384,12 @@ require __DIR__.'/auth.php';
 
 // Include payment routes
 require __DIR__.'/payment.php';
+
+// Subscription routes
+Route::middleware(['auth', 'onboarding.status'])->group(function () {
+    Route::get('subscriptions', [\App\Http\Controllers\SubscriptionController::class, 'index'])->name('subscriptions.index');
+    Route::get('subscriptions/{plan}/checkout', [\App\Http\Controllers\SubscriptionController::class, 'checkout'])->name('subscriptions.checkout');
+    Route::post('subscriptions/{plan}/process', [\App\Http\Controllers\SubscriptionController::class, 'processPayment'])->name('subscriptions.process');
+    Route::get('subscriptions/callback/{reference}', [\App\Http\Controllers\SubscriptionController::class, 'handleCallback'])->name('subscriptions.callback');
+    Route::post('subscriptions/cancel', [\App\Http\Controllers\SubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
+});

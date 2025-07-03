@@ -35,4 +35,27 @@ return [
         ],
     ],
 
+    'payment' => [
+        'subscription' => [
+            'gateway' => env('SUBSCRIPTION_PAYMENT_GATEWAY','paystack'),
+            'paystack' => [
+                'public_key' => env('SUBSCRIPTION_PAYSTACK_PUBLIC_KEY', env('PAYSTACK_PUBLIC_KEY')),
+                'secret_key' => env('SUBSCRIPTION_PAYSTACK_SECRET_KEY', env('PAYSTACK_SECRET_KEY')),
+            ],
+            'flutterwave' => [
+                'public_key' => env('SUBSCRIPTION_FLUTTERWAVE_PUBLIC_KEY', env('FLUTTERWAVE_PUBLIC_KEY')),
+                'secret_key' => env('SUBSCRIPTION_FLUTTERWAVE_SECRET_KEY', env('FLUTTERWAVE_SECRET_KEY')),
+            ],
+            'stripe' => [
+                'public_key' => env('SUBSCRIPTION_STRIPE_PUBLIC_KEY', env('STRIPE_PUBLIC_KEY')),
+                'secret_key' => env('SUBSCRIPTION_STRIPE_SECRET_KEY', env('STRIPE_SECRET_KEY')),
+            ],
+        ],
+    ],
+
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY','AIzaSyBVpemolFRYQqCfKDiA-xciHJG-JIP78XY'),
+        'model' => env('GEMINI_MODEL', 'gemini-2.0-flash'),
+    ],
+
 ];

@@ -15,14 +15,15 @@ use Illuminate\Support\Facades\Route;
 // Invoice payment routes
 Route::get('/invoices/{invoiceId}/pay', [PaymentController::class, 'payInvoice'])
     ->name('payment.invoice.pay')
-    ->middleware(['auth']);
+    ->middleware(['auth', 'subscription.restriction:payment_integration_enabled']);
 
 Route::get('/payment/invoice/callback/{reference}', [PaymentController::class, 'handleInvoicePaymentCallback'])
     ->name('payment.invoice.callback');
 
 // Store order payment routes
 Route::get('/orders/{orderId}/pay', [PaymentController::class, 'payOrder'])
-    ->name('payment.order.pay');
+    ->name('payment.order.pay')
+    ->middleware(['subscription.restriction:payment_integration_enabled']);
 
 Route::get('/payment/order/callback/{reference}', [PaymentController::class, 'handleOrderPaymentCallback'])
     ->name('payment.order.callback');

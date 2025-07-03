@@ -13,6 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'permission' => \App\Http\Middleware\CheckPermission::class,
+            'onboarding.status' => \App\Http\Middleware\CheckOnboardingStatus::class,
+            'redirect.client.users' => \App\Http\Middleware\RedirectClientUsers::class,
+            'subscription.restriction' => \App\Http\Middleware\SubscriptionRestrictionMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

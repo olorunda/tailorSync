@@ -6,6 +6,8 @@ use Livewire\Volt\Component;
 
 new class extends Component {
     public Design $design;
+    public ?string $previewImage = null;
+    public bool $showFullImage = false;
 
     public function mount(Design $design): void
     {
@@ -45,6 +47,17 @@ new class extends Component {
         // If none of the above conditions are met, redirect with access denied message
         session()->flash('error', 'You do not have permission to view this design.');
         $this->redirect(route('designs.index'));
+    }
+
+    public function toggleFullImage(?string $imagePath = null): void
+    {
+        if ($imagePath) {
+            $this->previewImage = $imagePath;
+            $this->showFullImage = true;
+        } else {
+            $this->showFullImage = false;
+            $this->previewImage = null;
+        }
     }
 
     public function delete()
@@ -106,6 +119,20 @@ new class extends Component {
         </div>
     @endif
 
+    <!-- Global image preview overlay -->
+    @if($showFullImage && $previewImage)
+        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 overflow-y-auto" wire:click="toggleFullImage()">
+            <div class="max-w-4xl my-8 p-4 relative">
+                <img src="{{ Storage::url($previewImage) }}" alt="Full size image" class="max-w-full object-contain">
+                <button class="absolute top-4 right-4 text-white hover:text-gray-300" wire:click="toggleFullImage()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    @endif
+
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
             <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{{ $design->name }}</h1>
@@ -144,8 +171,8 @@ new class extends Component {
             <!-- Primary Image -->
             @if ($design->primary_image)
                 <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
-                    <div class="aspect-video w-full overflow-hidden">
-                        <img src="{{ Storage::url($design->primary_image) }}" alt="{{ $design->name }}" class="w-full h-full object-cover">
+                    <div class="aspect-video w-full overflow-hidden relative group">
+                        <img src="{{ Storage::url($design->primary_image) }}" alt="{{ $design->name }}" class="w-full h-full object-cover cursor-pointer" wire:click="toggleFullImage('{{ $design->primary_image }}')">
                     </div>
                 </div>
             @endif
@@ -156,9 +183,9 @@ new class extends Component {
                     <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Additional Images</h2>
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         @foreach ($design->images as $image)
-                            <a href="{{ Storage::url($image) }}" target="_blank" class="block">
-                                <img src="{{ Storage::url($image) }}" alt="Design image" class="w-full aspect-square object-cover rounded-md hover:opacity-90 transition-opacity">
-                            </a>
+                            <div class="block relative">
+                                <img src="{{ Storage::url($image) }}" alt="Design image" class="w-full aspect-square object-cover rounded-md hover:opacity-90 transition-opacity cursor-pointer" wire:click="toggleFullImage('{{ $image }}')">
+                            </div>
                         @endforeach
                     </div>
                 </div>

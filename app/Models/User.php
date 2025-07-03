@@ -143,12 +143,15 @@ class User extends Authenticatable
 
     /**
      * Get all designs, including those of the parent user or child users.
+     * Limits the number of designs based on subscription plan.
      */
     public function allDesigns()
     {
+        $query = null;
+
         if ($this->parent_id) {
             // Child account: see own designs and parent's designs
-            return Design::where(function ($query) {
+            $query = Design::where(function ($query) {
                 $query->where('user_id', $this->id)
                     ->orWhere('user_id', $this->parent_id);
             });
@@ -156,14 +159,29 @@ class User extends Authenticatable
             // Parent account: see own designs and all children's designs
             $childrenIds = $this->children()->pluck('id')->toArray();
             if (!empty($childrenIds)) {
-                return Design::where(function ($query) use ($childrenIds) {
+                $query = Design::where(function ($query) use ($childrenIds) {
                     $query->where('user_id', $this->id)
                         ->orWhereIn('user_id', $childrenIds);
                 });
+            } else {
+                $query = $this->designs();
             }
         }
 
-        return $this->designs();
+        // Get subscription plan details
+        $businessDetail = $this->businessDetail;
+        if ($businessDetail) {
+            $planKey = $businessDetail->subscription_plan ?? 'free';
+            $plan = \App\Services\SubscriptionService::getPlan($planKey);
+            $maxDesigns = $plan['features']['max_designs'] ?? 5;
+
+            // If max_designs is not unlimited, limit the number of designs displayed
+            if ($maxDesigns !== 'unlimited' && $maxDesigns > 0) {
+                $query->limit($maxDesigns);
+            }
+        }
+
+        return $query;
     }
 
     /**
@@ -374,12 +392,15 @@ class User extends Authenticatable
 
     /**
      * Get all team members, including those of the parent user or child users.
+     * Limits the number of team members based on subscription plan.
      */
     public function allTeamMembers()
     {
+        $query = null;
+
         if ($this->parent_id) {
             // Child account: see own team members and parent's team members
-            return User::where(function ($query) {
+            $query = User::where(function ($query) {
                 $query->where('id', $this->id)
                     ->orWhere('parent_id', $this->parent_id);
             });
@@ -387,15 +408,30 @@ class User extends Authenticatable
             // Parent account: see own team members and all children's team members
             $childrenIds = $this->children()->pluck('id')->toArray();
             if (!empty($childrenIds)) {
-                return User::where(function ($query) use ($childrenIds) {
+                $query = User::where(function ($query) use ($childrenIds) {
                     $query
                         //->where('id', $this->id)
                         ->orWhereIn('id', $childrenIds);
                 });
+            } else {
+                $query = $this->teamMembers();
             }
         }
 
-        return $this->teamMembers();
+        // Get subscription plan details
+        $businessDetail = $this->businessDetail;
+        if ($businessDetail) {
+            $planKey = $businessDetail->subscription_plan ?? 'free';
+            $plan = \App\Services\SubscriptionService::getPlan($planKey);
+            $maxTeamMembers = $plan['features']['max_team_members'] ?? 1;
+
+            // If max_team_members is not unlimited, limit the number of team members displayed
+            if ($maxTeamMembers !== 'unlimited' && $maxTeamMembers > 0) {
+                $query->limit($maxTeamMembers);
+            }
+        }
+
+        return $query;
     }
 
     /**

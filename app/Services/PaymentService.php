@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\BusinessDetail;
 use App\Models\User;
+use App\Services\SubscriptionService;
 use Exception;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 
 class PaymentService
@@ -13,28 +15,77 @@ class PaymentService
     protected $businessDetail;
     protected $gateway;
     protected $settings;
+    protected $isSubscriptionPayment = false;
 
     /**
      * Create a new payment service instance.
      *
      * @param User $user
+     * @param bool $isSubscriptionPayment Whether this is a subscription payment
      * @return void
      */
-    public function __construct(User $user)
+    public function __construct(User $user, bool $isSubscriptionPayment = false)
     {
         $this->user = $user;
         $this->businessDetail = $user->businessDetail;
+        $this->isSubscriptionPayment = $isSubscriptionPayment;
 
-        if (!$this->businessDetail || !$this->businessDetail->payment_enabled) {
-            throw new Exception('Payment processing is not enabled for this business.');
+        if ($isSubscriptionPayment) {
+            // For subscription payments, use platform-level payment gateway
+            $this->gateway = Config::get('services.payment.subscription.gateway', 'paystack');
+            $this->settings = [
+                'paystack' => Config::get('services.payment.subscription.paystack'),
+                'flutterwave' => Config::get('services.payment.subscription.flutterwave'),
+                'stripe' => Config::get('services.payment.subscription.stripe'),
+            ];
+
+            if (empty($this->settings[$this->gateway]['secret_key'])) {
+                throw new Exception('Subscription payment gateway is not properly configured.');
+            }
+        } else {
+            // For regular payments, use business payment gateway with subscription restrictions
+            if (!$this->businessDetail || !$this->businessDetail->payment_enabled) {
+                throw new Exception('Payment processing is not enabled for this business.');
+            }
+
+            $this->gateway = $this->businessDetail->default_payment_gateway;
+            $this->settings = $this->businessDetail->payment_settings;
+
+            if ($this->gateway === 'none' || empty($this->settings)) {
+                throw new Exception('No payment gateway is configured.');
+            }
+
+            // Check if the subscription plan allows the selected payment gateway
+            $planKey = $this->businessDetail->subscription_plan ?? 'free';
+            $plan = SubscriptionService::getPlan($planKey);
+
+            if (!$plan) {
+                throw new Exception('Invalid subscription plan.');
+            }
+
+            // Check if subscription is active (except for free plan)
+            if ($planKey !== 'free' && !SubscriptionService::isActive($this->businessDetail)) {
+                throw new Exception('Your subscription is inactive. Please renew your subscription to process payments.');
+            }
+
+            // Check if the selected gateway is allowed for the subscription plan
+            $allowedGateways = $plan['features']['payment_gateways'] ?? ['paystack'];
+
+            if (!in_array($this->gateway, $allowedGateways)) {
+                throw new Exception("Your current subscription plan does not support the {$this->gateway} payment gateway. Please upgrade your plan or switch to a supported gateway: " . implode(', ', $allowedGateways));
+            }
         }
+    }
 
-        $this->gateway = $this->businessDetail->default_payment_gateway;
-        $this->settings = $this->businessDetail->payment_settings;
-
-        if ($this->gateway === 'none' || empty($this->settings)) {
-            throw new Exception('No payment gateway is configured.');
-        }
+    /**
+     * Create a new payment service instance for subscription payments.
+     *
+     * @param User $user
+     * @return PaymentService
+     */
+    public static function forSubscription(User $user): PaymentService
+    {
+        return new self($user, true);
     }
 
     /**

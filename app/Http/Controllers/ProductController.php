@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Services\SubscriptionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -66,6 +67,18 @@ class ProductController extends Controller
             $query->orderBy('created_at', 'desc');
         }
 
+        // Get subscription plan details
+        $user = auth()->user();
+        $businessDetail = $user->businessDetail;
+        $planKey = $businessDetail->subscription_plan ?? 'free';
+        $plan = SubscriptionService::getPlan($planKey);
+        $maxProducts = $plan['features']['max_products'] ?? 0;
+
+        // If max_products is not unlimited, limit the number of products displayed
+        if ($maxProducts !== 'unlimited' && $maxProducts > 0) {
+            $query->limit($maxProducts);
+        }
+
         $products = $query->paginate(10)->withQueryString();
 
         return view('store.products.index', compact('products'));
@@ -84,6 +97,35 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
+        // Check subscription product limit
+        $user = auth()->user();
+        $businessDetail = $user->businessDetail;
+
+        // Get the current product count
+        $currentProductCount = Product::where('user_id', $user->id)->count();
+
+        // Get the max products allowed for the subscription plan
+        $planKey = $businessDetail->subscription_plan ?? 'free';
+        $plan = SubscriptionService::getPlan($planKey);
+
+        if (!$plan) {
+            return redirect()->route('subscriptions.index')
+                ->with('error', 'Invalid subscription plan. Please contact support.');
+        }
+
+        $maxProducts = $plan['features']['max_products'];
+
+        // Check if the user has reached the product limit
+        if ($maxProducts !== 'unlimited' && $currentProductCount >= $maxProducts) {
+            return redirect()->route('store.products.index')
+                ->with('error', "You have reached the maximum number of products ({$maxProducts}) allowed for your {$planKey} plan. Please upgrade your plan to add more products.")
+                ->with('subscription_limit_reached', true)
+                ->with('subscription_feature', 'product limit')
+                ->with('subscription_plan', $planKey)
+                ->with('subscription_limit', $maxProducts)
+                ->with('subscription_current', $currentProductCount);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'sku' => 'nullable|string|max:100|unique:products,sku',

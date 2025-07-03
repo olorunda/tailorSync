@@ -12,6 +12,8 @@ new class extends Component {
     public string $category = '';
     public string $sortField = 'created_at';
     public string $sortDirection = 'desc';
+    public ?string $previewImage = null;
+    public bool $showFullImage = false;
 
     public function mount()
     {
@@ -39,6 +41,17 @@ new class extends Component {
         } else {
             $this->sortField = $field;
             $this->sortDirection = 'asc';
+        }
+    }
+
+    public function toggleFullImage(?string $imagePath = null): void
+    {
+        if ($imagePath) {
+            $this->previewImage = $imagePath;
+            $this->showFullImage = true;
+        } else {
+            $this->showFullImage = false;
+            $this->previewImage = null;
         }
     }
 
@@ -92,6 +105,45 @@ new class extends Component {
         </div>
     @endif
 
+    <!-- Global image preview overlay -->
+{{--    @if($showFullImage && $previewImage)--}}
+{{--        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 overflow-y-auto" wire:click="toggleFullImage()">--}}
+{{--            <div class="max-w-4xl my-8 p-4 relative">--}}
+{{--                <img src="{{ Storage::url($previewImage) }}" alt="Full size image" class="max-w-full object-contain">--}}
+{{--                <button class="absolute top-4 right-4 text-white hover:text-gray-300" wire:click="toggleFullImage()">--}}
+{{--                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">--}}
+{{--                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />--}}
+{{--                    </svg>--}}
+{{--                </button>--}}
+{{--            </div>--}}
+{{--        </div>--}}
+{{--    @endif--}}
+
+    @php
+        // Get subscription plan details
+        $user = auth()->user();
+        $businessDetail = $user->businessDetail;
+        $planKey = $businessDetail->subscription_plan ?? 'free';
+        $plan = \App\Services\SubscriptionService::getPlan($planKey);
+        $maxDesigns = $plan['features']['max_designs'] ?? 5;
+        $currentDesignCount = \App\Models\Design::where('user_id', $user->id)->count();
+        $isUnlimited = $maxDesigns === 'unlimited';
+        $isNearLimit = !$isUnlimited && $currentDesignCount >= ($maxDesigns * 0.8); // 80% of limit
+        $isAtLimit = !$isUnlimited && $currentDesignCount >= $maxDesigns;
+    @endphp
+
+    @if($isAtLimit)
+        <x-subscription-limit-notice
+            feature="design limit"
+            message="You have reached the maximum number of designs ({{ $maxDesigns }}) allowed for your {{ ucfirst($planKey) }} plan."
+        />
+    @elseif($isNearLimit)
+        <x-subscription-limit-notice
+            feature="design limit"
+            message="You are approaching the maximum number of designs allowed for your {{ ucfirst($planKey) }} plan. You have used {{ $currentDesignCount }} out of {{ $maxDesigns }} available design slots."
+        />
+    @endif
+
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
             <h1 class="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Design Board</h1>
@@ -138,9 +190,9 @@ new class extends Component {
         @forelse ($designs as $design)
             <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                 <a href="{{ route('designs.show', $design) }}" class="block">
-                    <div class="aspect-square w-full overflow-hidden bg-zinc-100 dark:bg-zinc-700">
+                    <div class="aspect-square w-full overflow-hidden bg-zinc-100 dark:bg-zinc-700 relative">
                         @if ($design->primary_image)
-                            <img src="{{ Storage::url($design->primary_image) }}" alt="{{ $design->name }}" class="w-full h-full object-cover hover:scale-105 transition-transform">
+                            <img src="{{ Storage::url($design->primary_image) }}" alt="{{ $design->name }}" class="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"  >
                         @else
                             <div class="w-full h-full flex items-center justify-center bg-orange-50 dark:bg-orange-900/20">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-orange-300 dark:text-orange-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">

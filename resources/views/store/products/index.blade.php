@@ -23,6 +23,44 @@
             @endif
         </div>
 
+        @php
+            // Get subscription plan details
+            $user = auth()->user();
+            $businessDetail = $user->businessDetail;
+            $planKey = $businessDetail->subscription_plan ?? 'free';
+            $plan = \App\Services\SubscriptionService::getPlan($planKey);
+            $maxProducts = $plan['features']['max_products'] ?? 10;
+            $currentProductCount = \App\Models\Product::where('user_id', $user->id)->count();
+            $isUnlimited = $maxProducts === 'unlimited';
+            $isNearLimit = !$isUnlimited && $currentProductCount >= ($maxProducts * 0.8); // 80% of limit
+            $isAtLimit = !$isUnlimited && $currentProductCount >= $maxProducts;
+
+            // Check if there's a subscription limit error from the session
+            $subscriptionLimitReached = session('subscription_limit_reached', false);
+            $subscriptionFeature = session('subscription_feature', 'product limit');
+            $subscriptionPlan = session('subscription_plan', $planKey);
+            $subscriptionLimit = session('subscription_limit', $maxProducts);
+            $subscriptionCurrent = session('subscription_current', $currentProductCount);
+        @endphp
+
+        @if($subscriptionLimitReached)
+            <x-subscription-limit-notice
+                feature="{{ $subscriptionFeature }}"
+                plan="{{ $subscriptionPlan }}"
+                message="You have reached the maximum number of products ({{ $subscriptionLimit }}) allowed for your {{ ucfirst($subscriptionPlan) }} plan."
+            />
+        @elseif($isAtLimit)
+            <x-subscription-limit-notice
+                feature="product limit"
+                message="You have reached the maximum number of products ({{ $maxProducts }}) allowed for your {{ ucfirst($planKey) }} plan."
+            />
+        @elseif($isNearLimit)
+            <x-subscription-limit-notice
+                feature="product limit"
+                message="You are approaching the maximum number of products allowed for your {{ ucfirst($planKey) }} plan. You have used {{ $currentProductCount }} out of {{ $maxProducts }} available product slots."
+            />
+        @endif
+
         <!-- Filters -->
         <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm p-6 mb-6">
             <h3 class="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-4">Filter Products</h3>

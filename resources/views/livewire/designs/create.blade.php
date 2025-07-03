@@ -1,7 +1,9 @@
 <?php
 
 use App\Models\Design;
+use App\Services\GeminiService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Volt\Component;
 use Livewire\WithFileUploads;
 
@@ -17,6 +19,11 @@ new class extends Component {
     public $primary_image = null;
     public $canvas_image = null;
     public $use_canvas = false;
+    public $suggested_image_path='';
+    // For occasion-based style suggestions
+    public string $occasion = '';
+    public ?array $styleSuggestions = null;
+    public bool $loadingSuggestions = false;
 
     public function addMaterial()
     {
@@ -75,6 +82,25 @@ new class extends Component {
             return;
         }
 
+        // Check design limit based on subscription plan
+        $user = auth()->user();
+        $businessDetail = $user->businessDetail;
+        $planKey = $businessDetail->subscription_plan ?? 'free';
+        $plan = \App\Services\SubscriptionService::getPlan($planKey);
+
+        // Get the max designs allowed for the subscription plan
+        $maxDesigns = $plan['features']['max_designs'] ?? 5;
+
+        // Get the current design count
+        $currentDesignCount = \App\Models\Design::where('user_id', $user->id)->count();
+
+        // Check if the user has reached the design limit
+        if ($maxDesigns !== 'unlimited' && $currentDesignCount >= $maxDesigns) {
+            session()->flash('error', "You have reached the maximum number of designs ({$maxDesigns}) allowed for your subscription plan. Please upgrade your plan to add more designs.");
+            $this->redirect(route('designs.index'));
+            return;
+        }
+
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'category' => ['nullable', 'string', 'max:100'],
@@ -107,6 +133,10 @@ new class extends Component {
             }
         }
 
+        if(!empty($this->suggested_image_path)){
+            $primaryImagePath = $this->suggested_image_path;
+        }
+
         // Add canvas image to images array if it exists
         if ($this->canvas_image) {
             $imagesPaths[] = $this->canvas_image;
@@ -124,6 +154,89 @@ new class extends Component {
         ]);
 
         $this->redirect(route('designs.show', $design));
+    }
+
+    /**
+     * Get style suggestions from Gemini based on the selected occasion
+     */
+    public function getStyleSuggestions(): void
+    {
+        if (empty($this->occasion)) {
+            session()->flash('error', 'Please select an occasion first.');
+            return;
+        }
+
+        $this->loadingSuggestions = true;
+
+        try {
+            $geminiService = new GeminiService();
+            $this->styleSuggestions = $geminiService->getStyleSuggestions($this->occasion);
+
+            if (empty($this->styleSuggestions)) {
+                session()->flash('error', 'Unable to generate style suggestions. Please try again.');
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error getting style suggestions', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            session()->flash('error', 'Error getting style suggestions: ' . $e->getMessage());
+        } finally {
+            $this->loadingSuggestions = false;
+        }
+    }
+
+    /**
+     * Apply a style suggestion to the current design
+     */
+    public function applyStyleSuggestion(int $index): void
+    {
+        if (!isset($this->styleSuggestions[$index])) {
+            return;
+        }
+
+        $suggestion = $this->styleSuggestions[$index];
+
+        // Update the design name if it's empty
+        if (empty($this->name)) {
+            $this->name = $suggestion['name'] ?? '';
+        }
+
+        $this->suggested_image_path=$suggestion['sample_image'] ?? '';
+
+        // Update the description if it's empty
+        if (empty($this->description)) {
+            $this->description = $suggestion['description'] ?? '';
+        }
+
+        // Add materials from the suggestion
+        if (!empty($suggestion['materials'])) {
+            $suggestedMaterials = explode(',', $suggestion['materials']);
+            foreach ($suggestedMaterials as $material) {
+                $material = trim($material);
+                if (!empty($material) && !in_array($material, $this->materials)) {
+                    $this->materials[] = $material;
+                }
+            }
+        }
+
+        // Add tags from the suggestion
+        if (!empty($suggestion['colors'])) {
+            $suggestedColors = explode(',', $suggestion['colors']);
+            foreach ($suggestedColors as $color) {
+                $color = trim($color);
+                if (!empty($color) && !in_array($color, $this->tags)) {
+                    $this->tags[] = $color;
+                }
+            }
+        }
+
+        // Add the occasion as a tag if it's not already there
+        if (!empty($this->occasion) && !in_array($this->occasion, $this->tags)) {
+            $this->tags[] = $this->occasion;
+        }
+
+        session()->flash('success', 'Style suggestion applied successfully!');
     }
 
     public function mount(): void
@@ -426,12 +539,122 @@ new class extends Component {
                     @error('category') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
 
+                <!-- Occasion for Style Suggestions -->
+                <div>
+                    <label for="occasion" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Occasion</label>
+                    <div class="flex gap-2">
+                        <select wire:model="occasion" id="occasion" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
+                            <option value="">Select an occasion</option>
+                            <option value="Wedding">Wedding</option>
+                            <option value="Formal Dinner">Formal Dinner</option>
+                            <option value="Business Meeting">Business Meeting</option>
+                            <option value="Casual Outing">Casual Outing</option>
+                            <option value="Beach Party">Beach Party</option>
+                            <option value="Graduation">Graduation</option>
+                            <option value="Birthday Party">Birthday Party</option>
+                            <option value="Anniversary">Anniversary</option>
+                            <option value="Religious Ceremony">Religious Ceremony</option>
+                            <option value="Festival">Festival</option>
+                            <option value="Sports Event">Sports Event</option>
+                            <option value="Date Night">Date Night</option>
+                        </select>
+                        <button type="button" wire:click="getStyleSuggestions" wire:loading.attr="disabled" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50">
+                            <span wire:loading.remove wire:target="getStyleSuggestions">Get Suggestions</span>
+                            <span wire:loading wire:target="getStyleSuggestions">Loading...</span>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Description -->
                 <div class="md:col-span-2">
                     <label for="description" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Description</label>
                     <textarea wire:model="description" id="description" rows="3" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5" placeholder="Describe your design"></textarea>
                     @error('description') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
+
+                <!-- Style Suggestions -->
+                @if ($styleSuggestions)
+                <div class="md:col-span-2 mt-6">
+                    <h3 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+                        <span class="border-b-2 border-orange-500 pb-1">Style Suggestions for {{ $occasion }}</span>
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        @foreach ($styleSuggestions as $index => $suggestion)
+                            <div class="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200">
+                                @if (isset($suggestion['raw_text']))
+                                    <div class="p-5 text-zinc-900 dark:text-zinc-100 whitespace-pre-line">{{ $suggestion['raw_text'] }}</div>
+                                @else
+                                    @if (!empty($suggestion['sample_image']))
+                                        <div class="w-full h-48 overflow-hidden">
+                                            <img src="{{ Storage::url($suggestion['sample_image']) }}" alt="{{ $suggestion['name'] }}" class="w-full h-full object-cover">
+                                        </div>
+                                    @endif
+                                    <div class="bg-orange-50 dark:bg-orange-900/20 border-b border-orange-100 dark:border-orange-800/30 px-5 py-3">
+                                        <h4 class="text-lg font-bold text-orange-800 dark:text-orange-300">{{ $suggestion['name'] }}</h4>
+                                    </div>
+
+                                    <div class="p-5 space-y-4">
+                                        @if (!empty($suggestion['description']))
+                                        <div>
+                                            <p class="text-sm font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-1">Description</p>
+                                            <p class="text-zinc-800 dark:text-zinc-200 leading-relaxed">{{ $suggestion['description'] }}</p>
+                                        </div>
+                                        @endif
+
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            @if (!empty($suggestion['materials']))
+                                            <div class="bg-blue-50 dark:bg-blue-900/10 rounded-lg p-3">
+                                                <p class="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-400 mb-1">Materials</p>
+                                                <div class="flex flex-wrap gap-1">
+                                                    @foreach(explode(',', $suggestion['materials']) as $material)
+                                                        <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 dark:bg-blue-800/30 text-blue-800 dark:text-blue-300">
+                                                            {{ trim($material) }}
+                                                        </span>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                            @endif
+
+                                            @if (!empty($suggestion['colors']))
+                                            <div class="bg-purple-50 dark:bg-purple-900/10 rounded-lg p-3">
+                                                <p class="text-xs font-semibold uppercase tracking-wider text-purple-700 dark:text-purple-400 mb-1">Colors</p>
+                                                <div class="flex flex-wrap gap-1">
+                                                    @foreach(explode(',', $suggestion['colors']) as $color)
+                                                        <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-100 dark:bg-purple-800/30 text-purple-800 dark:text-purple-300">
+                                                            {{ trim($color) }}
+                                                        </span>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                            @endif
+                                        </div>
+
+                                        @if (!empty($suggestion['design_elements']))
+                                        <div class="bg-green-50 dark:bg-green-900/10 rounded-lg p-3">
+                                            <p class="text-xs font-semibold uppercase tracking-wider text-green-700 dark:text-green-400 mb-1">Design Elements</p>
+                                            <ul class="list-disc pl-5 text-green-800 dark:text-green-300 text-sm space-y-1">
+                                                @foreach(explode(',', $suggestion['design_elements']) as $element)
+                                                    <li>{{ trim($element) }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                        @endif
+                                    </div>
+                                @endif
+
+                                <div class="px-5 py-3 bg-zinc-50 dark:bg-zinc-700/30 border-t border-zinc-200 dark:border-zinc-700">
+                                    <button type="button" wire:click="applyStyleSuggestion({{ $index }})" class="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors duration-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                        Apply This Style
+                                    </button>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
 
                 <!-- Materials -->
                 <div class="md:col-span-2">

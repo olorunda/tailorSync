@@ -17,7 +17,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                 <div>
                                     <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                                    <input type="text" id="name" name="name" value="{{ old('name') }}" required class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-custom focus:border-primary-custom sm:text-sm">
+                                    <input type="text" id="name" name="name" value="{{ old('name', $client->name ?? '') }}" required class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-custom focus:border-primary-custom sm:text-sm">
                                     @error('name')
                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
@@ -25,7 +25,7 @@
 
                                 <div>
                                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                                    <input type="email" id="email" name="email" value="{{ old('email') }}" required class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-custom focus:border-primary-custom sm:text-sm">
+                                    <input type="email" id="email" name="email" value="{{ old('email', $client->email ?? '') }}" required class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-custom focus:border-primary-custom sm:text-sm">
                                     @error('email')
                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
@@ -34,7 +34,7 @@
 
                             <div class="mb-6">
                                 <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                                <input type="tel" id="phone" name="phone" value="{{ old('phone') }}" required class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-custom focus:border-primary-custom sm:text-sm">
+                                <input type="tel" id="phone" name="phone" value="{{ old('phone', $client->phone ?? '') }}" required class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-custom focus:border-primary-custom sm:text-sm">
                                 @error('phone')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
@@ -42,7 +42,7 @@
 
                             <div class="mb-6">
                                 <label for="shipping_address" class="block text-sm font-medium text-gray-700 mb-1">Shipping Address</label>
-                                <textarea id="shipping_address" name="shipping_address" rows="3" required class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-custom focus:border-primary-custom sm:text-sm">{{ old('shipping_address') }}</textarea>
+                                <textarea id="shipping_address" name="shipping_address" rows="3" required class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-custom focus:border-primary-custom sm:text-sm">{{ old('shipping_address', $client->address ?? '') }}</textarea>
                                 @error('shipping_address')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror

@@ -22,6 +22,7 @@ TailorFit is a comprehensive management system designed specifically for tailor 
 
 For detailed documentation on how to use TailorFit, please refer to the following guides:
 
+- [Wiki - Comprehensive Guide](docs/wiki.md)
 - [Installation Guide](docs/installation.md)
 - [User Guide](docs/user-guide.md)
 - [Administrator Guide](docs/admin-guide.md)

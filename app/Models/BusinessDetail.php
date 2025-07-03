@@ -42,6 +42,12 @@ class BusinessDetail extends Model
         'payment_enabled',
         'default_payment_gateway',
         'payment_settings',
+        'subscription_plan',
+        'subscription_start_date',
+        'subscription_end_date',
+        'subscription_active',
+        'subscription_payment_method',
+        'subscription_payment_id',
     ];
 
     /**
@@ -67,5 +73,8 @@ class BusinessDetail extends Model
         'tax_enabled' => 'boolean',
         'payment_settings' => 'array',
         'payment_enabled' => 'boolean',
+        'subscription_start_date' => 'datetime',
+        'subscription_end_date' => 'datetime',
+        'subscription_active' => 'boolean',
     ];
 }
