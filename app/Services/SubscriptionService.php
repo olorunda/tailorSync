@@ -30,11 +30,12 @@ class SubscriptionService
                 'public_appointments_enabled' => false,
                 'tax_reports_enabled' => false,
                 'payment_integration_enabled' => false,
+                'ai_style_suggestions' => false,
             ],
         ],
         'basic' => [
             'name' => 'Basic',
-            'price' => 2999,
+            'price' => 7000,
             'duration' => 30, // days
             'features' => [
                 'max_products' => 50,
@@ -48,11 +49,12 @@ class SubscriptionService
                 'public_appointments_enabled' => true,
                 'tax_reports_enabled' => false,
                 'payment_integration_enabled' => true,
+                'ai_style_suggestions' => false,
             ],
         ],
         'premium' => [
             'name' => 'Premium',
-            'price' => 5999,
+            'price' => 15000,
             'duration' => 30, // days
             'features' => [
                 'max_products' => 'unlimited',
@@ -66,6 +68,7 @@ class SubscriptionService
                 'public_appointments_enabled' => true,
                 'tax_reports_enabled' => true,
                 'payment_integration_enabled' => true,
+                'ai_style_suggestions' => true,
             ],
         ],
     ];
@@ -208,5 +211,137 @@ class SubscriptionService
         $feePercentage = self::getTransactionFeePercentage($planKey);
 
         return round(($amount * $feePercentage) / 100, 2);
+    }
+
+    /**
+     * Check if changing from current plan to new plan is a downgrade
+     *
+     * @param string $currentPlan
+     * @param string $newPlan
+     * @return bool
+     */
+    public static function isDowngrade($currentPlan, $newPlan)
+    {
+        // Define plan hierarchy (higher index = higher tier)
+        $planHierarchy = ['free', 'basic', 'premium'];
+
+        $currentPlanIndex = array_search($currentPlan, $planHierarchy);
+        $newPlanIndex = array_search($newPlan, $planHierarchy);
+
+        // If current plan is not found, assume it's the lowest tier
+        if ($currentPlanIndex === false) {
+            $currentPlanIndex = 0;
+        }
+
+        // If new plan is not found, assume it's the lowest tier
+        if ($newPlanIndex === false) {
+            $newPlanIndex = 0;
+        }
+
+        // It's a downgrade if the new plan index is lower than the current plan index
+        return $newPlanIndex < $currentPlanIndex;
+    }
+
+    /**
+     * Initialize payment for a subscription
+     *
+     * @param User $user
+     * @param string $planKey
+     * @return array
+     * @throws Exception
+     */
+    public static function initializePayment(User $user, $planKey)
+    {
+        $businessDetail = $user->businessDetail;
+        $plan = self::getPlan($planKey);
+
+        if (!$plan) {
+            throw new Exception('Invalid subscription plan selected.');
+        }
+
+        // Generate a unique reference
+        $reference = 'sub_' . $planKey . '_' . $user->id . '_' . time();
+
+        // Initialize payment using the subscription-specific payment service
+        $paymentService = PaymentService::forSubscription($user);
+        $callbackUrl = route('subscriptions.callback', ['reference' => $reference]);
+
+        $metadata = [
+            'plan_key' => $planKey,
+            'user_id' => $user->id,
+            'business_name' => $businessDetail->business_name,
+            'is_subscription_payment' => true,
+        ];
+
+        return [
+            'payment_data' => $paymentService->initializePayment(
+                $plan['price'],
+                $reference,
+                $user->email,
+                $callbackUrl,
+                $metadata
+            ),
+            'reference' => $reference,
+            'plan' => $plan
+        ];
+    }
+
+    /**
+     * Verify payment and activate subscription
+     *
+     * @param string $reference
+     * @return array
+     * @throws Exception
+     */
+    public static function verifyPaymentAndSubscribe($reference)
+    {
+        // Extract plan and user ID from reference (format: sub_plankey_userid_timestamp)
+        $parts = explode('_', $reference);
+        if (count($parts) < 3 || $parts[0] !== 'sub') {
+            throw new Exception('Invalid payment reference format.');
+        }
+
+        $planKey = $parts[1];
+        $userId = $parts[2];
+        $user = User::findOrFail($userId);
+
+        // Verify the payment using the subscription-specific payment service
+        $paymentService = PaymentService::forSubscription($user);
+        $paymentData = $paymentService->verifyPayment($reference);
+
+        if ($paymentData['success']) {
+            // Create subscription
+            self::subscribe(
+                $user,
+                $planKey,
+                $paymentData['gateway'],
+                $reference
+            );
+
+            return [
+                'success' => true,
+                'message' => 'Your subscription has been activated successfully!'
+            ];
+        }
+
+        return [
+            'success' => false,
+            'message' => 'Payment verification failed. Please contact support.'
+        ];
+    }
+
+    /**
+     * Cancel the current subscription
+     *
+     * @param User $user
+     * @return bool
+     */
+    public static function cancelSubscription(User $user)
+    {
+        $businessDetail = $user->businessDetail;
+
+        // Set subscription to inactive
+        $businessDetail->subscription_active = false;
+        return $businessDetail->save();
     }
 }

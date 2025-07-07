@@ -2,49 +2,52 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AddToCartRequest;
+use App\Http\Requests\CheckoutRequest;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\UpdateCartRequest;
 use App\Models\BusinessDetail;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ShoppingCart;
 use App\Models\User;
+use App\Services\StorefrontService;
 use App\Services\SubscriptionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 
 class StorefrontController extends Controller
 {
+    /**
+     * The storefront service instance.
+     *
+     * @var \App\Services\StorefrontService
+     */
+    protected $storefrontService;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param \App\Services\StorefrontService $storefrontService
+     * @return void
+     */
+    public function __construct(StorefrontService $storefrontService)
+    {
+        $this->storefrontService = $storefrontService;
+    }
     /**
      * Display the store homepage.
      */
     public function index($slug)
     {
-        $businessDetail = BusinessDetail::where('store_slug', $slug)
-            ->firstOrFail();
+        $businessDetail = $this->storefrontService->getBusinessDetailBySlug($slug);
 
         // Check if store is enabled
-        if (!$businessDetail->store_enabled) {
-            abort(404, 'Store not found');
-        }
-
-        // Check if the subscription plan allows store functionality
-        $planKey = $businessDetail->subscription_plan ?? 'free';
-        $plan = SubscriptionService::getPlan($planKey);
-
-        if (!$plan) {
-            abort(404, 'Store not found');
-        }
-
-        // Check if store is enabled in the subscription plan
-        if (!($plan['features']['store_enabled'] ?? false)) {
-            abort(404, 'Store not found');
-        }
-
-        // Check if subscription is active (except for free plan)
-        if ($planKey !== 'free' && !SubscriptionService::isActive($businessDetail)) {
+        if (!$this->storefrontService->isStoreEnabled($businessDetail)) {
             abort(404, 'Store not found');
         }
 
@@ -53,38 +56,26 @@ class StorefrontController extends Controller
         // Get featured products
         $featuredProducts = [];
         if ($businessDetail->store_show_featured_products) {
-            $featuredProducts = Product::where('user_id', $userId)
-                ->where('is_featured', true)
-                ->where('is_active', true)
-                ->take(8)
-                ->get();
+            $featuredProducts = $this->storefrontService->getFeaturedProducts($userId);
         }
 
         // Get new arrivals
         $newArrivals = [];
         if ($businessDetail->store_show_new_arrivals) {
-            $newArrivals = Product::where('user_id', $userId)
-                ->where('is_active', true)
-                ->orderBy('created_at', 'desc')
-                ->take(8)
-                ->get();
+            $newArrivals = $this->storefrontService->getNewArrivals($userId);
         }
 
         // Get custom designs
         $customDesigns = [];
         if ($businessDetail->store_show_custom_designs) {
-            $customDesigns = Product::where('user_id', $userId)
-                ->where('is_active', true)
-                ->where('is_custom_order', true)
-                ->take(8)
-                ->get();
+            $customDesigns = $this->storefrontService->getCustomDesigns($userId);
         }
 
         // Get cart
-        $cart = $this->getCart($userId);
+        $cart = $this->storefrontService->getCart($userId);
 
         // Get currency symbol
-        $currencySymbol = $this->getCurrencySymbol($userId);
+        $currencySymbol = $this->storefrontService->getCurrencySymbol($userId);
 
         return view('storefront.index', compact(
             'businessDetail',
@@ -245,38 +236,23 @@ class StorefrontController extends Controller
     /**
      * Add a product to the cart.
      */
-    public function addToCart($slug, Request $request)
+    public function addToCart($slug, AddToCartRequest $request)
     {
-        $businessDetail = BusinessDetail::where('store_slug', $slug)
-            ->where('store_enabled', true)
-            ->firstOrFail();
-
+        $businessDetail = $this->storefrontService->getBusinessDetailBySlug($slug);
         $userId = $businessDetail->user_id;
+        $validated = $request->validated();
 
-        $validated = $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer|min:1',
-            'options' => 'nullable|array',
-            'custom_design_data' => 'nullable|array',
-        ]);
-
-        $product = Product::findOrFail($validated['product_id']);
-
-        // Check if product belongs to the store
-        if ($product->user_id !== $userId) {
-            return redirect()->back()->with('error', 'Product not found.');
-        }
-
-        // Get cart
-        $cart = $this->getCart($userId);
-
-        // Add product to cart
-        $cart->addItem(
-            $product,
+        $result = $this->storefrontService->addToCart(
+            $userId,
+            $validated['product_id'],
             $validated['quantity'],
             $validated['options'] ?? [],
             $validated['custom_design_data'] ?? null
         );
+
+        if (!$result) {
+            return redirect()->back()->with('error', 'Product not found.');
+        }
 
         return redirect()->back()->with('success', 'Product added to cart.');
     }
@@ -284,31 +260,17 @@ class StorefrontController extends Controller
     /**
      * Update cart item quantity.
      */
-    public function updateCart($slug, Request $request)
+    public function updateCart($slug, UpdateCartRequest $request)
     {
-        $businessDetail = BusinessDetail::where('store_slug', $slug)
-            ->where('store_enabled', true)
-            ->firstOrFail();
-
+        $businessDetail = $this->storefrontService->getBusinessDetailBySlug($slug);
         $userId = $businessDetail->user_id;
+        $validated = $request->validated();
 
-        $validated = $request->validate([
-            'cart_item_id' => 'required|exists:cart_items,id',
-            'quantity' => 'required|integer|min:0',
-        ]);
-
-        // Get cart
-        $cart = $this->getCart($userId);
-
-        // Find cart item
-        $cartItem = $cart->items()->findOrFail($validated['cart_item_id']);
-
-        // Update quantity
-        if ($validated['quantity'] > 0) {
-            $cart->updateItemQuantity($cartItem, $validated['quantity']);
-        } else {
-            $cart->removeItem($cartItem);
-        }
+        $result = $this->storefrontService->updateCartItem(
+            $userId,
+            $validated['cart_item_id'],
+            $validated['quantity']
+        );
 
         return redirect()->back()->with('success', 'Cart updated.');
     }
@@ -318,20 +280,10 @@ class StorefrontController extends Controller
      */
     public function removeFromCart($slug, $cartItemId)
     {
-        $businessDetail = BusinessDetail::where('store_slug', $slug)
-            ->where('store_enabled', true)
-            ->firstOrFail();
-
+        $businessDetail = $this->storefrontService->getBusinessDetailBySlug($slug);
         $userId = $businessDetail->user_id;
 
-        // Get cart
-        $cart = $this->getCart($userId);
-
-        // Find cart item
-        $cartItem = $cart->items()->findOrFail($cartItemId);
-
-        // Remove item
-        $cart->removeItem($cartItem);
+        $result = $this->storefrontService->removeCartItem($userId, $cartItemId);
 
         return redirect()->back()->with('success', 'Item removed from cart.');
     }
@@ -341,14 +293,11 @@ class StorefrontController extends Controller
      */
     public function checkout($slug)
     {
-        $businessDetail = BusinessDetail::where('store_slug', $slug)
-            ->where('store_enabled', true)
-            ->firstOrFail();
-
+        $businessDetail = $this->storefrontService->getBusinessDetailBySlug($slug);
         $userId = $businessDetail->user_id;
 
         // Get cart
-        $cart = $this->getCart($userId);
+        $cart = $this->storefrontService->getCart($userId);
 
         // Check if cart is empty
         if ($cart->items->isEmpty()) {
@@ -357,7 +306,7 @@ class StorefrontController extends Controller
         }
 
         // Get currency symbol
-        $currencySymbol = $this->getCurrencySymbol($userId);
+        $currencySymbol = $this->storefrontService->getCurrencySymbol($userId);
 
         // Get client information if user is logged in
         $client = null;
@@ -378,71 +327,33 @@ class StorefrontController extends Controller
     /**
      * Process the checkout.
      */
-    public function processCheckout($slug, Request $request)
+    public function processCheckout($slug, CheckoutRequest $request)
     {
-        $businessDetail = BusinessDetail::where('store_slug', $slug)
-            ->where('store_enabled', true)
-            ->firstOrFail();
-
+        $businessDetail = $this->storefrontService->getBusinessDetailBySlug($slug);
         $userId = $businessDetail->user_id;
+        $validated = $request->validated();
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'required|string|max:20',
-            'shipping_address' => 'required|string|max:1000',
-            'billing_address' => 'nullable|string|max:1000',
-            'notes' => 'nullable|string|max:1000',
-            'payment_method' => 'required|string|in:online,cod',
-        ]);
+        // Process checkout
+        $result = $this->storefrontService->processCheckout($userId, $validated);
 
-        // Get cart
-        $cart = $this->getCart($userId);
-
-        // Check if cart is empty
-        if ($cart->items->isEmpty()) {
+        if (!$result['success']) {
             return redirect()->route('storefront.cart', $slug)
-                ->with('error', 'Your cart is empty.');
+                ->with('error', $result['message']);
         }
-
-        // Create client if not exists
-        $client = \App\Models\Client::firstOrCreate(
-            ['email' => $validated['email'], 'user_id' => $userId],
-            [
-                'name' => $validated['name'],
-                'phone' => $validated['phone'],
-                'address' => $validated['shipping_address'],
-            ]
-        );
-
-        // Create order
-        $order = $cart->convertToOrder([
-            'client_id' => $client->id,
-            'shipping_address' => $validated['shipping_address'],
-            'billing_address' => $validated['billing_address'] ?? $validated['shipping_address'],
-            'notes' => $validated['notes'],
-            'payment_method' => $validated['payment_method'],
-            'customer_name' => $validated['name'],
-            'customer_email' => $validated['email'],
-            'customer_phone' => $validated['phone'],
-        ]);
 
         // Handle payment method
-        if ($validated['payment_method'] === 'online' && $businessDetail->payment_enabled) {
+        if ($result['payment_required'] && $businessDetail->payment_enabled) {
             // Redirect to payment page
             return redirect()->route('payment.order.pay', [
-                'orderId' => $order->id,
+                'orderId' => $result['order']->id,
             ]);
-        } else {
+        }
             // Cash on delivery or payment not enabled
-            // Clear the cart session for COD orders
-            Session::forget('cart_session_id');
-
             return redirect()->route('storefront.order.confirmation', [
                 'slug' => $slug,
-                'order' => $order->id,
+                'order' => $result['order']->id,
             ])->with('success', 'Order placed successfully.');
-        }
+
     }
 
     /**
@@ -450,22 +361,20 @@ class StorefrontController extends Controller
      */
     public function orderConfirmation($slug, $orderId)
     {
-        $businessDetail = BusinessDetail::where('store_slug', $slug)
-            ->where('store_enabled', true)
-            ->firstOrFail();
-
+        $businessDetail = $this->storefrontService->getBusinessDetailBySlug($slug);
         $userId = $businessDetail->user_id;
 
-        $order = \App\Models\Order::where('id', $orderId)
-            ->where('user_id', $userId)
-            ->where('is_store_order', true)
-            ->firstOrFail();
+        $order = $this->storefrontService->getOrderById($userId, $orderId);
+
+        if (!$order) {
+            abort(404, 'Order not found');
+        }
 
         // Get cart
-        $cart = $this->getCart($userId);
+        $cart = $this->storefrontService->getCart($userId);
 
         // Get currency symbol
-        $currencySymbol = $this->getCurrencySymbol($userId);
+        $currencySymbol = $this->storefrontService->getCurrencySymbol($userId);
 
         return view('storefront.order-confirmation', compact(
             'businessDetail',
@@ -475,48 +384,16 @@ class StorefrontController extends Controller
         ));
     }
 
-    /**
-     * Get or create a shopping cart.
-     */
-    private function getCart($userId)
-    {
-        // Get or generate session ID
-        $sessionId = Session::get('cart_session_id');
-        if (!$sessionId) {
-            $sessionId = Str::uuid();
-            Session::put('cart_session_id', $sessionId);
-        }
-
-        // Get or create cart
-        $cart = ShoppingCart::firstOrCreate(
-            ['session_id' => $sessionId],
-            ['user_id' => $userId]
-        );
-
-        return $cart;
-    }
-
-    /**
-     * Get the currency symbol for the store owner.
-     */
-    private function getCurrencySymbol($userId)
-    {
-        $user = \App\Models\User::find($userId);
-        return $user ? $user->getCurrencySymbol() : '$';
-    }
 
     /**
      * Display the login form.
      */
     public function showLogin($slug)
     {
-        $businessDetail = BusinessDetail::where('store_slug', $slug)
-            ->where('store_enabled', true)
-            ->firstOrFail();
-
+        $businessDetail = $this->storefrontService->getBusinessDetailBySlug($slug);
         $userId = $businessDetail->user_id;
-        $cart = $this->getCart($userId);
-        $currencySymbol = $this->getCurrencySymbol($userId);
+        $cart = $this->storefrontService->getCart($userId);
+        $currencySymbol = $this->storefrontService->getCurrencySymbol($userId);
 
         return view('storefront.login', compact(
             'businessDetail',
@@ -528,22 +405,9 @@ class StorefrontController extends Controller
     /**
      * Process the login request.
      */
-    public function login($slug, Request $request)
+    public function login($slug, LoginRequest $request)
     {
-        $businessDetail = BusinessDetail::where('store_slug', $slug)
-            ->where('store_enabled', true)
-            ->firstOrFail();
-
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
+        $businessDetail = $this->storefrontService->getBusinessDetailBySlug($slug);
 
         $credentials = $request->only('email', 'password');
 
@@ -562,13 +426,10 @@ class StorefrontController extends Controller
      */
     public function showRegister($slug)
     {
-        $businessDetail = BusinessDetail::where('store_slug', $slug)
-            ->where('store_enabled', true)
-            ->firstOrFail();
-
+        $businessDetail = $this->storefrontService->getBusinessDetailBySlug($slug);
         $userId = $businessDetail->user_id;
-        $cart = $this->getCart($userId);
-        $currencySymbol = $this->getCurrencySymbol($userId);
+        $cart = $this->storefrontService->getCart($userId);
+        $currencySymbol = $this->storefrontService->getCurrencySymbol($userId);
 
         return view('storefront.register', compact(
             'businessDetail',
@@ -580,39 +441,12 @@ class StorefrontController extends Controller
     /**
      * Process the registration request.
      */
-    public function register($slug, Request $request)
+    public function register($slug, RegisterRequest $request)
     {
-        $businessDetail = BusinessDetail::where('store_slug', $slug)
-            ->where('store_enabled', true)
-            ->firstOrFail();
+        $businessDetail = $this->storefrontService->getBusinessDetailBySlug($slug);
+        $validated = $request->validated();
 
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        // Create a client record for the user
-        \App\Models\Client::firstOrCreate(
-            ['email' => $request->email, 'user_id' => $businessDetail->user_id],
-            [
-                'name' => $request->name,
-                'phone' => '',
-                'address' => '',
-            ]
-        );
+        $user = $this->storefrontService->registerUser($validated, $businessDetail->user_id);
 
         Auth::login($user);
 
@@ -624,6 +458,7 @@ class StorefrontController extends Controller
      */
     public function logout($slug, Request $request)
     {
+        // No need to use the service for logout as it's a simple operation
         Auth::logout();
 
         $request->session()->invalidate();
@@ -637,27 +472,13 @@ class StorefrontController extends Controller
      */
     public function orderHistory($slug)
     {
-        $businessDetail = BusinessDetail::where('store_slug', $slug)
-            ->where('store_enabled', true)
-            ->firstOrFail();
-
+        $businessDetail = $this->storefrontService->getBusinessDetailBySlug($slug);
         $userId = $businessDetail->user_id;
-        $cart = $this->getCart($userId);
-        $currencySymbol = $this->getCurrencySymbol($userId);
-
-        // Find the client record associated with the authenticated user's email
-        $client = \App\Models\Client::where('email', Auth::user()->email)
-            ->where('user_id', $userId)
-            ->first();
+        $cart = $this->storefrontService->getCart($userId);
+        $currencySymbol = $this->storefrontService->getCurrencySymbol($userId);
 
         // Get the authenticated user's orders
-        $orders = collect();
-        if ($client) {
-            $orders = Order::where('client_id', $client->id)
-                ->where('is_store_order', true)
-                ->orderBy('created_at', 'desc')
-                ->get();
-        }
+        $orders = $this->storefrontService->getClientOrders($userId, Auth::user()->email);
 
         return view('storefront.order-history', compact(
             'businessDetail',
@@ -672,28 +493,17 @@ class StorefrontController extends Controller
      */
     public function orderDetails($slug, $orderId)
     {
-        $businessDetail = BusinessDetail::where('store_slug', $slug)
-            ->where('store_enabled', true)
-            ->firstOrFail();
-
+        $businessDetail = $this->storefrontService->getBusinessDetailBySlug($slug);
         $userId = $businessDetail->user_id;
-        $cart = $this->getCart($userId);
-        $currencySymbol = $this->getCurrencySymbol($userId);
-
-        // Find the client record associated with the authenticated user's email
-        $client = \App\Models\Client::where('email', Auth::user()->email)
-            ->where('user_id', $userId)
-            ->first();
-
-        if (!$client) {
-            abort(404, 'Order not found');
-        }
+        $cart = $this->storefrontService->getCart($userId);
+        $currencySymbol = $this->storefrontService->getCurrencySymbol($userId);
 
         // Get the order and ensure it belongs to the authenticated user
-        $order = Order::where('id', $orderId)
-            ->where('client_id', $client->id)
-            ->where('is_store_order', true)
-            ->firstOrFail();
+        $order = $this->storefrontService->getClientOrderDetails($userId, Auth::user()->email, $orderId);
+
+        if (!$order) {
+            abort(404, 'Order not found');
+        }
 
         return view('storefront.order-details', compact(
             'businessDetail',

@@ -2,16 +2,33 @@
 
 namespace App\Services;
 
+use App\Services\Interfaces\ImageGeneratorInterface;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
-class GeminiService
+class GeminiService implements ImageGeneratorInterface
 {
     protected $apiKey;
     protected $model;
     protected $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/';
     protected $currentOccasion = '';
+
+    /**
+     * Generate an image based on the provided parameters
+     * Implementation of the ImageGeneratorInterface
+     *
+     * @param array $colors Array of color names
+     * @param string $styleName The name of the style
+     * @param string $description The style description
+     * @param string $designElements The design elements
+     * @param string $occasion The occasion
+     * @return string|null The path to the generated image or null if generation failed
+     */
+    public function generateImage(array $colors, string $styleName, string $description = '', string $designElements = '', string $occasion = ''): ?string
+    {
+        return $this->generateStyleImage($colors, $styleName, $description, $designElements, $occasion);
+    }
 
     public function __construct()
     {
@@ -165,7 +182,9 @@ class GeminiService
                 $description = $suggestion['description'] ?? '';
                 $designElements = $suggestion['design_elements'] ?? '';
                 $occasion = isset($this->currentOccasion) ? $this->currentOccasion : '';
-                $suggestion['sample_image'] = $this->generateStyleImage(
+                // Use the ImageGeneratorFactory to get the configured image generator
+                $imageGenerator = \App\Services\Factories\ImageGeneratorFactory::create();
+                $suggestion['sample_image'] = $imageGenerator->generateImage(
                     $colorArray,
                     $suggestion['name'],
                     $description,
@@ -277,10 +296,13 @@ class GeminiService
             }
 
             // Build a prompt for the image generation
-            $prompt = $this->buildImageGenerationPrompt($colors, $styleName, $description, $designElements, $occasion).' and briefly describe it.';
+            $prompt = $this->buildImageGenerationPrompt($colors, $styleName, $description, $designElements, $occasion).' and briefly describe it.
+                                    IMPORTANT :  Image generate should be a resolution  of 842px by 1024px
+                                ';
 
             // Use the correct model for image generation
             $imageGenerationModel = 'gemini-2.0-flash-preview-image-generation';
+            $imageGenerationModel = 'gemini-2.0-flash-exp';
 
             // Make the API request to Gemini for image generation
 
@@ -289,7 +311,8 @@ class GeminiService
                 'X-Goog-Api-Key' => $this->apiKey,
                 'X-Goog-Response-Format' => 'FULL',
             ])->post(
-                'https://generativelanguage.googleapis.com/v1beta/models/' . $imageGenerationModel . ':generateContent',
+               // 'https://generativelanguage.googleapis.com/v1beta/models/' . $imageGenerationModel . ':generateContent',
+                "https://generativelanguage.googleapis.com/v1beta/models/$imageGenerationModel:generateContent",
                 [
                     'contents' => [
                         [
@@ -672,10 +695,15 @@ class GeminiService
                 // Create a safe prompt for Gemini that avoids policy violations
                 $colorsList = implode(', ', array_slice($colors, 0, 3)); // Limit to 3 colors to avoid overwhelming
                 $safePrompt = "Create a simple, abstract fashion design image for a {$category} style using these colors: {$colorsList}. The image should be a clean, professional representation suitable for a fashion catalog.";
-
+                $imageGenerationModel = 'gemini-2.0-flash-preview-image-generation';
                 // Make the API request to Gemini for image generation
-                $response = Http::post(
-                    $this->baseUrl . $this->model . '-preview-image-generation:generateContent?key=' . $this->apiKey,
+
+                $response = Http::withHeaders([
+                    'Content-Type' => 'application/json',
+                    'X-Goog-Api-Key' => $this->apiKey,
+                    'X-Goog-Response-Format' => 'FULL',
+                ])->post(
+                    'https://generativelanguage.googleapis.com/v1beta/models/' . $imageGenerationModel . ':generateContent',
                     [
                         'contents' => [
                             [
@@ -685,14 +713,10 @@ class GeminiService
                             ]
                         ],
                         'generationConfig' => [
-                            'temperature' => 0.4,
-                            'topK' => 32,
-                            'topP' => 1,
-                            'maxOutputTokens' => 2048,
+                            'responseModalities' => ['TEXT','IMAGE']
                         ]
-                    ]
+                    ],
                 );
-                dd($response->json());
                 if ($response->successful()) {
                     $data = $response->json();
 

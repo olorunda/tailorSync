@@ -2,15 +2,31 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Appointment;
-use App\Models\Client;
+use App\Http\Requests\GetAvailableTimeSlotsRequest;
+use App\Http\Requests\StoreAppointmentRequest;
+use App\Services\PublicAppointmentService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Validator;
 
 class PublicAppointmentController extends Controller
 {
+    /**
+     * The public appointment service instance.
+     *
+     * @var \App\Services\PublicAppointmentService
+     */
+    protected $publicAppointmentService;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param \App\Services\PublicAppointmentService $publicAppointmentService
+     * @return void
+     */
+    public function __construct(PublicAppointmentService $publicAppointmentService)
+    {
+        $this->publicAppointmentService = $publicAppointmentService;
+    }
+
     /**
      * Display the public appointment booking page.
      *
@@ -19,12 +35,7 @@ class PublicAppointmentController extends Controller
      */
     public function show($slug)
     {
-        // Extract user ID from slug (format: business-name_userId)
-        $parts = explode('_', $slug);
-        $userId = end($parts);
-
-        // Find the user by ID
-        $user = User::find($userId);
+        $user = $this->publicAppointmentService->getUserFromSlug($slug);
 
         // If no user is found, return 404
         if (!$user) {
@@ -32,19 +43,15 @@ class PublicAppointmentController extends Controller
         }
 
         // Check if the user's subscription plan allows public appointment booking
-        $businessDetail = $user->businessDetail;
-        if (!$businessDetail || !\App\Services\SubscriptionService::canUseFeature($businessDetail, 'public_appointments_enabled')) {
+        if (!$this->publicAppointmentService->canBookPublicAppointments($user)) {
             abort(403, 'Public appointment booking is not available for this business');
         }
 
-        // Get the business details
-        $businessDetail = $user->businessDetail;
-        $businessName = $businessDetail ? $businessDetail->business_name : $user->name;
+        // Get the business name
+        $businessName = $this->publicAppointmentService->getBusinessName($user);
 
         // Get existing appointments for availability checking
-        $appointments = $user->appointments()
-            ->where('date', '>=', now()->startOfDay())
-            ->get();
+        $appointments = $this->publicAppointmentService->getUpcomingAppointments($user);
 
         return view('public.appointment-booking', [
             'user' => $user,
@@ -56,18 +63,13 @@ class PublicAppointmentController extends Controller
     /**
      * Store a new appointment from the public booking page.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\StoreAppointmentRequest  $request
      * @param  string  $slug
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request, $slug)
+    public function store(StoreAppointmentRequest $request, $slug)
     {
-        // Extract user ID from slug (format: business-name_userId)
-        $parts = explode('_', $slug);
-        $userId = end($parts);
-
-        // Find the user by ID
-        $user = User::find($userId);
+        $user = $this->publicAppointmentService->getUserFromSlug($slug);
 
         // If no user is found, return 404
         if (!$user) {
@@ -75,84 +77,39 @@ class PublicAppointmentController extends Controller
         }
 
         // Check if the user's subscription plan allows public appointment booking
-        $businessDetail = $user->businessDetail;
-        if (!$businessDetail || !\App\Services\SubscriptionService::canUseFeature($businessDetail, 'public_appointments_enabled')) {
+        if (!$this->publicAppointmentService->canBookPublicAppointments($user)) {
             abort(403, 'Public appointment booking is not available for this business');
         }
 
-        // Validate the request
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'date' => 'required|date|after_or_equal:today',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'description' => 'nullable|string|max:1000',
-        ]);
-
-        if ($validator->fails()) {
-            return back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
-        // Format date and times
-        $date = Carbon::parse($request->date);
-        $startTime = Carbon::parse($request->date . ' ' . $request->start_time);
-        $endTime = Carbon::parse($request->date . ' ' . $request->end_time);
-
         // Check for appointment clashes
-        $clashingAppointments = $user->appointments()
-            ->where('date', $date->toDateString())
-            ->where(function ($query) use ($startTime, $endTime) {
-                $query->where(function ($q) use ($startTime, $endTime) {
-                    // New appointment starts during an existing appointment
-                    $q->where('start_time', '<=', $startTime)
-                      ->where('end_time', '>', $startTime);
-                })->orWhere(function ($q) use ($startTime, $endTime) {
-                    // New appointment ends during an existing appointment
-                    $q->where('start_time', '<', $endTime)
-                      ->where('end_time', '>=', $endTime);
-                })->orWhere(function ($q) use ($startTime, $endTime) {
-                    // New appointment completely contains an existing appointment
-                    $q->where('start_time', '>=', $startTime)
-                      ->where('end_time', '<=', $endTime);
-                });
-            })
-            ->count();
-
-        if ($clashingAppointments > 0) {
+        if ($this->publicAppointmentService->hasAppointmentClash(
+            $user,
+            $request->date,
+            $request->start_time,
+            $request->end_time
+        )) {
             return back()
                 ->withErrors(['time_clash' => 'The selected time slot is not available. Please choose another time.'])
                 ->withInput();
         }
 
         // Find or create client
-        $client = Client::firstOrCreate(
-            ['email' => $request->email, 'user_id' => $user->id],
-            [
-                'name' => $request->name,
-                'phone' => $request->phone,
-                'user_id' => $user->id,
-            ]
+        $client = $this->publicAppointmentService->findOrCreateClient(
+            $user,
+            $request->name,
+            $request->email,
+            $request->phone
         );
 
         // Create the appointment
-        $appointment = new Appointment([
-            'user_id' => $user->id,
-            'client_id' => $client->id,
-            'title' => 'Appointment with ' . $client->name,
-            'description' => $request->description,
-            'start_time' => $startTime,
-            'end_time' => $endTime,
-            'date' => $date->toDateString(),
-            'type' => 'client_booking',
-            'status' => 'scheduled',
-            'location' => $businessDetail->address ?? 'To be confirmed',
-        ]);
-
-        $appointment->save();
+        $appointment = $this->publicAppointmentService->createAppointment(
+            $user,
+            $client,
+            $request->date,
+            $request->start_time,
+            $request->end_time,
+            $request->description
+        );
 
         // Redirect to confirmation page
         return redirect()->route('appointments.public.confirmation', [
@@ -170,12 +127,7 @@ class PublicAppointmentController extends Controller
      */
     public function confirmation($slug, $appointmentId)
     {
-        // Extract user ID from slug (format: business-name_userId)
-        $parts = explode('_', $slug);
-        $userId = end($parts);
-
-        // Find the user by ID
-        $user = User::find($userId);
+        $user = $this->publicAppointmentService->getUserFromSlug($slug);
 
         // If no user is found, return 404
         if (!$user) {
@@ -183,24 +135,20 @@ class PublicAppointmentController extends Controller
         }
 
         // Check if the user's subscription plan allows public appointment booking
-        $businessDetail = $user->businessDetail;
-        if (!$businessDetail || !\App\Services\SubscriptionService::canUseFeature($businessDetail, 'public_appointments_enabled')) {
+        if (!$this->publicAppointmentService->canBookPublicAppointments($user)) {
             abort(403, 'Public appointment booking is not available for this business');
         }
 
         // Find the appointment
-        $appointment = Appointment::where('id', $appointmentId)
-            ->where('user_id', $user->id)
-            ->first();
+        $appointment = $this->publicAppointmentService->getAppointment($user, $appointmentId);
 
         // If no appointment is found, return 404
         if (!$appointment) {
             abort(404, 'Appointment not found');
         }
 
-        // Get the business details
-        $businessDetail = $user->businessDetail;
-        $businessName = $businessDetail ? $businessDetail->business_name : $user->name;
+        // Get the business name
+        $businessName = $this->publicAppointmentService->getBusinessName($user);
 
         return view('public.appointment-confirmation', [
             'user' => $user,
@@ -212,18 +160,13 @@ class PublicAppointmentController extends Controller
     /**
      * Get available time slots for a specific date.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\GetAvailableTimeSlotsRequest  $request
      * @param  string  $slug
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getAvailableTimeSlots(Request $request, $slug)
+    public function getAvailableTimeSlots(GetAvailableTimeSlotsRequest $request, $slug)
     {
-        // Extract user ID from slug (format: business-name_userId)
-        $parts = explode('_', $slug);
-        $userId = end($parts);
-
-        // Find the user by ID
-        $user = User::find($userId);
+        $user = $this->publicAppointmentService->getUserFromSlug($slug);
 
         // If no user is found, return error
         if (!$user) {
@@ -231,70 +174,12 @@ class PublicAppointmentController extends Controller
         }
 
         // Check if the user's subscription plan allows public appointment booking
-        $businessDetail = $user->businessDetail;
-        if (!$businessDetail || !\App\Services\SubscriptionService::canUseFeature($businessDetail, 'public_appointments_enabled')) {
+        if (!$this->publicAppointmentService->canBookPublicAppointments($user)) {
             return response()->json(['error' => 'Public appointment booking is not available for this business'], 403);
         }
 
-        // Validate the request
-        $validator = Validator::make($request->all(), [
-            'date' => 'required|date|after_or_equal:today',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()->first()], 422);
-        }
-
-        $date = Carbon::parse($request->date);
-
-        // Get all appointments for the selected date
-        $appointments = $user->appointments()
-            ->where('date', $date->toDateString())
-            ->get();
-
-        // Define business hours (9 AM to 5 PM by default)
-        $businessDetail = $user->businessDetail;
-        $startHour = $businessDetail && $businessDetail->business_hours_start
-            ? Carbon::parse($businessDetail->business_hours_start)->hour
-            : 9;
-        $endHour = $businessDetail && $businessDetail->business_hours_end
-            ? Carbon::parse($businessDetail->business_hours_end)->hour
-            : 17;
-
-        // Generate all possible 30-minute slots
-        $timeSlots = [];
-        $currentSlot = Carbon::parse($date->format('Y-m-d') . ' ' . $startHour . ':00:00');
-        $endTime = Carbon::parse($date->format('Y-m-d') . ' ' . $endHour . ':00:00');
-
-        while ($currentSlot < $endTime) {
-            $slotEnd = (clone $currentSlot)->addMinutes(30);
-
-            // Check if this slot overlaps with any existing appointment
-            $isAvailable = true;
-            foreach ($appointments as $appointment) {
-                $appointmentStart = Carbon::parse($appointment->start_time);
-                $appointmentEnd = Carbon::parse($appointment->end_time);
-
-                if (
-                    ($currentSlot >= $appointmentStart && $currentSlot < $appointmentEnd) ||
-                    ($slotEnd > $appointmentStart && $slotEnd <= $appointmentEnd) ||
-                    ($currentSlot <= $appointmentStart && $slotEnd >= $appointmentEnd)
-                ) {
-                    $isAvailable = false;
-                    break;
-                }
-            }
-
-            if ($isAvailable) {
-                $timeSlots[] = [
-                    'start' => $currentSlot->format('H:i'),
-                    'end' => $slotEnd->format('H:i'),
-                    'label' => $currentSlot->format('g:i A') . ' - ' . $slotEnd->format('g:i A'),
-                ];
-            }
-
-            $currentSlot->addMinutes(30);
-        }
+        // Get available time slots
+        $timeSlots = $this->publicAppointmentService->getAvailableTimeSlots($user, $request->date);
 
         return response()->json(['timeSlots' => $timeSlots]);
     }

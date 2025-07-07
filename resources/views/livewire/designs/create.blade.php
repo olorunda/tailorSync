@@ -22,6 +22,8 @@ new class extends Component {
     public $suggested_image_path='';
     // For occasion-based style suggestions
     public string $occasion = '';
+    public string $gender = '';
+    public string $country = '';
     public ?array $styleSuggestions = null;
     public bool $loadingSuggestions = false;
 
@@ -49,6 +51,11 @@ new class extends Component {
 
     public function saveCanvasImage($imageData)
     {
+
+        if(!$this->use_canvas){
+          return;
+        }
+
         // Remove the data URL prefix
         $imageData = str_replace('data:image/png;base64,', '', $imageData);
         $imageData = str_replace(' ', '+', $imageData);
@@ -161,8 +168,17 @@ new class extends Component {
      */
     public function getStyleSuggestions(): void
     {
-        if (empty($this->occasion)) {
-            session()->flash('error', 'Please select an occasion first.');
+        $type_select=empty($this->occasion) ? 'occasion' : 'gender';
+        if (empty($this->occasion) || empty($this->gender) ) {
+            session()->flash('error', "Please select $type_select first.");
+            return;
+        }
+
+        // Check if user has access to AI style suggestions feature
+        $user = auth()->user();
+        $businessDetail = $user->businessDetail;
+        if (!$businessDetail || !\App\Services\SubscriptionService::canUseFeature($businessDetail, 'ai_style_suggestions')) {
+            session()->flash('error', 'AI style suggestions are only available with Premium subscription. Please upgrade your plan to access this feature.');
             return;
         }
 
@@ -170,7 +186,7 @@ new class extends Component {
 
         try {
             $geminiService = new GeminiService();
-            $this->styleSuggestions = $geminiService->getStyleSuggestions($this->occasion);
+            $this->styleSuggestions = $geminiService->getStyleSuggestions($this->occasion,['Gender'=>$this->gender,'Country'=>$this->country]);
 
             if (empty($this->styleSuggestions)) {
                 session()->flash('error', 'Unable to generate style suggestions. Please try again.');
@@ -236,7 +252,8 @@ new class extends Component {
             $this->tags[] = $this->occasion;
         }
 
-        session()->flash('success', 'Style suggestion applied successfully!');
+        // Use dispatch instead of session flash to trigger SweetAlert2
+        $this->dispatch('alert', ['status' => 'success', 'message' => 'Style suggestion applied successfully!']);
     }
 
     public function mount(): void
@@ -558,14 +575,63 @@ new class extends Component {
                             <option value="Sports Event">Sports Event</option>
                             <option value="Date Night">Date Night</option>
                         </select>
+{{--                        <button type="button" wire:click="getStyleSuggestions" wire:loading.attr="disabled" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50">--}}
+{{--                            <span wire:loading.remove wire:target="getStyleSuggestions">Get Suggestions</span>--}}
+{{--                            <span wire:loading wire:target="getStyleSuggestions">Loading...</span>--}}
+{{--                        </button>--}}
+                    </div>
+                </div>
+                <div>
+                    <label for="gender" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Gender</label>
+                    <div class="flex gap-2">
+                        <select wire:model="gender" id="gender" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
+                            <option value="">Select gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="UniSex">UniSex</option>
+                            <option value="Non Binary">Non Binary</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label for="Country" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Country</label>
+                    <input type="text" wire:model="country" id="country" rows="3" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5" placeholder="Nigeria">
+                    @error('country') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
+                <!-- Description -->
+
+
+                <div class="md:col-span-2">
+                    @php
+                        $user = auth()->user();
+                        $businessDetail = $user->businessDetail;
+                        $canUseAiSuggestions = $businessDetail && \App\Services\SubscriptionService::canUseFeature($businessDetail, 'ai_style_suggestions');
+                    @endphp
+
+                    @if($canUseAiSuggestions)
                         <button type="button" wire:click="getStyleSuggestions" wire:loading.attr="disabled" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50">
                             <span wire:loading.remove wire:target="getStyleSuggestions">Get Suggestions</span>
                             <span wire:loading wire:target="getStyleSuggestions">Loading...</span>
                         </button>
-                    </div>
+                    @else
+                        <div class="bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-yellow-700 dark:text-yellow-200">
+                                        AI style suggestions are only available with Premium subscription. <a href="{{ route('subscriptions.index') }}" class="font-medium underline">Upgrade your plan</a> to access this feature.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
-                <!-- Description -->
                 <div class="md:col-span-2">
                     <label for="description" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Description</label>
                     <textarea wire:model="description" id="description" rows="3" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5" placeholder="Describe your design"></textarea>
@@ -585,7 +651,7 @@ new class extends Component {
                                     <div class="p-5 text-zinc-900 dark:text-zinc-100 whitespace-pre-line">{{ $suggestion['raw_text'] }}</div>
                                 @else
                                     @if (!empty($suggestion['sample_image']))
-                                        <div class="w-full h-48 overflow-hidden">
+                                        <div class="w-full  overflow-hidden">
                                             <img src="{{ Storage::url($suggestion['sample_image']) }}" alt="{{ $suggestion['name'] }}" class="w-full h-full object-cover">
                                         </div>
                                     @endif

@@ -2,14 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Order;
-use App\Models\Invoice;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Hash;
+use App\Services\PublicOrderService;
+use Illuminate\Support\Facades\Log;
 
 class PublicOrderController extends Controller
 {
+    /**
+     * The public order service instance.
+     *
+     * @var \App\Services\PublicOrderService
+     */
+    protected $publicOrderService;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param \App\Services\PublicOrderService $publicOrderService
+     * @return void
+     */
+    public function __construct(PublicOrderService $publicOrderService)
+    {
+        $this->publicOrderService = $publicOrderService;
+    }
+
     /**
      * Display the order and invoice details for public viewing.
      *
@@ -19,34 +34,34 @@ class PublicOrderController extends Controller
     public function show($hash)
     {
         // Log the received hash
-        \Log::info('Received hash for public order view', ['hash' => $hash]);
+        Log::info('Received hash for public order view', ['hash' => $hash]);
 
         // Decode the hash if it's URL-encoded
         $decodedHash = urldecode($hash);
-        \Log::info('Decoded hash', ['decodedHash' => $decodedHash]);
+        Log::info('Decoded hash', ['decodedHash' => $decodedHash]);
 
-        // Find the order that matches the hash using the optimized method
-        $order = $this->findOrderByHash($decodedHash);
+        // Find the order that matches the hash
+        $order = $this->publicOrderService->findOrderByHash($decodedHash);
 
         // If a matching order is found, log it
         if ($order) {
-            \Log::info('Found matching order', ['order_id' => $order->id]);
+            Log::info('Found matching order', ['order_id' => $order->id]);
         }
 
         // If no order is found, return 404
         if (!$order) {
-            \Log::warning('No matching order found for hash', ['hash' => $hash, 'decodedHash' => $decodedHash]);
+            Log::warning('No matching order found for hash', ['hash' => $hash, 'decodedHash' => $decodedHash]);
             abort(404, 'Order not found');
         }
 
         // Load the order relationships
-        $order->load('client', 'design');
+        $order = $this->publicOrderService->loadOrderRelationships($order);
 
         // Find the invoice for this order
-        $invoice = Invoice::where('order_id', $order->id)->first();
+        $invoice = $this->publicOrderService->getInvoiceForOrder($order);
 
         // Get currency symbol
-        $currencySymbol = $this->getCurrencySymbol($order->user_id);
+        $currencySymbol = $this->publicOrderService->getCurrencySymbol($order->user_id);
 
         // Return the view with the order and invoice
         return view('public.order', [
@@ -57,45 +72,15 @@ class PublicOrderController extends Controller
     }
 
     /**
-     * Generate an encrypted hash for an order ID using Crypt with a salt.
+     * Generate an encrypted hash for an order ID.
      *
      * @param  int  $orderId
      * @return string
      */
     public static function generateHash($orderId)
     {
-        return Crypt::encrypt($orderId);
-    }
-
-    /**
-     * Find an order by its encrypted hash.
-     *
-     * @param  string  $hash
-     * @return \App\Models\Order|null
-     */
-    private function findOrderByHash($hash)
-    {
-        try {
-            // Decrypt the hash to get the order ID
-            $orderId = Crypt::decrypt($hash);
-
-            // Find the order with the decrypted ID
-            return Order::find($orderId);
-        } catch (\Exception $e) {
-            \Log::error('Error decrypting hash', [
-                'hash' => $hash,
-                'error' => $e->getMessage()
-            ]);
-            return null;
-        }
-    }
-
-    /**
-     * Get the currency symbol for the store owner.
-     */
-    private function getCurrencySymbol($userId)
-    {
-        $user = \App\Models\User::find($userId);
-        return $user ? $user->getCurrencySymbol() : '$';
+        // Create a new instance of the service since this is a static method
+        $publicOrderService = app(PublicOrderService::class);
+        return $publicOrderService->generateHash($orderId);
     }
 }

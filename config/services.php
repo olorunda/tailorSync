@@ -58,4 +58,13 @@ return [
         'model' => env('GEMINI_MODEL', 'gemini-2.0-flash'),
     ],
 
+    'imagerouter' => [
+        'api_key' => env('IMAGEROUTER_API_KEY', 'f03aacb31e77283a4e26915311145f548c6c7e9c9da931259e17ae5432aa3146'),
+        'model' => env('IMAGEROUTER_MODEL', 'google/gemini-2.0-flash-exp:free'),
+    ],
+
+    'image_generator' => [
+        'provider' => env('IMAGE_GENERATOR_PROVIDER', 'imagerouter'), // Options: 'gemini', 'imagerouter'
+    ],
+
 ];

@@ -146,6 +146,81 @@
                 </div>
             </div>
 
+            <!-- Order Items Section -->
+            @if($order->orderItems->count() > 0 || $order->products->count() > 0)
+            <div class="mt-6">
+                <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
+                    <div class="p-6">
+                        <h2 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Items Purchased</h2>
+
+                        <div class="overflow-x-auto">
+                            <table class="responsive-table min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
+                                <thead>
+                                    <tr>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Item</th>
+                                        <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Quantity</th>
+                                        <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Price</th>
+                                        <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                                    @foreach($order->orderItems as $item)
+                                        <tr>
+                                            <td class="px-4 py-4" data-label="Item">
+                                                <div class="text-sm text-zinc-900 dark:text-zinc-100">
+                                                    {{ $item->product ? $item->product->name : $item->name ?? 'Unknown Item' }}
+                                                </div>
+                                                @if($item->options)
+                                                    <div class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                                                        Options: {{ is_array($item->options) ? implode(', ', $item->options) : $item->options }}
+                                                    </div>
+                                                @endif
+                                            </td>
+                                            <td class="px-4 py-4 text-right whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400" data-label="Quantity">
+                                                {{ $item->quantity }}
+                                            </td>
+                                            <td class="px-4 py-4 text-right whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400" data-label="Price">
+                                                {{ $currencySymbol }}{{ number_format($item->price, 2) }}
+                                            </td>
+                                            <td class="px-4 py-4 text-right whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100" data-label="Total">
+                                                {{ $currencySymbol }}{{ number_format($item->total ?? ($item->price * $item->quantity), 2) }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+
+                                    @foreach($order->products as $product)
+                                        @if(!$order->orderItems->contains('product_id', $product->id))
+                                        <tr>
+                                            <td class="px-4 py-4" data-label="Item">
+                                                <div class="text-sm text-zinc-900 dark:text-zinc-100">
+                                                    {{ $product->name }}
+                                                </div>
+                                                @if($product->pivot->options)
+                                                    <div class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                                                        Options: {{ is_array($product->pivot->options) ? implode(', ', $product->pivot->options) : $product->pivot->options }}
+                                                    </div>
+                                                @endif
+                                            </td>
+                                            <td class="px-4 py-4 text-right whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400" data-label="Quantity">
+                                                {{ $product->pivot->quantity }}
+                                            </td>
+                                            <td class="px-4 py-4 text-right whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400" data-label="Price">
+                                                {{ $currencySymbol }}{{ number_format($product->pivot->price, 2) }}
+                                            </td>
+                                            <td class="px-4 py-4 text-right whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100" data-label="Total">
+                                                {{ $currencySymbol }}{{ number_format($product->pivot->total ?? ($product->pivot->price * $product->pivot->quantity), 2) }}
+                                            </td>
+                                        </tr>
+                                        @endif
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             @if ($invoice)
             <div class="mt-6">
                 <!-- Invoice Details -->

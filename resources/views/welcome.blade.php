@@ -110,6 +110,11 @@
                     <div class="text-3xl font-bold gradient-text font-playfair">TailorSync</div>
                 </div>
 
+                <nav class="hidden md:flex items-center gap-6">
+                    <a href="#features" class="text-zinc-800 dark:text-zinc-200 hover:text-orange-600 dark:hover:text-orange-500 transition-colors text-sm font-medium">Features</a>
+                    <a href="#pricing" class="text-zinc-800 dark:text-zinc-200 hover:text-orange-600 dark:hover:text-orange-500 transition-colors text-sm font-medium">Pricing</a>
+                </nav>
+
                 @if (Route::has('login'))
                     <nav class="flex items-center gap-4">
                         @auth
@@ -151,8 +156,11 @@
                                 <span class="block">Elevate Your</span>
                                 <span class="block gradient-text">Tailoring Business</span>
                             </h1>
-                            <p class="text-xl mb-8 text-zinc-100 max-w-xl">
+                            <p class="text-xl mb-4 text-zinc-100 max-w-xl">
                                 TailorSync is a comprehensive management system designed specifically for tailors and fashion designers. Manage clients, measurements, orders, inventory, and finances all in one place.
+                            </p>
+                            <p class="text-lg mb-8 text-zinc-100 max-w-xl">
+                                Choose from our <a href="#pricing" class="text-orange-300 hover:text-orange-200 underline">flexible plans</a> - from Free to Premium - and transform how you run your tailoring business today!
                             </p>
                             <div class="flex flex-wrap gap-4">
                                 @if (Route::has('register'))
@@ -399,6 +407,130 @@
                                 </li>
                             </ul>
                         </div>
+
+                        <!-- Feature 7: Online Store -->
+                        <div class="bg-white dark:bg-zinc-800/50 p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 card-3d backdrop-blur-sm border border-orange-100 dark:border-orange-900/20">
+                            <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-400 rounded-2xl flex items-center justify-center mb-6 transform -rotate-6 shadow-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-2xl font-semibold mb-3 font-playfair">Online Store</h3>
+                            <p class="text-zinc-600 dark:text-zinc-400 mb-4">Sell your designs directly to customers with a fully integrated online store. Manage products, inventory, and orders in one place.</p>
+                            <ul class="space-y-2 text-zinc-600 dark:text-zinc-400">
+                                <li class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>Custom product catalog</span>
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>Secure payment processing</span>
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>Order fulfillment tracking</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Feature 8: Appointment Management -->
+                        <div class="bg-white dark:bg-zinc-800/50 p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 card-3d backdrop-blur-sm border border-orange-100 dark:border-orange-900/20">
+                            <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-400 rounded-2xl flex items-center justify-center mb-6 transform -rotate-6 shadow-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-2xl font-semibold mb-3 font-playfair">Appointment Management</h3>
+                            <p class="text-zinc-600 dark:text-zinc-400 mb-4">Schedule and manage client appointments with ease. Send automated reminders and reduce no-shows.</p>
+                            <ul class="space-y-2 text-zinc-600 dark:text-zinc-400">
+                                <li class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>Visual calendar interface</span>
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>Automated reminders</span>
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>Client self-scheduling</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Feature 9: Public Business Profile -->
+                        <div class="bg-white dark:bg-zinc-800/50 p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 card-3d backdrop-blur-sm border border-orange-100 dark:border-orange-900/20">
+                            <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-400 rounded-2xl flex items-center justify-center mb-6 transform -rotate-6 shadow-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                                </svg>
+                            </div>
+                            <h3 class="text-2xl font-semibold mb-3 font-playfair">Public Business Profile</h3>
+                            <p class="text-zinc-600 dark:text-zinc-400 mb-4">Showcase your work with a professional online presence. Display your portfolio, services, and allow clients to book appointments.</p>
+                            <ul class="space-y-2 text-zinc-600 dark:text-zinc-400">
+                                <li class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>Customizable storefront</span>
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>Portfolio showcase</span>
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>SEO optimization</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Feature 10: AI - Style Suggestions -->
+                        <div class="bg-white dark:bg-zinc-800/50 p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 card-3d backdrop-blur-sm border border-orange-100 dark:border-orange-900/20">
+                            <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-400 rounded-2xl flex items-center justify-center mb-6 transform -rotate-6 shadow-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-2xl font-semibold mb-3 font-playfair">AI - Style Suggestions</h3>
+                            <p class="text-zinc-600 dark:text-zinc-400 mb-4">Leverage artificial intelligence to get style recommendations and design inspirations tailored to your clients' preferences.</p>
+                            <ul class="space-y-2 text-zinc-600 dark:text-zinc-400">
+                                <li class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>Personalized style recommendations</span>
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>Trend analysis and forecasting</span>
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>Design inspiration generator</span>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -590,13 +722,222 @@
                 </div>
             </section>
 
+            <!-- Pricing Plans Section -->
+            <section id="pricing" class="py-20 bg-gradient-to-b from-zinc-100 to-white dark:from-zinc-800 dark:to-zinc-900">
+                <div class="max-w-7xl mx-auto px-4">
+                    <div class="text-center mb-16">
+                        <h2 class="text-4xl md:text-5xl font-bold mb-4 font-playfair gradient-text">Choose Your Plan</h2>
+                        <p class="text-xl text-zinc-700 dark:text-zinc-300 max-w-3xl mx-auto">
+                            Select the perfect plan for your tailoring business needs
+                        </p>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <!-- Free Plan -->
+                        <div class="bg-white dark:bg-zinc-800/50 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border border-orange-100 dark:border-orange-900/20">
+                            <div class="p-8 border-b border-orange-100 dark:border-orange-900/20">
+                                <h3 class="text-2xl font-semibold mb-2 font-playfair">Free</h3>
+                                <div class="flex items-baseline">
+                                    <span class="text-4xl font-bold text-orange-600 dark:text-orange-500">₦0</span>
+                                    <span class="text-zinc-500 dark:text-zinc-400 ml-2">/month</span>
+                                </div>
+                                <p class="mt-4 text-zinc-600 dark:text-zinc-400">Perfect for individuals just getting started</p>
+                            </div>
+                            <div class="p-8">
+                                <ul class="space-y-4">
+                                    <li class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-3 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-zinc-700 dark:text-zinc-300">Up to 5 designs</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-3 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-zinc-700 dark:text-zinc-300">1 team member</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-3 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-zinc-700 dark:text-zinc-300">Basic client management</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-3 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-zinc-700 dark:text-zinc-300">No transaction fees</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-3 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-zinc-700 dark:text-zinc-300">1 payment gateway</span>
+                                    </li>
+                                </ul>
+                                <div class="mt-8">
+                                    @if (Route::has('register'))
+                                        <a href="{{ route('register') }}" class="block w-full py-3 px-6 text-center bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white rounded-lg font-medium transition-colors glow">
+                                            Get Started
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Basic Plan -->
+                        <div class="bg-white dark:bg-zinc-800/50 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-orange-500 dark:border-orange-600 transform scale-105 z-10">
+                            <div class="absolute top-0 right-0 bg-orange-500 text-white px-4 py-1 rounded-bl-lg font-medium">
+                                Popular
+                            </div>
+                            <div class="p-8 border-b border-orange-100 dark:border-orange-900/20">
+                                <h3 class="text-2xl font-semibold mb-2 font-playfair">Basic</h3>
+                                <div class="flex items-baseline">
+                                    <span class="text-4xl font-bold text-orange-600 dark:text-orange-500">₦7,000</span>
+                                    <span class="text-zinc-500 dark:text-zinc-400 ml-2">/month</span>
+                                </div>
+                                <p class="mt-4 text-zinc-600 dark:text-zinc-400">Great for growing tailoring businesses</p>
+                            </div>
+                            <div class="p-8">
+                                <ul class="space-y-4">
+                                    <li class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-3 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-zinc-700 dark:text-zinc-300">Up to 50 products</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-3 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-zinc-700 dark:text-zinc-300">Up to 20 designs</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-3 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-zinc-700 dark:text-zinc-300">Online store</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-3 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-zinc-700 dark:text-zinc-300">Up to 5 team members</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-3 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-zinc-700 dark:text-zinc-300">Appointments</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-3 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-zinc-700 dark:text-zinc-300">Public appointment booking</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-3 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-zinc-700 dark:text-zinc-300">2 payment gateways</span>
+                                    </li>
+                                </ul>
+                                <div class="mt-8">
+                                    @if (Route::has('register'))
+                                        <a href="{{ route('register') }}" class="block w-full py-3 px-6 text-center bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white rounded-lg font-medium transition-colors glow">
+                                            Get Started
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Premium Plan -->
+                        <div class="bg-white dark:bg-zinc-800/50 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border border-orange-100 dark:border-orange-900/20">
+                            <div class="p-8 border-b border-orange-100 dark:border-orange-900/20">
+                                <h3 class="text-2xl font-semibold mb-2 font-playfair">Premium</h3>
+                                <div class="flex items-baseline">
+                                    <span class="text-4xl font-bold text-orange-600 dark:text-orange-500">₦15,000</span>
+                                    <span class="text-zinc-500 dark:text-zinc-400 ml-2">/month</span>
+                                </div>
+                                <p class="mt-4 text-zinc-600 dark:text-zinc-400">For established tailoring businesses</p>
+                            </div>
+                            <div class="p-8">
+                                <ul class="space-y-4">
+                                    <li class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-3 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-zinc-700 dark:text-zinc-300">Unlimited products</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-3 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-zinc-700 dark:text-zinc-300">Unlimited designs</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-3 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-zinc-700 dark:text-zinc-300">Online store</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-3 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-zinc-700 dark:text-zinc-300">Custom domain</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-3 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-zinc-700 dark:text-zinc-300">Unlimited team members</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-3 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-zinc-700 dark:text-zinc-300">AI style suggestions</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-3 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-zinc-700 dark:text-zinc-300">Tax reports</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-orange-500 mr-3 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-zinc-700 dark:text-zinc-300">3 payment gateways</span>
+                                    </li>
+                                </ul>
+                                <div class="mt-8">
+                                    @if (Route::has('register'))
+                                        <a href="{{ route('register') }}" class="block w-full py-3 px-6 text-center bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white rounded-lg font-medium transition-colors glow">
+                                            Get Started
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Parallax CTA Section -->
             <section class="parallax-section py-24" style="background-image: url('https://images.unsplash.com/photo-1605289982774-9a6fef564df8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80');">
                 <div class="parallax-overlay bg-gradient-to-b from-black/50 to-orange-900/70"></div>
                 <div class="parallax-content max-w-4xl mx-auto px-4 text-center">
                     <h2 class="text-4xl md:text-5xl font-bold mb-6 text-white font-playfair">Ready to Transform Your Tailoring Business?</h2>
-                    <p class="text-xl mb-10 text-white/90 max-w-3xl mx-auto">
+                    <p class="text-xl mb-6 text-white/90 max-w-3xl mx-auto">
                         Join thousands of tailors and fashion designers who have streamlined their business with TailorSync. Experience the difference a dedicated management system can make.
+                    </p>
+                    <p class="text-lg mb-10 text-white/90 max-w-3xl mx-auto">
+                        With plans starting at <span class="text-orange-300 font-semibold">₦0/month</span>, there's a perfect solution for every tailoring business, from solo designers to large studios.
                     </p>
                     <div class="flex flex-wrap justify-center gap-6">
                         @if (Route::has('register'))

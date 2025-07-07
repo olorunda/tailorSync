@@ -155,4 +155,52 @@ class Product extends Model
     {
         return $query->where('is_custom_order', false);
     }
+
+    /**
+     * Scope a query to filter products based on given criteria.
+     */
+    public function scopeFilter($query)
+    {
+        $request=request();
+        // Apply search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('sku', 'like', "%{$search}%")
+                    ->orWhere('category', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        // Apply status filter
+        if ($request->filled('status')) {
+            $statusMap = [
+                'active' => ['is_active', true],
+                'inactive' => ['is_active', false],
+                'featured' => ['is_featured', true],
+                'custom' => ['is_custom_order', true]
+            ];
+
+            if (isset($statusMap[$request->status])) {
+                $query->where(...$statusMap[$request->status]);
+            }
+        }
+
+        // Apply sorting
+        $sortMap = [
+            'newest' => ['created_at', 'desc'],
+            'oldest' => ['created_at', 'asc'],
+            'name_asc' => ['name', 'asc'],
+            'name_desc' => ['name', 'desc'],
+            'price_asc' => ['price', 'asc'],
+            'price_desc' => ['price', 'desc'],
+            'stock_asc' => ['stock_quantity', 'asc'],
+            'stock_desc' => ['stock_quantity', 'desc']
+        ];
+
+        $sort = $request->sort;
+        $query->orderBy(...($sortMap[$sort] ?? ['created_at', 'desc']));
+        return $query;
+    }
 }
