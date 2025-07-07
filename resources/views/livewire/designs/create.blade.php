@@ -510,6 +510,7 @@ new class extends Component {
                                 }
                             });
                     } else {
+
                         console.error('Could not find the Livewire component containing the canvas');
                     }
                 }

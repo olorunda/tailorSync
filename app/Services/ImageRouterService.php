@@ -64,6 +64,7 @@ class ImageRouterService implements ImageGeneratorInterface
 
                     // Download the image from the URL
                     $imageResponse = Http::get($imageUrl);
+
                     if ($imageResponse->successful()) {
                         $imageData = $imageResponse->body();
 
@@ -83,6 +84,7 @@ class ImageRouterService implements ImageGeneratorInterface
 
             return null;
         } catch (\Exception $e) {
+
             Log::error('Error generating image with ImageRouter.io', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
