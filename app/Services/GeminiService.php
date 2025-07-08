@@ -120,9 +120,9 @@ class GeminiService implements ImageGeneratorInterface
                "Please provide your suggestions in the following format:\n" .
                "1. Style name: [Style name - be concise and catchy]\n" .
                "   Description: [Brief description of the overall style and why it works for this occasion]\n" .
-               "   Materials: [List materials separated by commas - be specific and limit to 3-5 key materials]\n" .
-               "   Colors: [List colors separated by commas - be specific and limit to 3-5 key colors]\n" .
-               "   Design elements: [List key design elements separated by commas - include specific cuts, patterns, or features]\n\n" .
+               "   Materials: [List materials separated by commas and each should not be more than 50 characters- be specific and limit to 3-5 key materials]\n" .
+               "   Colors: [List colors separated by commas and each should not be more than 50 characters - be specific and limit to 3-5 key colors]\n" .
+               "   Design elements: [List key design elements separated by commas and each should not be more than 50 characters - include specific cuts, patterns, or features]\n\n" .
                "2. Style name: [Style name]\n" .
                "   ...\n\n" .
                "Please provide 2-3 distinct style suggestions that would be appropriate for this occasion. Make sure each section is clearly formatted and concise for easy reading.";
