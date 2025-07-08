@@ -929,7 +929,8 @@
             </section>
 
             <!-- Parallax CTA Section -->
-            <section class="parallax-section py-24" style="background-image: url('https://images.unsplash.com/photo-1605289982774-9a6fef564df8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80');">
+            <section class="parallax-section py-24"
+                     style="background-image: url('https://images.unsplash.com/photo-1445205170230-053b83016050?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80');">
                 <div class="parallax-overlay bg-gradient-to-b from-black/50 to-orange-900/70"></div>
                 <div class="parallax-content max-w-4xl mx-auto px-4 text-center">
                     <h2 class="text-4xl md:text-5xl font-bold mb-6 text-white font-playfair">Ready to Transform Your Tailoring Business?</h2>
