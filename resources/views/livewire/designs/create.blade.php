@@ -269,256 +269,12 @@ new class extends Component {
     }
 }; ?>
 
+<style>
+    .cursor-eraser {
+        cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'><path d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'></path><path d='M15.5 3.5a2.12 2.12 0 0 1 3 3L12 13 9 10l6.5-6.5z'></path></svg>") 0 24, auto;
+    }
+</style>
 <div class="w-full">
-    <style>
-        .cursor-eraser {
-            cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'><path d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'></path><path d='M15.5 3.5a2.12 2.12 0 0 1 3 3L12 13 9 10l6.5-6.5z'></path></svg>") 0 24, auto;
-        }
-    </style>
-    <script>
-        function canvasDrawing() {
-            return {
-                canvas: null,
-                ctx: null,
-                isDrawing: false,
-                color: '#000000',
-                brushSize: 3,
-                lastX: 0,
-                lastY: 0,
-                isEraser: false,
-                isFullScreen: false,
-
-                init() {
-                    this.canvas = document.getElementById('design-canvas');
-                    this.ctx = this.canvas.getContext('2d');
-                    this.ctx.fillStyle = 'white';
-                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-                    this.setupCanvas();
-
-                    // Add event listener for fullscreenchange event
-                    document.addEventListener('fullscreenchange', () => {
-                        if (!document.fullscreenElement) {
-                            // User exited full screen mode
-                            this.isFullScreen = false;
-                        }
-                    });
-
-                    // Add event listeners for browser-specific fullscreenchange events
-                    document.addEventListener('webkitfullscreenchange', () => {
-                        if (!document.webkitFullscreenElement) {
-                            // User exited full screen mode
-                            this.isFullScreen = false;
-                        }
-                    });
-
-                    document.addEventListener('mozfullscreenchange', () => {
-                        if (!document.mozFullScreenElement) {
-                            // User exited full screen mode
-                            this.isFullScreen = false;
-                        }
-                    });
-
-                    document.addEventListener('msfullscreenchange', () => {
-                        if (!document.msFullscreenElement) {
-                            // User exited full screen mode
-                            this.isFullScreen = false;
-                        }
-                    });
-                },
-
-                setupCanvas() {
-                    this.ctx.lineCap = 'round';
-                    this.ctx.lineJoin = 'round';
-                    this.ctx.strokeStyle = this.color;
-                    this.ctx.lineWidth = this.brushSize;
-                },
-
-                setColor(color) {
-                    this.color = color;
-                    this.ctx.strokeStyle = color;
-                },
-
-                setBrushSize(size) {
-                    this.brushSize = size;
-                    this.ctx.lineWidth = size;
-                },
-
-                toggleEraser() {
-                    this.isEraser = !this.isEraser;
-                    if (this.isEraser) {
-                        // Store the current color and set to white for erasing
-                        this._previousColor = this.color;
-                        this.ctx.strokeStyle = 'white';
-                        // Change cursor to eraser
-                        this.canvas.classList.add('cursor-eraser');
-                        this.canvas.classList.remove('cursor-crosshair');
-                    } else {
-                        // Restore the previous color
-                        this.color = this._previousColor || '#000000';
-                        this.ctx.strokeStyle = this.color;
-                        // Change cursor back to crosshair
-                        this.canvas.classList.remove('cursor-eraser');
-                        this.canvas.classList.add('cursor-crosshair');
-                    }
-                },
-
-                startDrawing(e) {
-                    this.isDrawing = true;
-                    const rect = this.canvas.getBoundingClientRect();
-                    const scaleX = this.canvas.width / rect.width;
-                    const scaleY = this.canvas.height / rect.height;
-
-                    // Get coordinates from either mouse, touch, or pointer event
-                    const clientX = e.clientX || (e.touches && e.touches[0].clientX) || (e.changedTouches && e.changedTouches[0].clientX);
-                    const clientY = e.clientY || (e.touches && e.touches[0].clientY) || (e.changedTouches && e.changedTouches[0].clientY);
-
-                    this.lastX = (clientX - rect.left) * scaleX;
-                    this.lastY = (clientY - rect.top) * scaleY;
-                },
-
-                draw(e) {
-                    if (!this.isDrawing) return;
-
-                    const rect = this.canvas.getBoundingClientRect();
-                    const scaleX = this.canvas.width / rect.width;
-                    const scaleY = this.canvas.height / rect.height;
-
-                    // Get coordinates from either mouse, touch, or pointer event
-                    const clientX = e.clientX || (e.touches && e.touches[0].clientX) || (e.changedTouches && e.changedTouches[0].clientX);
-                    const clientY = e.clientY || (e.touches && e.touches[0].clientY) || (e.changedTouches && e.changedTouches[0].clientY);
-
-                    const currentX = (clientX - rect.left) * scaleX;
-                    const currentY = (clientY - rect.top) * scaleY;
-
-                    // Adjust line width based on pressure if available (for digital pens)
-                    if (e.pressure && e.pressure !== 0.5) {
-                        // Pressure is usually between 0 and 1, with 0.5 being the default
-                        const pressureAdjustedSize = this.brushSize * (e.pressure * 1.5);
-                        this.ctx.lineWidth = Math.max(1, pressureAdjustedSize);
-                    } else {
-                        this.ctx.lineWidth = this.brushSize;
-                    }
-
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(this.lastX, this.lastY);
-                    this.ctx.lineTo(currentX, currentY);
-                    this.ctx.stroke();
-
-                    this.lastX = currentX;
-                    this.lastY = currentY;
-                },
-
-                handlePointerStart(e) {
-                    // For digital pen and pointer devices
-                    e.preventDefault();
-                    this.startDrawing(e);
-                },
-
-                handlePointerMove(e) {
-                    // For digital pen and pointer devices
-                    e.preventDefault();
-                    this.draw(e);
-                },
-
-                handleTouchStart(e) {
-                    e.preventDefault();
-                    if (e.touches.length === 1) {
-                        const touch = e.touches[0];
-                        const mouseEvent = new MouseEvent('mousedown', {
-                            clientX: touch.clientX,
-                            clientY: touch.clientY
-                        });
-                        this.startDrawing(mouseEvent);
-                    }
-                },
-
-                handleTouchMove(e) {
-                    e.preventDefault();
-                    if (e.touches.length === 1) {
-                        const touch = e.touches[0];
-                        const mouseEvent = new MouseEvent('mousemove', {
-                            clientX: touch.clientX,
-                            clientY: touch.clientY
-                        });
-                        this.draw(mouseEvent);
-                    }
-                },
-
-                stopDrawing() {
-                    this.isDrawing = false;
-                },
-
-                clearCanvas() {
-                    this.ctx.fillStyle = 'white';
-                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-                },
-
-                toggleFullScreen(event) {
-                    // Toggle the fullscreen state
-                    this.isFullScreen = !this.isFullScreen;
-                    const canvasContainer = this.canvas.parentElement;
-
-                    if (this.isFullScreen) {
-                        // Enter full screen
-                        if (canvasContainer.requestFullscreen) {
-                            canvasContainer.requestFullscreen();
-                        } else if (canvasContainer.webkitRequestFullscreen) { /* Safari */
-                            canvasContainer.webkitRequestFullscreen();
-                        } else if (canvasContainer.msRequestFullscreen) { /* IE11 */
-                            canvasContainer.msRequestFullscreen();
-                        }
-                    } else {
-                        // Exit full screen - prevent default behavior that might trigger save
-                        try {
-                            if (document.exitFullscreen) {
-                                document.exitFullscreen();
-                            } else if (document.webkitExitFullscreen) { /* Safari */
-                                document.webkitExitFullscreen();
-                            } else if (document.msExitFullscreen) { /* IE11 */
-                                document.msExitFullscreen();
-                            }
-                        } catch (e) {
-                            console.error('Error exiting fullscreen:', e);
-                        }
-                    }
-
-                    // Prevent event from bubbling up which might trigger other handlers
-                    if (event) {
-                        event.stopPropagation();
-                        event.preventDefault();
-                    }
-                    return false;
-                },
-
-                saveCanvasImage(event) {
-                    // If event is provided, prevent default form submission
-                    if (event) {
-                        event.preventDefault();
-                    }
-
-                    const imageData = this.canvas.toDataURL('image/png');
-                    // Find the specific Livewire component that contains the canvas
-                    const canvasContainer = this.canvas.closest('[wire\\:id]');
-                    if (canvasContainer) {
-                        const livewireComponent = Livewire.find(canvasContainer.getAttribute('wire:id'));
-                        livewireComponent.call('saveCanvasImage', imageData)
-                            .then(() => {
-                                // After the canvas image is saved, submit the form using Livewire
-                                if (event) {
-                                    // Call the save method directly
-                                    livewireComponent.call('save');
-                                }
-                            });
-                    } else {
-                       // livewireComponent.call('save');
-
-                        console.error('Could not find the Livewire component containing the canvas');
-                    }
-                }
-            }
-        }
-    </script>
-
     @if (session()->has('error'))
     <div class="bg-red-50 dark:bg-red-900/30 border-l-4 border-red-400 p-4 mb-4">
         <div class="flex">
@@ -939,3 +695,247 @@ new class extends Component {
         </form>
     </div>
 </div>
+
+<script>
+    function canvasDrawing() {
+        return {
+            canvas: null,
+            ctx: null,
+            isDrawing: false,
+            color: '#000000',
+            brushSize: 3,
+            lastX: 0,
+            lastY: 0,
+            isEraser: false,
+            isFullScreen: false,
+
+            init() {
+                this.canvas = document.getElementById('design-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.ctx.fillStyle = 'white';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                this.setupCanvas();
+
+                // Add event listener for fullscreenchange event
+                document.addEventListener('fullscreenchange', () => {
+                    if (!document.fullscreenElement) {
+                        // User exited full screen mode
+                        this.isFullScreen = false;
+                    }
+                });
+
+                // Add event listeners for browser-specific fullscreenchange events
+                document.addEventListener('webkitfullscreenchange', () => {
+                    if (!document.webkitFullscreenElement) {
+                        // User exited full screen mode
+                        this.isFullScreen = false;
+                    }
+                });
+
+                document.addEventListener('mozfullscreenchange', () => {
+                    if (!document.mozFullScreenElement) {
+                        // User exited full screen mode
+                        this.isFullScreen = false;
+                    }
+                });
+
+                document.addEventListener('msfullscreenchange', () => {
+                    if (!document.msFullscreenElement) {
+                        // User exited full screen mode
+                        this.isFullScreen = false;
+                    }
+                });
+            },
+
+            setupCanvas() {
+                this.ctx.lineCap = 'round';
+                this.ctx.lineJoin = 'round';
+                this.ctx.strokeStyle = this.color;
+                this.ctx.lineWidth = this.brushSize;
+            },
+
+            setColor(color) {
+                this.color = color;
+                this.ctx.strokeStyle = color;
+            },
+
+            setBrushSize(size) {
+                this.brushSize = size;
+                this.ctx.lineWidth = size;
+            },
+
+            toggleEraser() {
+                this.isEraser = !this.isEraser;
+                if (this.isEraser) {
+                    // Store the current color and set to white for erasing
+                    this._previousColor = this.color;
+                    this.ctx.strokeStyle = 'white';
+                    // Change cursor to eraser
+                    this.canvas.classList.add('cursor-eraser');
+                    this.canvas.classList.remove('cursor-crosshair');
+                } else {
+                    // Restore the previous color
+                    this.color = this._previousColor || '#000000';
+                    this.ctx.strokeStyle = this.color;
+                    // Change cursor back to crosshair
+                    this.canvas.classList.remove('cursor-eraser');
+                    this.canvas.classList.add('cursor-crosshair');
+                }
+            },
+
+            startDrawing(e) {
+                this.isDrawing = true;
+                const rect = this.canvas.getBoundingClientRect();
+                const scaleX = this.canvas.width / rect.width;
+                const scaleY = this.canvas.height / rect.height;
+
+                // Get coordinates from either mouse, touch, or pointer event
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX) || (e.changedTouches && e.changedTouches[0].clientX);
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY) || (e.changedTouches && e.changedTouches[0].clientY);
+
+                this.lastX = (clientX - rect.left) * scaleX;
+                this.lastY = (clientY - rect.top) * scaleY;
+            },
+
+            draw(e) {
+                if (!this.isDrawing) return;
+
+                const rect = this.canvas.getBoundingClientRect();
+                const scaleX = this.canvas.width / rect.width;
+                const scaleY = this.canvas.height / rect.height;
+
+                // Get coordinates from either mouse, touch, or pointer event
+                const clientX = e.clientX || (e.touches && e.touches[0].clientX) || (e.changedTouches && e.changedTouches[0].clientX);
+                const clientY = e.clientY || (e.touches && e.touches[0].clientY) || (e.changedTouches && e.changedTouches[0].clientY);
+
+                const currentX = (clientX - rect.left) * scaleX;
+                const currentY = (clientY - rect.top) * scaleY;
+
+                // Adjust line width based on pressure if available (for digital pens)
+                if (e.pressure && e.pressure !== 0.5) {
+                    // Pressure is usually between 0 and 1, with 0.5 being the default
+                    const pressureAdjustedSize = this.brushSize * (e.pressure * 1.5);
+                    this.ctx.lineWidth = Math.max(1, pressureAdjustedSize);
+                } else {
+                    this.ctx.lineWidth = this.brushSize;
+                }
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.lastX, this.lastY);
+                this.ctx.lineTo(currentX, currentY);
+                this.ctx.stroke();
+
+                this.lastX = currentX;
+                this.lastY = currentY;
+            },
+
+            handlePointerStart(e) {
+                // For digital pen and pointer devices
+                e.preventDefault();
+                this.startDrawing(e);
+            },
+
+            handlePointerMove(e) {
+                // For digital pen and pointer devices
+                e.preventDefault();
+                this.draw(e);
+            },
+
+            handleTouchStart(e) {
+                e.preventDefault();
+                if (e.touches.length === 1) {
+                    const touch = e.touches[0];
+                    const mouseEvent = new MouseEvent('mousedown', {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY
+                    });
+                    this.startDrawing(mouseEvent);
+                }
+            },
+
+            handleTouchMove(e) {
+                e.preventDefault();
+                if (e.touches.length === 1) {
+                    const touch = e.touches[0];
+                    const mouseEvent = new MouseEvent('mousemove', {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY
+                    });
+                    this.draw(mouseEvent);
+                }
+            },
+
+            stopDrawing() {
+                this.isDrawing = false;
+            },
+
+            clearCanvas() {
+                this.ctx.fillStyle = 'white';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            },
+
+            toggleFullScreen(event) {
+                // Toggle the fullscreen state
+                this.isFullScreen = !this.isFullScreen;
+                const canvasContainer = this.canvas.parentElement;
+
+                if (this.isFullScreen) {
+                    // Enter full screen
+                    if (canvasContainer.requestFullscreen) {
+                        canvasContainer.requestFullscreen();
+                    } else if (canvasContainer.webkitRequestFullscreen) { /* Safari */
+                        canvasContainer.webkitRequestFullscreen();
+                    } else if (canvasContainer.msRequestFullscreen) { /* IE11 */
+                        canvasContainer.msRequestFullscreen();
+                    }
+                } else {
+                    // Exit full screen - prevent default behavior that might trigger save
+                    try {
+                        if (document.exitFullscreen) {
+                            document.exitFullscreen();
+                        } else if (document.webkitExitFullscreen) { /* Safari */
+                            document.webkitExitFullscreen();
+                        } else if (document.msExitFullscreen) { /* IE11 */
+                            document.msExitFullscreen();
+                        }
+                    } catch (e) {
+                        console.error('Error exiting fullscreen:', e);
+                    }
+                }
+
+                // Prevent event from bubbling up which might trigger other handlers
+                if (event) {
+                    event.stopPropagation();
+                    event.preventDefault();
+                }
+                return false;
+            },
+
+            saveCanvasImage(event) {
+                // If event is provided, prevent default form submission
+                if (event) {
+                    event.preventDefault();
+                }
+
+                const imageData = this.canvas.toDataURL('image/png');
+                // Find the specific Livewire component that contains the canvas
+                const canvasContainer = this.canvas.closest('[wire\\:id]');
+                if (canvasContainer) {
+                    const livewireComponent = Livewire.find(canvasContainer.getAttribute('wire:id'));
+                    livewireComponent.call('saveCanvasImage', imageData)
+                        .then(() => {
+                            // After the canvas image is saved, submit the form using Livewire
+                            if (event) {
+                                // Call the save method directly
+                                livewireComponent.call('save');
+                            }
+                        });
+                } else {
+                    // livewireComponent.call('save');
+
+                    console.error('Could not find the Livewire component containing the canvas');
+                }
+            }
+        }
+    }
+</script>
