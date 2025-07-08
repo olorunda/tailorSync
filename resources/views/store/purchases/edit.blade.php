@@ -34,13 +34,17 @@
 
                                 <div class="mb-4">
                                     <label for="status" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Purchase Status</label>
-                                    <select id="status" name="status" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                                        <option value="pending" {{ $purchase->status == 'pending' ? 'selected' : '' }}>Pending</option>
-                                        <option value="processing" {{ $purchase->status == 'processing' ? 'selected' : '' }}>Processing</option>
-                                        <option value="shipped" {{ $purchase->status == 'shipped' ? 'selected' : '' }}>Shipped</option>
-                                        <option value="delivered" {{ $purchase->status == 'delivered' ? 'selected' : '' }}>Delivered</option>
-                                        <option value="cancelled" {{ $purchase->status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                                    </select>
+                                    <x-simple-select
+                                        id="status"
+                                        name="status"
+                                        :options="[
+                                            ['id' => 'pending', 'name' => 'Pending', 'selected' => $purchase->status == 'pending'],
+                                            ['id' => 'processing', 'name' => 'Processing', 'selected' => $purchase->status == 'processing'],
+                                            ['id' => 'shipped', 'name' => 'Shipped', 'selected' => $purchase->status == 'shipped'],
+                                            ['id' => 'delivered', 'name' => 'Delivered', 'selected' => $purchase->status == 'delivered'],
+                                            ['id' => 'cancelled', 'name' => 'Cancelled', 'selected' => $purchase->status == 'cancelled']
+                                        ]"
+                                    />
                                     @error('status')
                                         <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                                     @enderror
@@ -48,12 +52,16 @@
 
                                 <div class="mb-4">
                                     <label for="payment_status" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Payment Status</label>
-                                    <select id="payment_status" name="payment_status" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                                        <option value="pending" {{ $purchase->payment_status == 'pending' ? 'selected' : '' }}>Pending</option>
-                                        <option value="paid" {{ $purchase->payment_status == 'paid' ? 'selected' : '' }}>Paid</option>
-                                        <option value="refunded" {{ $purchase->payment_status == 'refunded' ? 'selected' : '' }}>Refunded</option>
-                                        <option value="partially_paid" {{ $purchase->payment_status == 'partially_paid' ? 'selected' : '' }}>Partially Paid</option>
-                                    </select>
+                                    <x-simple-select
+                                        id="payment_status"
+                                        name="payment_status"
+                                        :options="[
+                                            ['id' => 'pending', 'name' => 'Pending', 'selected' => $purchase->payment_status == 'pending'],
+                                            ['id' => 'paid', 'name' => 'Paid', 'selected' => $purchase->payment_status == 'paid'],
+                                            ['id' => 'refunded', 'name' => 'Refunded', 'selected' => $purchase->payment_status == 'refunded'],
+                                            ['id' => 'partially_paid', 'name' => 'Partially Paid', 'selected' => $purchase->payment_status == 'partially_paid']
+                                        ]"
+                                    />
                                     @error('payment_status')
                                         <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                                     @enderror

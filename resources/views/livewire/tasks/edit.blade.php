@@ -102,55 +102,70 @@ new class extends Component {
 
                 <div>
                     <label for="priority" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Priority</label>
-                    <select wire:model="priority" id="priority" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5" required>
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                    </select>
+                    <x-simple-select
+                        wire:model="priority"
+                        id="priority"
+                        :options="[
+                            ['id' => 'low', 'name' => 'Low'],
+                            ['id' => 'medium', 'name' => 'Medium'],
+                            ['id' => 'high', 'name' => 'High']
+                        ]"
+                        :required="true"
+                    />
                     @error('priority') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
 
                 <div>
                     <label for="status" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Status</label>
-                    <select wire:model="status" id="status" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5" required>
-                        <option value="pending">Pending</option>
-                        <option value="in_progress">In Progress</option>
-                        <option value="completed">Completed</option>
-                    </select>
+                    <x-simple-select
+                        wire:model="status"
+                        id="status"
+                        :options="[
+                            ['id' => 'pending', 'name' => 'Pending'],
+                            ['id' => 'in_progress', 'name' => 'In Progress'],
+                            ['id' => 'completed', 'name' => 'Completed']
+                        ]"
+                        :required="true"
+                    />
                     @error('status') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
 
                 <div>
                     <label for="type" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Type</label>
-                    <select wire:model="type" id="type" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5" required>
-                        <option value="cutting">Cutting</option>
-                        <option value="sewing">Sewing</option>
-                        <option value="fitting">Fitting</option>
-                        <option value="delivery">Delivery</option>
-                        <option value="other">Other</option>
-                    </select>
+                    <x-simple-select
+                        wire:model="type"
+                        id="type"
+                        :options="[
+                            ['id' => 'cutting', 'name' => 'Cutting'],
+                            ['id' => 'sewing', 'name' => 'Sewing'],
+                            ['id' => 'fitting', 'name' => 'Fitting'],
+                            ['id' => 'delivery', 'name' => 'Delivery'],
+                            ['id' => 'other', 'name' => 'Other']
+                        ]"
+                        :required="true"
+                    />
                     @error('type') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
 
                 <div>
                     <label for="assigned_to" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Assign To (Optional)</label>
-                    <select wire:model="assigned_to" id="assigned_to" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                        <option value="">Assign to someone</option>
-                        @foreach($team_members as $member)
-                            <option value="{{ $member->id }}">{{ $member->name }}</option>
-                        @endforeach
-                    </select>
+                    <x-simple-select
+                        wire:model="assigned_to"
+                        id="assigned_to"
+                        :options="$team_members->map(fn($member) => ['id' => $member->id, 'name' => $member->name])->toArray()"
+                        placeholder="Assign to someone"
+                    />
                     @error('assigned_to') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
 
                 <div>
                     <label for="order_id" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Related Order (Optional)</label>
-                    <select wire:model="order_id" id="order_id" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                        <option value="">Select an order</option>
-                        @foreach($orders as $order)
-                            <option value="{{ $order->id }}">Order #{{ $order->order_number }}</option>
-                        @endforeach
-                    </select>
+                    <x-simple-select
+                        wire:model="order_id"
+                        id="order_id"
+                        :options="$orders->map(fn($order) => ['id' => $order->id, 'name' => 'Order #' . $order->order_number])->toArray()"
+                        placeholder="Select an order"
+                    />
                     @error('order_id') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
 

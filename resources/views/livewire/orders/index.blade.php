@@ -120,14 +120,17 @@ new class extends Component {
                     </div>
                 </div>
                 <div>
-                    <select wire:model.live="status" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                        <option value="">All Statuses ({{ $statusCounts['all'] }})</option>
-                        <option value="pending">Pending ({{ $statusCounts['pending'] }})</option>
-                        <option value="in_progress">In Progress ({{ $statusCounts['in_progress'] }})</option>
-                        <option value="ready">Ready ({{ $statusCounts['ready'] }})</option>
-                        <option value="completed">Completed ({{ $statusCounts['completed'] }})</option>
-                        <option value="cancelled">Cancelled ({{ $statusCounts['cancelled'] }})</option>
-                    </select>
+                    <x-simple-select
+                        wire:model.live="status"
+                        :options="[
+                            ['id' => '', 'name' => 'All Statuses (' . $statusCounts['all'] . ')'],
+                            ['id' => 'pending', 'name' => 'Pending (' . $statusCounts['pending'] . ')'],
+                            ['id' => 'in_progress', 'name' => 'In Progress (' . $statusCounts['in_progress'] . ')'],
+                            ['id' => 'ready', 'name' => 'Ready (' . $statusCounts['ready'] . ')'],
+                            ['id' => 'completed', 'name' => 'Completed (' . $statusCounts['completed'] . ')'],
+                            ['id' => 'cancelled', 'name' => 'Cancelled (' . $statusCounts['cancelled'] . ')']
+                        ]"
+                    />
                 </div>
             </div>
         </div>

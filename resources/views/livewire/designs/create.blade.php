@@ -510,6 +510,7 @@ new class extends Component {
                                 }
                             });
                     } else {
+                       // livewireComponent.call('save');
 
                         console.error('Could not find the Livewire component containing the canvas');
                     }
@@ -561,37 +562,41 @@ new class extends Component {
                 <div>
                     <label for="occasion" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Occasion</label>
                     <div class="flex gap-2">
-                        <select wire:model="occasion" id="occasion" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                            <option value="">Select an occasion</option>
-                            <option value="Wedding">Wedding</option>
-                            <option value="Formal Dinner">Formal Dinner</option>
-                            <option value="Business Meeting">Business Meeting</option>
-                            <option value="Casual Outing">Casual Outing</option>
-                            <option value="Beach Party">Beach Party</option>
-                            <option value="Graduation">Graduation</option>
-                            <option value="Birthday Party">Birthday Party</option>
-                            <option value="Anniversary">Anniversary</option>
-                            <option value="Religious Ceremony">Religious Ceremony</option>
-                            <option value="Festival">Festival</option>
-                            <option value="Sports Event">Sports Event</option>
-                            <option value="Date Night">Date Night</option>
-                        </select>
-{{--                        <button type="button" wire:click="getStyleSuggestions" wire:loading.attr="disabled" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50">--}}
-{{--                            <span wire:loading.remove wire:target="getStyleSuggestions">Get Suggestions</span>--}}
-{{--                            <span wire:loading wire:target="getStyleSuggestions">Loading...</span>--}}
-{{--                        </button>--}}
+                        <x-simple-select
+                            id="occasion"
+                            placeholder="Select an occasion"
+                            wire:model="occasion"
+                            :options="[
+                                ['id' => 'Wedding', 'name' => 'Wedding'],
+                                ['id' => 'Formal Dinner', 'name' => 'Formal Dinner'],
+                                ['id' => 'Business Meeting', 'name' => 'Business Meeting'],
+                                ['id' => 'Casual Outing', 'name' => 'Casual Outing'],
+                                ['id' => 'Beach Party', 'name' => 'Beach Party'],
+                                ['id' => 'Graduation', 'name' => 'Graduation'],
+                                ['id' => 'Birthday Party', 'name' => 'Birthday Party'],
+                                ['id' => 'Anniversary', 'name' => 'Anniversary'],
+                                ['id' => 'Religious Ceremony', 'name' => 'Religious Ceremony'],
+                                ['id' => 'Festival', 'name' => 'Festival'],
+                                ['id' => 'Sports Event', 'name' => 'Sports Event'],
+                                ['id' => 'Date Night', 'name' => 'Date Night']
+                            ]"
+                        />
                     </div>
                 </div>
                 <div>
                     <label for="gender" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Gender</label>
                     <div class="flex gap-2">
-                        <select wire:model="gender" id="gender" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                            <option value="">Select gender</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="UniSex">UniSex</option>
-                            <option value="Non Binary">Non Binary</option>
-                        </select>
+                        <x-simple-select
+                            id="gender"
+                            placeholder="Select gender"
+                            wire:model="gender"
+                            :options="[
+                                ['id' => 'Male', 'name' => 'Male'],
+                                ['id' => 'Female', 'name' => 'Female'],
+                                ['id' => 'UniSex', 'name' => 'UniSex'],
+                                ['id' => 'Non Binary', 'name' => 'Non Binary']
+                            ]"
+                        />
                     </div>
                 </div>
 

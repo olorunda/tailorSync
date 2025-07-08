@@ -7,7 +7,7 @@
         <header class="w-full max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
             <div class="flex items-center">
                 <a href="{{ route('home') }}" wire:navigate>
-                    <div class="text-3xl font-bold text-orange-600 dark:text-orange-500">TailorSync</div>
+                    <div class="text-3xl font-bold text-orange-600 dark:text-orange-500">{{env('APP_NAME','ThreadNix')}}</div>
                 </a>
             </div>
 
@@ -41,7 +41,7 @@
                         <span class="flex h-9 w-9 mb-1 items-center justify-center rounded-md">
                             <x-app-logo-icon class="size-9 fill-current text-orange-600 dark:text-orange-500" />
                         </span>
-                        <span class="text-xl font-bold text-orange-600 dark:text-orange-500">TailorSync</span>
+                        <span class="text-xl font-bold text-orange-600 dark:text-orange-500">{{env('APP_NAME','ThreadNix')}}</span>
                     </a>
                     <div class="flex flex-col gap-6">
                         {{ $slot }}
@@ -54,12 +54,12 @@
             <div class="max-w-7xl mx-auto px-4">
                 <div class="flex flex-col md:flex-row justify-between items-center">
                     <div class="mb-6 md:mb-0">
-                        <div class="text-2xl font-bold text-orange-600 dark:text-orange-500 mb-2">TailorSync</div>
+                        <div class="text-2xl font-bold text-orange-600 dark:text-orange-500 mb-2">{{env('APP_NAME','ThreadNix')}}</div>
                         <p class="text-zinc-600 dark:text-zinc-400">Tailoring Management System</p>
                     </div>
                 </div>
                 <div class="border-t border-zinc-200 dark:border-zinc-800 mt-8 pt-8 text-center text-zinc-500 dark:text-zinc-400">
-                    <p>&copy; {{ date('Y') }} TailorSync. All rights reserved.</p>
+                    <p>&copy; {{ date('Y') }} {{env('APP_NAME','ThreadNix')}}. All rights reserved.</p>
                 </div>
             </div>
         </footer>

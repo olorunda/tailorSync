@@ -220,34 +220,41 @@ new class extends Component {
                 <div x-show="open" x-transition class="mt-3 grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div>
                         <label for="status-filter" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Status</label>
-                        <select wire:model.live="status" id="status-filter" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2">
-                            <option value="">All Statuses</option>
-                            <option value="completed">Completed</option>
-                            <option value="pending">Pending</option>
-                            <option value="failed">Failed</option>
-                        </select>
+                        <x-simple-select
+                            wire:model.live="status"
+                            id="status-filter"
+                            :options="[
+                                ['id' => '', 'name' => 'All Statuses'],
+                                ['id' => 'completed', 'name' => 'Completed'],
+                                ['id' => 'pending', 'name' => 'Pending'],
+                                ['id' => 'failed', 'name' => 'Failed']
+                            ]"
+                        />
                     </div>
 
                     <div>
                         <label for="client-filter" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Client</label>
-                        <select wire:model.live="client_id" id="client-filter" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2">
-                            <option value="">All Clients</option>
-                            @foreach($clients as $client)
-                                <option value="{{ $client->id }}">{{ $client->name }}</option>
-                            @endforeach
-                        </select>
+                        <x-simple-select
+                            wire:model.live="client_id"
+                            id="client-filter"
+                            :options="$clients->map(fn($client) => ['id' => $client->id, 'name' => $client->name])->prepend(['id' => '', 'name' => 'All Clients'])->toArray()"
+                        />
                     </div>
 
                     <div>
                         <label for="payment-method-filter" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Payment Method</label>
-                        <select wire:model.live="payment_method" id="payment-method-filter" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2">
-                            <option value="">All Methods</option>
-                            <option value="cash">Cash</option>
-                            <option value="bank_transfer">Bank Transfer</option>
-                            <option value="credit_card">Credit Card</option>
-                            <option value="mobile_money">Mobile Money</option>
-                            <option value="other">Other</option>
-                        </select>
+                        <x-simple-select
+                            wire:model.live="payment_method"
+                            id="payment-method-filter"
+                            :options="[
+                                ['id' => '', 'name' => 'All Methods'],
+                                ['id' => 'cash', 'name' => 'Cash'],
+                                ['id' => 'bank_transfer', 'name' => 'Bank Transfer'],
+                                ['id' => 'credit_card', 'name' => 'Credit Card'],
+                                ['id' => 'mobile_money', 'name' => 'Mobile Money'],
+                                ['id' => 'other', 'name' => 'Other']
+                            ]"
+                        />
                     </div>
 
                     <div>

@@ -408,12 +408,18 @@ new class extends Component {
 
                         <div>
                             <label for="status" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Status <span class="text-red-500">*</span></label>
-                            <select wire:model="status" id="status" class="mt-1 block w-full rounded-md border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" required>
-                                <option value="draft">Draft</option>
-                                <option value="pending">Pending</option>
-                                <option value="paid">Paid</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
+                            <x-simple-select
+                                wire:model="status"
+                                id="status"
+                                :options="[
+                                    ['id' => 'draft', 'name' => 'Draft'],
+                                    ['id' => 'pending', 'name' => 'Pending'],
+                                    ['id' => 'paid', 'name' => 'Paid'],
+                                    ['id' => 'cancelled', 'name' => 'Cancelled']
+                                ]"
+                                :required="true"
+                                :disabled="$invoice->status === 'paid'"
+                            />
                             @error('status') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
 
@@ -446,22 +452,24 @@ new class extends Component {
                     <div class="space-y-4">
                         <div>
                             <label for="client_id" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Select Client</label>
-                            <select wire:change="selectClient($event.target.value)" id="client_id" class="mt-1 block w-full rounded-md border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" {{ $invoice->status === 'paid' ? 'disabled' : '' }}>
-                                <option value="">Select a client</option>
-                                @foreach ($clients as $client)
-                                    <option value="{{ $client->id }}" {{ $client_id == $client->id ? 'selected' : '' }}>{{ $client->name }}</option>
-                                @endforeach
-                            </select>
+                            <x-simple-select
+                                x-on:simple-select-updated="$wire.selectClient($event.detail.value)"
+                                id="client_id"
+                                :options="$clients->map(fn($client) => ['id' => $client->id, 'name' => $client->name, 'selected' => $client_id == $client->id])->toArray()"
+                                placeholder="Select a client"
+                                :disabled="$invoice->status === 'paid'"
+                            />
                         </div>
 
                         <div>
                             <label for="order_id" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Select Order (Optional)</label>
-                            <select wire:change="selectOrder($event.target.value)" id="order_id" class="mt-1 block w-full rounded-md border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm" {{ $invoice->status === 'paid' ? 'disabled' : '' }}>
-                                <option value="">Select an order</option>
-                                @foreach ($orders as $order)
-                                    <option value="{{ $order->id }}" {{ $order_id == $order->id ? 'selected' : '' }}>{{ $order->order_number }} - {{ $order->client->name ?? 'Unknown' }}</option>
-                                @endforeach
-                            </select>
+                            <x-simple-select
+                                x-on:simple-select-updated="$wire.selectOrder($event.detail.value)"
+                                id="order_id"
+                                :options="$orders->map(fn($order) => ['id' => $order->id, 'name' => $order->order_number . ' - ' . ($order->client->name ?? 'Unknown'), 'selected' => $order_id == $order->id])->toArray()"
+                                placeholder="Select an order"
+                                :disabled="$invoice->status === 'paid'"
+                            />
                         </div>
 
                         <div>

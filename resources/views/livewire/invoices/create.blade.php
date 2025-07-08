@@ -446,12 +446,17 @@ new class extends Component {
 
                         <div>
                             <label for="status" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Status <span class="text-red-500">*</span></label>
-                            <select wire:model="status" id="status" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5" required>
-                                <option value="draft">Draft</option>
-                                <option value="pending">Pending</option>
-                                <option value="paid">Paid</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
+                            <x-simple-select
+                                wire:model="status"
+                                id="status"
+                                :options="[
+                                    ['id' => 'draft', 'name' => 'Draft'],
+                                    ['id' => 'pending', 'name' => 'Pending'],
+                                    ['id' => 'paid', 'name' => 'Paid'],
+                                    ['id' => 'cancelled', 'name' => 'Cancelled']
+                                ]"
+                                :required="true"
+                            />
                             @error('status') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         </div>
 
@@ -484,22 +489,22 @@ new class extends Component {
                     <div class="space-y-4">
                         <div>
                             <label for="client_id" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Select Client</label>
-                            <select wire:change="selectClient($event.target.value)" id="client_id" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                                <option value="">Select a client</option>
-                                @foreach ($clients as $client)
-                                    <option value="{{ $client->id }}">{{ $client->name }}</option>
-                                @endforeach
-                            </select>
+                            <x-simple-select
+                                x-on:simple-select-updated="$wire.selectClient($event.detail.value)"
+                                id="client_id"
+                                :options="$clients->map(fn($client) => ['id' => $client->id, 'name' => $client->name])->toArray()"
+                                placeholder="Select a client"
+                            />
                         </div>
 
                         <div>
                             <label for="order_id" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Select Order (Optional)</label>
-                            <select wire:change="selectOrder($event.target.value)" id="order_id" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                                <option value="">Select an order</option>
-                                @foreach ($orders as $order)
-                                    <option value="{{ $order->id }}">{{ $order->order_number }} - {{ $order->client->name ?? 'Unknown' }}</option>
-                                @endforeach
-                            </select>
+                            <x-simple-select
+                                x-on:simple-select-updated="$wire.selectOrder($event.detail.value)"
+                                id="order_id"
+                                :options="$orders->map(fn($order) => ['id' => $order->id, 'name' => $order->order_number . ' - ' . ($order->client->name ?? 'Unknown')])->toArray()"
+                                placeholder="Select an order"
+                            />
                         </div>
 
                         <div>

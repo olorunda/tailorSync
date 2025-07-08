@@ -71,26 +71,34 @@
                 </div>
                 <div>
                     <label for="status" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Status</label>
-                    <select name="status" id="status" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                        <option value="">All Statuses</option>
-                        <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
-                        <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                        <option value="featured" {{ request('status') == 'featured' ? 'selected' : '' }}>Featured</option>
-                        <option value="custom" {{ request('status') == 'custom' ? 'selected' : '' }}>Custom Order</option>
-                    </select>
+                    <x-simple-select
+                        name="status"
+                        id="status"
+                        :options="[
+                            ['id' => '', 'name' => 'All Statuses'],
+                            ['id' => 'active', 'name' => 'Active', 'selected' => request('status') == 'active'],
+                            ['id' => 'inactive', 'name' => 'Inactive', 'selected' => request('status') == 'inactive'],
+                            ['id' => 'featured', 'name' => 'Featured', 'selected' => request('status') == 'featured'],
+                            ['id' => 'custom', 'name' => 'Custom Order', 'selected' => request('status') == 'custom']
+                        ]"
+                    />
                 </div>
                 <div>
                     <label for="sort" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Sort By</label>
-                    <select name="sort" id="sort" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                        <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>Newest First</option>
-                        <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Oldest First</option>
-                        <option value="name_asc" {{ request('sort') == 'name_asc' ? 'selected' : '' }}>Name (A-Z)</option>
-                        <option value="name_desc" {{ request('sort') == 'name_desc' ? 'selected' : '' }}>Name (Z-A)</option>
-                        <option value="price_asc" {{ request('sort') == 'price_asc' ? 'selected' : '' }}>Price (Low to High)</option>
-                        <option value="price_desc" {{ request('sort') == 'price_desc' ? 'selected' : '' }}>Price (High to Low)</option>
-                        <option value="stock_asc" {{ request('sort') == 'stock_asc' ? 'selected' : '' }}>Stock (Low to High)</option>
-                        <option value="stock_desc" {{ request('sort') == 'stock_desc' ? 'selected' : '' }}>Stock (High to Low)</option>
-                    </select>
+                    <x-simple-select
+                        name="sort"
+                        id="sort"
+                        :options="[
+                            ['id' => 'newest', 'name' => 'Newest First', 'selected' => request('sort') == 'newest' || !request('sort')],
+                            ['id' => 'oldest', 'name' => 'Oldest First', 'selected' => request('sort') == 'oldest'],
+                            ['id' => 'name_asc', 'name' => 'Name (A-Z)', 'selected' => request('sort') == 'name_asc'],
+                            ['id' => 'name_desc', 'name' => 'Name (Z-A)', 'selected' => request('sort') == 'name_desc'],
+                            ['id' => 'price_asc', 'name' => 'Price (Low to High)', 'selected' => request('sort') == 'price_asc'],
+                            ['id' => 'price_desc', 'name' => 'Price (High to Low)', 'selected' => request('sort') == 'price_desc'],
+                            ['id' => 'stock_asc', 'name' => 'Stock (Low to High)', 'selected' => request('sort') == 'stock_asc'],
+                            ['id' => 'stock_desc', 'name' => 'Stock (High to Low)', 'selected' => request('sort') == 'stock_desc']
+                        ]"
+                    />
                 </div>
                 <div class="md:col-span-3 flex justify-end space-x-3">
                     <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">

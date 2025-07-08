@@ -153,10 +153,10 @@ class StorefrontController extends Controller
             ->values();
 
         // Get cart
-        $cart = $this->getCart($userId);
+        $cart = $this->storefrontService->getCart($userId);
 
         // Get currency symbol
-        $currencySymbol = $this->getCurrencySymbol($userId);
+        $currencySymbol = $this->storefrontService->getCurrencySymbol($userId);
 
         return view('storefront.products', compact(
             'businessDetail',
@@ -221,10 +221,10 @@ class StorefrontController extends Controller
         $userId = $businessDetail->user_id;
 
         // Get cart
-        $cart = $this->getCart($userId);
+        $cart = $this->storefrontService->getCart($userId);
 
         // Get currency symbol
-        $currencySymbol = $this->getCurrencySymbol($userId);
+        $currencySymbol = $this->storefrontService->getCurrencySymbol($userId);
 
         return view('storefront.cart', compact(
             'businessDetail',

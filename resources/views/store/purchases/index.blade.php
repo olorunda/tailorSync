@@ -17,54 +17,74 @@
                 </div>
                 <div>
                     <label for="status" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Status</label>
-                    <select name="status" id="status" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                        <option value="">All Statuses</option>
-                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
-                        <option value="shipped" {{ request('status') == 'shipped' ? 'selected' : '' }}>Shipped</option>
-                        <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered</option>
-                        <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                    </select>
+                    <x-simple-select
+                        name="status"
+                        id="status"
+                        :options="[
+                            ['id' => '', 'name' => 'All Statuses'],
+                            ['id' => 'pending', 'name' => 'Pending', 'selected' => request('status') == 'pending'],
+                            ['id' => 'processing', 'name' => 'Processing', 'selected' => request('status') == 'processing'],
+                            ['id' => 'shipped', 'name' => 'Shipped', 'selected' => request('status') == 'shipped'],
+                            ['id' => 'delivered', 'name' => 'Delivered', 'selected' => request('status') == 'delivered'],
+                            ['id' => 'cancelled', 'name' => 'Cancelled', 'selected' => request('status') == 'cancelled']
+                        ]"
+                    />
                 </div>
                 <div>
                     <label for="payment_status" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Payment Status</label>
-                    <select name="payment_status" id="payment_status" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                        <option value="">All Payment Statuses</option>
-                        <option value="paid" {{ request('payment_status') == 'paid' ? 'selected' : '' }}>Paid</option>
-                        <option value="pending" {{ request('payment_status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="failed" {{ request('payment_status') == 'failed' ? 'selected' : '' }}>Failed</option>
-                        <option value="refunded" {{ request('payment_status') == 'refunded' ? 'selected' : '' }}>Refunded</option>
-                    </select>
+                    <x-simple-select
+                        name="payment_status"
+                        id="payment_status"
+                        :options="[
+                            ['id' => '', 'name' => 'All Payment Statuses'],
+                            ['id' => 'paid', 'name' => 'Paid', 'selected' => request('payment_status') == 'paid'],
+                            ['id' => 'pending', 'name' => 'Pending', 'selected' => request('payment_status') == 'pending'],
+                            ['id' => 'failed', 'name' => 'Failed', 'selected' => request('payment_status') == 'failed'],
+                            ['id' => 'refunded', 'name' => 'Refunded', 'selected' => request('payment_status') == 'refunded']
+                        ]"
+                    />
                 </div>
                 <div>
                     <label for="date_range" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Date Range</label>
-                    <select name="date_range" id="date_range" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                        <option value="">All Dates</option>
-                        <option value="today" {{ request('date_range') == 'today' ? 'selected' : '' }}>Today</option>
-                        <option value="this_week" {{ request('date_range') == 'this_week' ? 'selected' : '' }}>This Week</option>
-                        <option value="this_month" {{ request('date_range') == 'this_month' ? 'selected' : '' }}>This Month</option>
-                        <option value="last_month" {{ request('date_range') == 'last_month' ? 'selected' : '' }}>Last Month</option>
-                        <option value="this_year" {{ request('date_range') == 'this_year' ? 'selected' : '' }}>This Year</option>
-                    </select>
+                    <x-simple-select
+                        name="date_range"
+                        id="date_range"
+                        :options="[
+                            ['id' => '', 'name' => 'All Dates'],
+                            ['id' => 'today', 'name' => 'Today', 'selected' => request('date_range') == 'today'],
+                            ['id' => 'this_week', 'name' => 'This Week', 'selected' => request('date_range') == 'this_week'],
+                            ['id' => 'this_month', 'name' => 'This Month', 'selected' => request('date_range') == 'this_month'],
+                            ['id' => 'last_month', 'name' => 'Last Month', 'selected' => request('date_range') == 'last_month'],
+                            ['id' => 'this_year', 'name' => 'This Year', 'selected' => request('date_range') == 'this_year']
+                        ]"
+                    />
                 </div>
                 <div>
                     <label for="payment_method" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Payment Method</label>
-                    <select name="payment_method" id="payment_method" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                        <option value="">All Payment Methods</option>
-                        <option value="credit_card" {{ request('payment_method') == 'credit_card' ? 'selected' : '' }}>Credit Card</option>
-                        <option value="paypal" {{ request('payment_method') == 'paypal' ? 'selected' : '' }}>PayPal</option>
-                        <option value="bank_transfer" {{ request('payment_method') == 'bank_transfer' ? 'selected' : '' }}>Bank Transfer</option>
-                        <option value="cash" {{ request('payment_method') == 'cash' ? 'selected' : '' }}>Cash</option>
-                    </select>
+                    <x-simple-select
+                        name="payment_method"
+                        id="payment_method"
+                        :options="[
+                            ['id' => '', 'name' => 'All Payment Methods'],
+                            ['id' => 'credit_card', 'name' => 'Credit Card', 'selected' => request('payment_method') == 'credit_card'],
+                            ['id' => 'paypal', 'name' => 'PayPal', 'selected' => request('payment_method') == 'paypal'],
+                            ['id' => 'bank_transfer', 'name' => 'Bank Transfer', 'selected' => request('payment_method') == 'bank_transfer'],
+                            ['id' => 'cash', 'name' => 'Cash', 'selected' => request('payment_method') == 'cash']
+                        ]"
+                    />
                 </div>
                 <div>
                     <label for="sort" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Sort By</label>
-                    <select name="sort" id="sort" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                        <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>Newest First</option>
-                        <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Oldest First</option>
-                        <option value="amount_high" {{ request('sort') == 'amount_high' ? 'selected' : '' }}>Amount (High to Low)</option>
-                        <option value="amount_low" {{ request('sort') == 'amount_low' ? 'selected' : '' }}>Amount (Low to High)</option>
-                    </select>
+                    <x-simple-select
+                        name="sort"
+                        id="sort"
+                        :options="[
+                            ['id' => 'newest', 'name' => 'Newest First', 'selected' => request('sort') == 'newest' || !request('sort')],
+                            ['id' => 'oldest', 'name' => 'Oldest First', 'selected' => request('sort') == 'oldest'],
+                            ['id' => 'amount_high', 'name' => 'Amount (High to Low)', 'selected' => request('sort') == 'amount_high'],
+                            ['id' => 'amount_low', 'name' => 'Amount (Low to High)', 'selected' => request('sort') == 'amount_low']
+                        ]"
+                    />
                 </div>
                 <div class="md:col-span-3 flex justify-end space-x-3">
                     <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">

@@ -92,23 +92,24 @@ new class extends Component {
 
                 <div>
                     <label for="client_id" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Client</label>
-                    <select wire:model="client_id" id="client_id" required class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                        <option value="">Select a client</option>
-                        @foreach($clients as $client)
-                            <option value="{{ $client->id }}">{{ $client->name }}</option>
-                        @endforeach
-                    </select>
+                    <x-simple-select
+                        wire:model="client_id"
+                        id="client_id"
+                        :options="$clients->map(fn($client) => ['id' => $client->id, 'name' => $client->name])->toArray()"
+                        placeholder="Select a client"
+                        :required="true"
+                    />
                     @error('client_id') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
 
                 <div>
                     <label for="invoice_id" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Invoice (Optional)</label>
-                    <select wire:model="invoice_id" id="invoice_id" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                        <option value="">Select an invoice</option>
-                        @foreach($invoices as $invoice)
-                            <option value="{{ $invoice->id }}">{{ $invoice->invoice_number }} - {{ number_format($invoice->total_amount, 2) }}</option>
-                        @endforeach
-                    </select>
+                    <x-simple-select
+                        wire:model="invoice_id"
+                        id="invoice_id"
+                        :options="$invoices->map(fn($invoice) => ['id' => $invoice->id, 'name' => $invoice->invoice_number . ' - ' . number_format($invoice->total_amount, 2)])->toArray()"
+                        placeholder="Select an invoice"
+                    />
                     @error('invoice_id') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
 
@@ -120,14 +121,19 @@ new class extends Component {
 
                 <div>
                     <label for="payment_method" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Payment Method</label>
-                    <select wire:model="payment_method" id="payment_method" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5" required>
-                        <option value="">Select payment method</option>
-                        <option value="cash">Cash</option>
-                        <option value="bank_transfer">Bank Transfer</option>
-                        <option value="credit_card">Credit Card</option>
-                        <option value="mobile_money">Mobile Money</option>
-                        <option value="other">Other</option>
-                    </select>
+                    <x-simple-select
+                        wire:model="payment_method"
+                        id="payment_method"
+                        :options="[
+                            ['id' => '', 'name' => 'Select payment method'],
+                            ['id' => 'cash', 'name' => 'Cash'],
+                            ['id' => 'bank_transfer', 'name' => 'Bank Transfer'],
+                            ['id' => 'credit_card', 'name' => 'Credit Card'],
+                            ['id' => 'mobile_money', 'name' => 'Mobile Money'],
+                            ['id' => 'other', 'name' => 'Other']
+                        ]"
+                        :required="true"
+                    />
                     @error('payment_method') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
 
@@ -139,11 +145,16 @@ new class extends Component {
 
                 <div>
                     <label for="status" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Status</label>
-                    <select wire:model="status" id="status" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5" required>
-                        <option value="completed">Completed</option>
-                        <option value="pending">Pending</option>
-                        <option value="failed">Failed</option>
-                    </select>
+                    <x-simple-select
+                        wire:model="status"
+                        id="status"
+                        :options="[
+                            ['id' => 'completed', 'name' => 'Completed'],
+                            ['id' => 'pending', 'name' => 'Pending'],
+                            ['id' => 'failed', 'name' => 'Failed']
+                        ]"
+                        :required="true"
+                    />
                     @error('status') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
 

@@ -223,22 +223,24 @@
                             @if(!empty($product->sizes))
                                 <div class="mb-3 sm:mb-4">
                                     <label for="size" class="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Size</label>
-                                    <select id="size" name="options[size]" class="mt-1 block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-primary-custom focus:border-primary-custom rounded-md">
-                                        @foreach($product->sizes as $size)
-                                            <option value="{{ $size }}">{{ $size }}</option>
-                                        @endforeach
-                                    </select>
+                                    <x-simple-select
+                                        id="size"
+                                        name="options[size]"
+                                        :options="collect($product->sizes)->map(fn($size) => ['id' => $size, 'name' => $size])->toArray()"
+                                        class="mt-1"
+                                    />
                                 </div>
                             @endif
 
                             @if(!empty($product->colors))
                                 <div class="mb-3 sm:mb-4">
                                     <label for="color" class="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Color</label>
-                                    <select id="color" name="options[color]" class="mt-1 block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-primary-custom focus:border-primary-custom rounded-md">
-                                        @foreach($product->colors as $color)
-                                            <option value="{{ $color }}">{{ $color }}</option>
-                                        @endforeach
-                                    </select>
+                                    <x-simple-select
+                                        id="color"
+                                        name="options[color]"
+                                        :options="collect($product->colors)->map(fn($color) => ['id' => $color, 'name' => $color])->toArray()"
+                                        class="mt-1"
+                                    />
                                 </div>
                             @endif
 
@@ -273,33 +275,36 @@
                             @if(!empty($product->sizes))
                                 <div class="mb-3 sm:mb-4">
                                     <label for="size" class="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Size</label>
-                                    <select id="size" name="custom_design_data[size]" class="mt-1 block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-primary-custom focus:border-primary-custom rounded-md">
-                                        @foreach($product->sizes as $size)
-                                            <option value="{{ $size }}">{{ $size }}</option>
-                                        @endforeach
-                                    </select>
+                                    <x-simple-select
+                                        id="size"
+                                        name="custom_design_data[size]"
+                                        :options="collect($product->sizes)->map(fn($size) => ['id' => $size, 'name' => $size])->toArray()"
+                                        class="mt-1"
+                                    />
                                 </div>
                             @endif
 
                             @if(!empty($product->colors))
                                 <div class="mb-3 sm:mb-4">
                                     <label for="color" class="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Color</label>
-                                    <select id="color" name="custom_design_data[color]" class="mt-1 block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-primary-custom focus:border-primary-custom rounded-md">
-                                        @foreach($product->colors as $color)
-                                            <option value="{{ $color }}">{{ $color }}</option>
-                                        @endforeach
-                                    </select>
+                                    <x-simple-select
+                                        id="color"
+                                        name="custom_design_data[color]"
+                                        :options="collect($product->colors)->map(fn($color) => ['id' => $color, 'name' => $color])->toArray()"
+                                        class="mt-1"
+                                    />
                                 </div>
                             @endif
 
                             @if(!empty($product->materials))
                                 <div class="mb-3 sm:mb-4">
                                     <label for="material" class="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">Material</label>
-                                    <select id="material" name="custom_design_data[material]" class="mt-1 block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-primary-custom focus:border-primary-custom rounded-md">
-                                        @foreach($product->materials as $material)
-                                            <option value="{{ $material }}">{{ $material }}</option>
-                                        @endforeach
-                                    </select>
+                                    <x-simple-select
+                                        id="material"
+                                        name="custom_design_data[material]"
+                                        :options="collect($product->materials)->map(fn($material) => ['id' => $material, 'name' => $material])->toArray()"
+                                        class="mt-1"
+                                    />
                                 </div>
                             @endif
 

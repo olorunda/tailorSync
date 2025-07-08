@@ -18,12 +18,20 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<!-- Simple Select CSS and JS -->
+<link href="{{ asset('css/simple-select.css') }}" rel="stylesheet">
+<script src="{{ asset('js/simple-select.js') }}"></script>
+
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 
 @livewireStyles
 @livewireScripts
 @fluxAppearance
 <script>
+
+
+
+    // Reinitialize Select2 after Livewire updates
 
     Livewire.on('alert', (success) => {
         Swal.fire({

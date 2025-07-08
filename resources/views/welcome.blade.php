@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>TailorSync - Tailoring Management System</title>
+        <title>{{env('APP_NAME','ThreadNix')}} - Tailoring Management System</title>
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -107,7 +107,7 @@
         <header class="fixed w-full z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md shadow-sm">
             <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
                 <div class="flex items-center">
-                    <div class="text-3xl font-bold gradient-text font-playfair">TailorSync</div>
+                    <div class="text-3xl font-bold gradient-text font-playfair">{{env('APP_NAME','ThreadNix')}}</div>
                 </div>
 
                 <nav class="hidden md:flex items-center gap-6">
@@ -157,7 +157,7 @@
                                 <span class="block gradient-text">Tailoring Business</span>
                             </h1>
                             <p class="text-xl mb-4 text-zinc-100 max-w-xl">
-                                TailorSync is a comprehensive management system designed specifically for tailors and fashion designers. Manage clients, measurements, orders, inventory, and finances all in one place.
+                                {{env('APP_NAME','ThreadNix')}} is a comprehensive management system designed specifically for tailors and fashion designers. Manage clients, measurements, orders, inventory, and finances all in one place.
                             </p>
                             <p class="text-lg mb-8 text-zinc-100 max-w-xl">
                                 Choose from our <a href="#pricing" class="text-orange-300 hover:text-orange-200 underline">flexible plans</a> - from Free to Premium - and transform how you run your tailoring business today!
@@ -549,7 +549,7 @@
                                     <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
                                 </svg>
                             </div>
-                            <p class="text-white mb-6 italic">TailorSync has completely transformed how I manage my tailoring business. The client measurement system alone has saved me countless hours of work.</p>
+                            <p class="text-white mb-6 italic">{{env('APP_NAME','ThreadNix')}} has completely transformed how I manage my tailoring business. The client measurement system alone has saved me countless hours of work.</p>
                             <div class="flex items-center">
                                 <div class="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-xl mr-3">
                                     S
@@ -934,7 +934,7 @@
                 <div class="parallax-content max-w-4xl mx-auto px-4 text-center">
                     <h2 class="text-4xl md:text-5xl font-bold mb-6 text-white font-playfair">Ready to Transform Your Tailoring Business?</h2>
                     <p class="text-xl mb-6 text-white/90 max-w-3xl mx-auto">
-                        Join thousands of tailors and fashion designers who have streamlined their business with TailorSync. Experience the difference a dedicated management system can make.
+                        Join thousands of tailors and fashion designers who have streamlined their business with {{env('APP_NAME','ThreadNix')}}. Experience the difference a dedicated management system can make.
                     </p>
                     <p class="text-lg mb-10 text-white/90 max-w-3xl mx-auto">
                         With plans starting at <span class="text-orange-300 font-semibold">₦0/month</span>, there's a perfect solution for every tailoring business, from solo designers to large studios.
@@ -970,7 +970,7 @@
             <div class="max-w-7xl mx-auto px-4">
                 <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-12">
                     <div class="col-span-1 lg:col-span-1">
-                        <div class="text-3xl font-bold gradient-text font-playfair mb-4">TailorSync</div>
+                        <div class="text-3xl font-bold gradient-text font-playfair mb-4">{{env('APP_NAME','ThreadNix')}}</div>
                         <p class="text-zinc-600 dark:text-zinc-400 mb-6">The complete management system for modern tailors and fashion designers.</p>
                         <div class="flex space-x-4">
                             <a href="#" class="text-orange-600 hover:text-orange-500 transition-colors">
@@ -1022,7 +1022,7 @@
                     </div>
                 </div>
                 <div class="border-t border-zinc-200 dark:border-zinc-800 mt-12 pt-8 text-center text-zinc-500 dark:text-zinc-400">
-                    <p>&copy; {{ date('Y') }} TailorSync. All rights reserved.</p>
+                    <p>&copy; {{ date('Y') }} {{env('APP_NAME','ThreadNix')}}. All rights reserved.</p>
                 </div>
             </div>
         </footer>

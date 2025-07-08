@@ -124,12 +124,13 @@ new class extends Component {
                 <!-- Client Selection -->
                 <div>
                     <label for="client_id" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Client</label>
-                    <select wire:model="client_id" id="client_id" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5" required>
-                        <option value="">Select a client</option>
-                        @foreach ($clients as $client)
-                            <option value="{{ $client->id }}">{{ $client->name }}</option>
-                        @endforeach
-                    </select>
+                    <x-simple-select
+                        wire:model="client_id"
+                        id="client_id"
+                        :options="$clients->map(fn($client) => ['id' => $client->id, 'name' => $client->name])->toArray()"
+                        placeholder="Select a client"
+                        :required="true"
+                    />
                     @error('client_id') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
 
                     @if (count($clients) === 0)
@@ -142,12 +143,12 @@ new class extends Component {
                 <!-- Design Selection (Optional) -->
                 <div>
                     <label for="design_id" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Design (Optional)</label>
-                    <select wire:model="design_id" id="design_id" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                        <option value="">No design</option>
-                        @foreach ($designs as $design)
-                            <option value="{{ $design->id }}">{{ $design->name }}</option>
-                        @endforeach
-                    </select>
+                    <x-simple-select
+                        wire:model="design_id"
+                        id="design_id"
+                        :options="$designs->map(fn($design) => ['id' => $design->id, 'name' => $design->name])->toArray()"
+                        placeholder="No design"
+                    />
                     @error('design_id') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
 
                     @if (count($designs) === 0)
@@ -174,13 +175,18 @@ new class extends Component {
                 <!-- Status -->
                 <div>
                     <label for="status" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Status</label>
-                    <select wire:model="status" id="status" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5" required>
-                        <option value="pending">Pending</option>
-                        <option value="in_progress">In Progress</option>
-                        <option value="ready">Ready</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
+                    <x-simple-select
+                        wire:model="status"
+                        id="status"
+                        :options="[
+                            ['id' => 'pending', 'name' => 'Pending'],
+                            ['id' => 'in_progress', 'name' => 'In Progress'],
+                            ['id' => 'ready', 'name' => 'Ready'],
+                            ['id' => 'completed', 'name' => 'Completed'],
+                            ['id' => 'cancelled', 'name' => 'Cancelled']
+                        ]"
+                        :required="true"
+                    />
                     @error('status') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
 
