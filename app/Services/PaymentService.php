@@ -157,11 +157,16 @@ class PaymentService
         $url = "https://api.paystack.co/transaction/initialize";
         $fields = [
             'email' => $email,
-            'amount' => $amount,
+            'amount' => round($amount),
             'reference' => $reference,
             'callback_url' => $callbackUrl,
             'metadata' => $metadata
         ];
+
+        // Set currency if specified in metadata
+        if (isset($metadata['currency'])) {
+            $fields['currency'] = $metadata['currency'];
+        }
 
         $headers = [
             'Authorization: Bearer ' . $secretKey,
@@ -279,7 +284,7 @@ class PaymentService
         $fields = [
             'tx_ref' => $reference,
             'amount' => $amount,
-            'currency' => 'NGN',
+            'currency' => isset($metadata['currency']) ? $metadata['currency'] : 'NGN',
             'redirect_url' => $callbackUrl,
             'customer' => [
                 'email' => $email

@@ -6,7 +6,9 @@ use App\Models\BusinessDetail;
 use App\Models\User;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Request;
 
 class SubscriptionService
 {
@@ -273,16 +275,26 @@ class SubscriptionService
             'is_subscription_payment' => true,
         ];
 
+        // Convert price for international users if needed
+        $price = self::convertPriceForInternationalUsers($plan['price']);
+
+        // If price was converted, update the currency in metadata
+        if ($price != $plan['price']) {
+            $metadata['currency'] = 'USD';
+        }
+
         return [
             'payment_data' => $paymentService->initializePayment(
-                $plan['price'],
+                $price,
                 $reference,
                 $user->email,
                 $callbackUrl,
                 $metadata
             ),
             'reference' => $reference,
-            'plan' => $plan
+            'plan' => $plan,
+            'converted_price' => $price != $plan['price'] ? $price : null,
+            'currency' => $price != $plan['price'] ? 'USD' : 'NGN'
         ];
     }
 
@@ -343,5 +355,70 @@ class SubscriptionService
         // Set subscription to inactive
         $businessDetail->subscription_active = false;
         return $businessDetail->save();
+    }
+
+    /**
+     * Check if an IP address is from Nigeria
+     *
+     * @param string|null $ip
+     * @return bool
+     */
+    protected static function isNigerianIP($ip = null)
+    {
+
+        if (!$ip) {
+            $ip = request()->header('cf-connecting-ip') ?? request()->ip();
+        }
+
+        try {
+            // Use ipapi.co service to check the country of the IP
+            $response = Http::get("https://ipapi.co/{$ip}/json/");
+
+            if ($response->successful()) {
+                $data = $response->json();
+                return isset($data['country_code']) && $data['country_code'] === 'NG';
+            }
+        } catch (\Exception $e) {
+            Log::error('Error checking IP country: ' . $e->getMessage());
+        }
+
+        // Default to true if we can't determine (to avoid overcharging)
+        return true;
+    }
+
+    /**
+     * Convert price from Naira to USD for non-Nigerian IPs
+     *
+     * @param float $amount
+     * @return float
+     */
+    public static function convertPriceForInternationalUsers($amount)
+    {
+        if (!self::isNigerianIP()) {
+            // Convert from Naira to USD: multiply by 4 and divide by 1550
+            return round(($amount * 2) / 1550, 2);
+        }
+
+        return $amount;
+    }
+
+    /**
+     * Get the currency symbol based on user's location
+     *
+     * @return string
+     */
+    public static function getCurrencySymbol()
+    {
+        return self::isNigerianIP() ? '₦' : '$';
+    }
+
+    /**
+     * Get the currency code based on user's location
+     *
+     * @return string
+     */
+    public static function getCurrencyCode()
+    {
+        return self::isNigerianIP() ? 'NGN' : 'USD';
     }
 }

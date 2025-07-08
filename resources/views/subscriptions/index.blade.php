@@ -64,7 +64,7 @@
                                 <h4 class="font-semibold text-lg text-gray-900 dark:text-gray-100">{{ $plan['name'] }}</h4>
                                 <p class="text-2xl font-bold mt-2 text-gray-900 dark:text-gray-100">
                                     @if($plan['price'] > 0)
-                                        ₦{{ number_format($plan['price']) }}<span class="text-sm font-normal text-gray-600 dark:text-gray-300">/month</span>
+                                        {{ \App\Services\SubscriptionService::getCurrencySymbol() }}{{ number_format(\App\Services\SubscriptionService::convertPriceForInternationalUsers($plan['price']), \App\Services\SubscriptionService::getCurrencyCode() === 'USD' ? 2 : 0) }}<span class="text-sm font-normal text-gray-600 dark:text-gray-300">/month</span>
                                     @else
                                         Free
                                     @endif

@@ -27,7 +27,7 @@
                                 </div>
                                 <div class="flex justify-between mb-2">
                                     <span class="font-medium text-gray-900 dark:text-gray-100">Price:</span>
-                                    <span class="text-gray-900 dark:text-gray-100">₦{{ number_format($plan['price']) }}/month</span>
+                                    <span class="text-gray-900 dark:text-gray-100">{{ \App\Services\SubscriptionService::getCurrencySymbol() }}{{ number_format(\App\Services\SubscriptionService::convertPriceForInternationalUsers($plan['price']), \App\Services\SubscriptionService::getCurrencyCode() === 'USD' ? 2 : 0) }}/month</span>
                                 </div>
                                 <div class="flex justify-between mb-2">
                                     <span class="font-medium text-gray-900 dark:text-gray-100">Duration:</span>
@@ -113,7 +113,7 @@
 
                                 <div class="mb-6">
                                     <p class="text-gray-700 dark:text-gray-300 mb-2">You will be redirected to our secure payment gateway to complete your payment.</p>
-                                    <p class="text-gray-700 dark:text-gray-300 mb-4">The total amount to be charged is <span class="font-semibold">₦{{ number_format($plan['price']) }}</span>.</p>
+                                    <p class="text-gray-700 dark:text-gray-300 mb-4">The total amount to be charged is <span class="font-semibold">{{ \App\Services\SubscriptionService::getCurrencySymbol() }}{{ number_format(\App\Services\SubscriptionService::convertPriceForInternationalUsers($plan['price']), \App\Services\SubscriptionService::getCurrencyCode() === 'USD' ? 2 : 0) }}</span>.</p>
 
                                     <div class="bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 dark:border-yellow-500 p-4 mb-4">
                                         <div class="flex">

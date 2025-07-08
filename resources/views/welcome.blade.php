@@ -738,7 +738,7 @@
                             <div class="p-8 border-b border-orange-100 dark:border-orange-900/20">
                                 <h3 class="text-2xl font-semibold mb-2 font-playfair">Free</h3>
                                 <div class="flex items-baseline">
-                                    <span class="text-4xl font-bold text-orange-600 dark:text-orange-500">₦0</span>
+                                    <span class="text-4xl font-bold text-orange-600 dark:text-orange-500">{{ \App\Services\SubscriptionService::getCurrencySymbol() }}0</span>
                                     <span class="text-zinc-500 dark:text-zinc-400 ml-2">/month</span>
                                 </div>
                                 <p class="mt-4 text-zinc-600 dark:text-zinc-400">Perfect for individuals just getting started</p>
@@ -794,7 +794,7 @@
                             <div class="p-8 border-b border-orange-100 dark:border-orange-900/20">
                                 <h3 class="text-2xl font-semibold mb-2 font-playfair">Basic</h3>
                                 <div class="flex items-baseline">
-                                    <span class="text-4xl font-bold text-orange-600 dark:text-orange-500">₦7,000</span>
+                                    <span class="text-4xl font-bold text-orange-600 dark:text-orange-500">{{ \App\Services\SubscriptionService::getCurrencySymbol() }}{{ number_format(\App\Services\SubscriptionService::convertPriceForInternationalUsers(7000), \App\Services\SubscriptionService::getCurrencyCode() === 'USD' ? 2 : 0) }}</span>
                                     <span class="text-zinc-500 dark:text-zinc-400 ml-2">/month</span>
                                 </div>
                                 <p class="mt-4 text-zinc-600 dark:text-zinc-400">Great for growing tailoring businesses</p>
@@ -859,7 +859,7 @@
                             <div class="p-8 border-b border-orange-100 dark:border-orange-900/20">
                                 <h3 class="text-2xl font-semibold mb-2 font-playfair">Premium</h3>
                                 <div class="flex items-baseline">
-                                    <span class="text-4xl font-bold text-orange-600 dark:text-orange-500">₦15,000</span>
+                                    <span class="text-4xl font-bold text-orange-600 dark:text-orange-500">{{ \App\Services\SubscriptionService::getCurrencySymbol() }}{{ number_format(\App\Services\SubscriptionService::convertPriceForInternationalUsers(15000), \App\Services\SubscriptionService::getCurrencyCode() === 'USD' ? 2 : 0) }}</span>
                                     <span class="text-zinc-500 dark:text-zinc-400 ml-2">/month</span>
                                 </div>
                                 <p class="mt-4 text-zinc-600 dark:text-zinc-400">For established tailoring businesses</p>
@@ -938,7 +938,7 @@
                         Join thousands of tailors and fashion designers who have streamlined their business with {{env('APP_NAME','ThreadNix')}}. Experience the difference a dedicated management system can make.
                     </p>
                     <p class="text-lg mb-10 text-white/90 max-w-3xl mx-auto">
-                        With plans starting at <span class="text-orange-300 font-semibold">₦0/month</span>, there's a perfect solution for every tailoring business, from solo designers to large studios.
+                        With plans starting at <span class="text-orange-300 font-semibold">{{ \App\Services\SubscriptionService::getCurrencySymbol() }}0/month</span>, there's a perfect solution for every tailoring business, from solo designers to large studios.
                     </p>
                     <div class="flex flex-wrap justify-center gap-6">
                         @if (Route::has('register'))
