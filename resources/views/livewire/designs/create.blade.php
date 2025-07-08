@@ -25,7 +25,6 @@ new class extends Component {
     public string $gender = '';
     public string $country = '';
     public ?array $styleSuggestions = null;
-    public bool $loadingSuggestions = false;
 
     public function addMaterial()
     {
@@ -168,9 +167,12 @@ new class extends Component {
      */
     public function getStyleSuggestions(): void
     {
+
+
         $type_select=empty($this->occasion) ? 'occasion' : 'gender';
         if (empty($this->occasion) || empty($this->gender) ) {
             session()->flash('error', "Please select $type_select first.");
+
             return;
         }
 
@@ -182,23 +184,24 @@ new class extends Component {
             return;
         }
 
-        $this->loadingSuggestions = true;
+
 
         try {
+
             $geminiService = new GeminiService();
             $this->styleSuggestions = $geminiService->getStyleSuggestions($this->occasion,['Gender'=>$this->gender,'Country'=>$this->country]);
 
             if (empty($this->styleSuggestions)) {
                 session()->flash('error', 'Unable to generate style suggestions. Please try again.');
             }
+            return;
         } catch (\Exception $e) {
             \Log::error('Error getting style suggestions', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
             session()->flash('error', 'Error getting style suggestions: ' . $e->getMessage());
-        } finally {
-            $this->loadingSuggestions = false;
+            return;
         }
     }
 
@@ -270,6 +273,59 @@ new class extends Component {
 }; ?>
 
 <div class="w-full">
+    <!-- Loading Overlay -->
+    <div wire:loading wire:target="getStyleSuggestions" class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+        <div class="flex flex-col items-center justify-center p-8 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-lg max-w-md mx-auto">
+            <div class="w-40 h-40 mb-4 relative">
+                <!-- Robot Animation -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full h-full">
+                    <!-- Robot Body -->
+                    <rect x="30" y="40" width="40" height="45" rx="5" fill="#3B82F6" class="animate-pulse" />
+
+                    <!-- Robot Head -->
+                    <rect x="35" y="20" width="30" height="25" rx="3" fill="#2563EB" />
+
+                    <!-- Robot Eyes -->
+                    <circle cx="45" y="30" r="3" fill="#FFFFFF" class="animate-ping" style="animation-duration: 2s;" />
+                    <circle cx="55" y="30" r="3" fill="#FFFFFF" class="animate-ping" style="animation-duration: 1.5s;" />
+
+                    <!-- Robot Antenna -->
+                    <line x1="50" y1="20" x2="50" y2="15" stroke="#60A5FA" stroke-width="2" />
+                    <circle cx="50" y="12" r="3" fill="#60A5FA" class="animate-pulse" />
+
+                    <!-- Robot Arms -->
+                    <line x1="30" y1="50" x2="20" y2="60" stroke="#60A5FA" stroke-width="3" class="origin-top-right animate-bounce" style="animation-duration: 2s;" />
+                    <line x1="70" y1="50" x2="80" y2="60" stroke="#60A5FA" stroke-width="3" class="origin-top-left animate-bounce" style="animation-duration: 2.5s;" />
+
+                    <!-- Robot Legs -->
+                    <line x1="40" y1="85" x2="40" y2="95" stroke="#60A5FA" stroke-width="4" />
+                    <line x1="60" y1="85" x2="60" y2="95" stroke="#60A5FA" stroke-width="4" />
+
+                    <!-- Thought Bubbles -->
+                    <circle cx="75" y="25" r="3" fill="#E5E7EB" class="animate-ping" style="animation-duration: 1s;" />
+                    <circle cx="82" y="20" r="4" fill="#E5E7EB" class="animate-ping" style="animation-duration: 1.5s;" />
+                    <circle cx="90" y="15" r="5" fill="#E5E7EB" class="animate-ping" style="animation-duration: 2s;" />
+                </svg>
+
+                <!-- Gear Animation -->
+                <div class="absolute top-0 right-0 animate-spin" style="animation-duration: 3s;">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-orange-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+            </div>
+            <h3 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Generating Style Suggestions</h3>
+            <p class="text-zinc-600 dark:text-zinc-400 text-center max-w-md">
+                Our AI robot is crafting personalized style suggestions for your {{ $occasion }} occasion. This might take a moment...
+            </p>
+            <div class="mt-4 flex space-x-1">
+                <div class="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                <div class="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                <div class="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
+            </div>
+        </div>
+    </div>
+
     <style>
         .cursor-eraser {
             cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'><path d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'></path><path d='M15.5 3.5a2.12 2.12 0 0 1 3 3L12 13 9 10l6.5-6.5z'></path></svg>") 0 24, auto;
@@ -619,7 +675,12 @@ new class extends Component {
                     @if($canUseAiSuggestions)
                         <button type="button" wire:click="getStyleSuggestions" wire:loading.attr="disabled" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50">
                             <span wire:loading.remove wire:target="getStyleSuggestions">Get Suggestions</span>
-                            <span wire:loading wire:target="getStyleSuggestions">Loading...</span>
+                            <span wire:loading wire:target="getStyleSuggestions" class="flex items-center">
+                                <svg class="animate-pulse w-6 h-6 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7z"/>
+                                </svg>
+                                Processing...
+                            </span>
                         </button>
                     @else
                         <div class="bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 p-4">
@@ -639,6 +700,7 @@ new class extends Component {
                     @endif
                 </div>
 
+
                 <div class="md:col-span-2">
                     <label for="description" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Description</label>
                     <textarea wire:model="description" id="description" rows="3" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5" placeholder="Describe your design"></textarea>
@@ -646,6 +708,7 @@ new class extends Component {
                 </div>
 
                 <!-- Style Suggestions -->
+
                 @if ($styleSuggestions)
                 <div class="md:col-span-2 mt-6">
                     <h3 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
