@@ -371,7 +371,7 @@ class SubscriptionService
 
         try {
             // Path to the GeoLite2-ASN.mmdb file
-            $dbPath = storage_path('app/private/GeoLite2-ASN.mmdb');
+            $dbPath = storage_path('GeoLite2-ASN.mmdb');
 
             // Check if the file exists
             if (!file_exists($dbPath)) {
