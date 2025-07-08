@@ -369,7 +369,7 @@ class SubscriptionService
         if (!$ip) {
             $ip = request()->header('cf-connecting-ip') ?? request()->ip();
         }
-
+dd($ip);
         try {
             // Use ipapi.co service to check the country of the IP
             $response = Http::get("https://ipapi.co/{$ip}/json/");
