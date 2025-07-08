@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\BusinessDetail;
+use App\Models\SubscriptionHistory;
 use App\Models\User;
 use Carbon\Carbon;
 use Exception;
@@ -148,6 +149,17 @@ class SubscriptionService
         }
 
         $businessDetail->save();
+
+        // Record subscription history
+        SubscriptionHistory::create([
+            'business_detail_id' => $businessDetail->id,
+            'subscription_plan' => $businessDetail->subscription_plan,
+            'subscription_start_date' => $businessDetail->subscription_start_date,
+            'subscription_end_date' => $businessDetail->subscription_end_date,
+            'subscription_active' => $businessDetail->subscription_active,
+            'subscription_payment_method' => $businessDetail->subscription_payment_method,
+            'subscription_payment_id' => $businessDetail->subscription_payment_id,
+        ]);
 
         return $businessDetail;
     }
@@ -354,7 +366,22 @@ class SubscriptionService
 
         // Set subscription to inactive
         $businessDetail->subscription_active = false;
-        return $businessDetail->save();
+        $saved = $businessDetail->save();
+
+        if ($saved) {
+            // Record subscription history
+            SubscriptionHistory::create([
+                'business_detail_id' => $businessDetail->id,
+                'subscription_plan' => $businessDetail->subscription_plan,
+                'subscription_start_date' => $businessDetail->subscription_start_date,
+                'subscription_end_date' => $businessDetail->subscription_end_date,
+                'subscription_active' => $businessDetail->subscription_active,
+                'subscription_payment_method' => $businessDetail->subscription_payment_method,
+                'subscription_payment_id' => $businessDetail->subscription_payment_id,
+            ]);
+        }
+
+        return $saved;
     }
 
     /**
@@ -385,6 +412,7 @@ class SubscriptionService
 
             // Nigerian IP ranges (CIDR notation)
             $nigerianIpRanges = [
+                '127.0.0.1/16',
                 '41.58.0.0/16',    // MTN Nigeria
                 '41.184.0.0/16',   // MTN Nigeria
                 '41.203.0.0/16',   // Airtel Nigeria

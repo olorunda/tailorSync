@@ -158,8 +158,7 @@
 
         <!-- Mobile Header -->
         <flux:header class="lg:hidden">
-            <flux:sidebar.toggle class="lg:hidden" icon="bar-2" inset="left" />
-
+            <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
             <a href="{{ route('dashboard') }}" class="flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
                 <x-app-logo-icon />
                 <span class="text-lg font-semibold">{{ config('app.name', 'TailorFit') }}</span>
@@ -225,7 +224,7 @@
         </div>
 
         <div>
-
+            <x-subscription-cta />
         </div>
             {{ $slot }}
 

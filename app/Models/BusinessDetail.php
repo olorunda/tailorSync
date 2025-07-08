@@ -57,6 +57,15 @@ class BusinessDetail extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * Get the subscription history records for the business detail.
+     */
+    public function subscriptionHistories()
+    {
+        return $this->hasMany(SubscriptionHistory::class);
+    }
+
     /**
      * The attributes that should be cast.
      *
