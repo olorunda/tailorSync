@@ -388,6 +388,9 @@ require __DIR__.'/auth.php';
 // Include payment routes
 require __DIR__.'/payment.php';
 
+// Paystack webhook route - must be outside of any middleware group that requires CSRF verification
+Route::post('webhooks/paystack', [\App\Http\Controllers\PaystackWebhookController::class, 'handleWebhook'])->name('webhooks.paystack');
+
 // Subscription routes
 Route::middleware(['auth', 'onboarding.status'])->group(function () {
     Route::get('subscriptions', [\App\Http\Controllers\SubscriptionController::class, 'index'])->name('subscriptions.index');

@@ -14,7 +14,7 @@
             <nav class="flex items-center gap-4">
                 @if (Route::has('login') && Route::currentRouteName() !== 'login')
                     <a
-                        href="{{ route('login') }}"
+                        href="{{ route('login') }}" @click="tawk"
                         class="inline-block px-5 py-2 text-orange-600 dark:text-orange-500 hover:text-orange-800 dark:hover:text-orange-400 rounded-md text-sm font-medium transition-colors"
                         wire:navigate
                     >

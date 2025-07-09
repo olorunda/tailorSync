@@ -2,6 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         @include('partials.head')
+
     </head>
     <body class="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-zinc-900 dark:to-zinc-800 text-zinc-900 dark:text-zinc-100 min-h-screen antialiased">
         <header class="w-full max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
@@ -14,7 +15,7 @@
             <nav class="flex items-center gap-4">
                 @if (Route::has('login'))
                     <a
-                        href="{{ route('login') }}"
+                        href="{{ route('login') }}"  @click="tawk"
                         class="inline-block px-5 py-2 text-orange-600 dark:text-orange-500 hover:text-orange-800 dark:hover:text-orange-400 rounded-md text-sm font-medium transition-colors"
                         wire:navigate
                     >
@@ -28,6 +29,7 @@
                         class="inline-block px-5 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md text-sm font-medium transition-colors"
                         wire:navigate
                     >
+
                         Register
                     </a>
                 @endif
@@ -53,4 +55,5 @@
         </footer>
         @fluxScripts
     </body>
+
 </html>

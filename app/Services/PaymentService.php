@@ -19,8 +19,8 @@ class PaymentService
 
     // Paystack subscription plan codes
     const PAYSTACK_PLAN_CODES = [
-        'basic' => null, // To be set in the Paystack dashboard or via API
-        'premium' => null, // To be set in the Paystack dashboard or via API
+        'basic' => 'PLN_xeoss63j95oyltt', // To be set in the Paystack dashboard or via API
+        'premium' => 'PLN_3pd70p5zxhjvzns', // To be set in the Paystack dashboard or via API
     ];
 
     /**
@@ -48,7 +48,8 @@ class PaymentService
             if (empty($this->settings[$this->gateway]['secret_key'])) {
                 throw new Exception('Subscription payment gateway is not properly configured.');
             }
-        } else {
+            return;
+        }
             // For regular payments, use business payment gateway with subscription restrictions
             if (!$this->businessDetail || !$this->businessDetail->payment_enabled) {
                 throw new Exception('Payment processing is not enabled for this business.');
@@ -80,7 +81,7 @@ class PaymentService
             if (!in_array($this->gateway, $allowedGateways)) {
                 throw new Exception("Your current subscription plan does not support the {$this->gateway} payment gateway. Please upgrade your plan or switch to a supported gateway: " . implode(', ', $allowedGateways));
             }
-        }
+
     }
 
     /**
@@ -772,8 +773,30 @@ class PaymentService
         $result = json_decode($response, true);
 
         if (!$result['status']) {
-            Log::error('Paystack Subscription Creation Error: ' . ($result['message'] ?? 'Unknown error'));
-            throw new Exception('Error creating Paystack subscription: ' . ($result['message'] ?? 'Unknown error'));
+            $errorMessage = $result['message'] ?? 'Unknown error';
+            Log::error('Paystack Subscription Creation Error: ' . $errorMessage);
+
+            // Check if the error is because the subscription already exists
+            if (stripos($errorMessage, 'This subscription is already') !== false) {
+                // Subscription already exists, try to fetch it
+                $customerEmail = auth()->user()->email;// $verificationResult['raw_response']['customer']['email'];
+
+                // Fetch existing subscriptions for this customer
+                $existingSubscription = $this->fetchExistingSubscription($customerEmail, $planCode, $secretKey);
+
+                if ($existingSubscription) {
+                    // Add subscription details to the verification result
+                    $verificationResult['subscription_code'] = $existingSubscription['subscription_code'];
+                    $verificationResult['subscription_status'] = $existingSubscription['status'];
+                    $verificationResult['next_payment_date'] = $existingSubscription['next_payment_date'] ?? null;
+                    $verificationResult['subscription_raw_response'] = $existingSubscription;
+
+                    return $verificationResult;
+                }
+            }
+
+            // If we couldn't handle the error or it's a different error, throw exception
+            throw new Exception('Error creating Paystack subscription: ' . $errorMessage);
         }
 
         // Add subscription details to the verification result
@@ -783,6 +806,54 @@ class PaymentService
         $verificationResult['subscription_raw_response'] = $result['data'];
 
         return $verificationResult;
+    }
+
+    /**
+     * Fetch existing subscription for a customer and plan.
+     *
+     * @param string $customerEmail Customer email
+     * @param string $planCode Paystack plan code
+     * @param string $secretKey Paystack secret key
+     * @return array|null
+     */
+    protected function fetchExistingSubscription($customerEmail, $planCode, $secretKey)
+    {
+        // First, list all subscriptions for this customer
+        $url = "https://api.paystack.co/subscription?email=" . ($customerEmail) . "&perPage=100";
+
+        $headers = [
+            'Authorization: Bearer ' . $secretKey,
+            'Content-Type: application/json',
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            Log::error('Paystack API Error: ' . $err);
+            return null;
+        }
+
+        $result = json_decode($response, true);
+
+        if (!$result['status'] || empty($result['data'])) {
+            return null;
+        }
+
+        // Find the subscription with the matching plan code
+        foreach ($result['data'] as $subscription) {
+            if ($subscription['plan']['plan_code'] === $planCode) {
+                return $subscription;
+            }
+        }
+
+        return null;
     }
 
     /**
