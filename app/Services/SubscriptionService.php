@@ -182,14 +182,12 @@ class SubscriptionService
      */
     public static function isActive(BusinessDetail $businessDetail)
     {
-         // Free plan is always active
+        // Free plan is always active
         if ($businessDetail->subscription_plan === 'free') {
             return true;
         }
-
+//  $businessDetail->subscription_active &&
         // Check if subscription is marked as active and not expired
-        // Note: We ignore cancellation_requested flag to ensure features remain available
-        // until the subscription actually expires
         return
                $businessDetail->subscription_end_date &&
                Carbon::now()->lt($businessDetail->subscription_end_date);
@@ -407,42 +405,34 @@ class SubscriptionService
     /**
      * Cancel the current subscription
      *
-     * Instead of immediately cancelling, this will schedule a job to cancel
-     * the subscription after it expires.
-     *
      * @param User $user
      * @return bool
      */
     public static function cancelSubscription(User $user)
     {
         $businessDetail = $user->businessDetail;
+        $subscriptionCode = $businessDetail->subscription_code;
 
-        // Log the cancellation request
-        Log::info('Subscription cancellation requested for user: ' . $user->id . '. Will be processed after subscription expires.');
+        // If this is a Paystack recurring subscription, cancel it with Paystack
+        if ($subscriptionCode && $businessDetail->subscription_payment_method === 'paystack') {
+            try {
+                $paymentService = PaymentService::forSubscription($user);
+                $result = $paymentService->cancelPaystackSubscription($subscriptionCode, $user->email);
 
-        // Get the subscription end date
-        $endDate = $businessDetail->subscription_end_date;
-
-        // If no end date is set, default to now (immediate cancellation)
-        if (!$endDate) {
-            Log::warning('No subscription end date found for user: ' . $user->id . '. Defaulting to immediate cancellation.');
-            $delay = now();
-        } else {
-            // Schedule the job to run after the subscription expires
-            $delay = $endDate;
-            Log::info('Scheduled subscription cancellation for user: ' . $user->id . ' at: ' . $endDate);
+                // Log the result for debugging
+                Log::info('Paystack subscription cancellation result', $result);
+            } catch (Exception $e) {
+                // Log the error but continue with local cancellation
+                Log::error('Error cancelling Paystack subscription: ' . $e->getMessage());
+            }
         }
 
-        // Dispatch the job to be executed at the end date
-        \App\Jobs\CancelSubscriptionJob::dispatch($user)
-            ->delay($delay);
-
-        // Mark the subscription as pending cancellation in the database
-        $businessDetail->cancellation_requested = true;
+        // Set subscription to inactive
+        $businessDetail->subscription_active = false;
         $saved = $businessDetail->save();
 
         if ($saved) {
-            // Record subscription history for the cancellation request
+            // Record subscription history
             SubscriptionHistory::create([
                 'business_detail_id' => $businessDetail->id,
                 'subscription_plan' => $businessDetail->subscription_plan,
@@ -452,7 +442,6 @@ class SubscriptionService
                 'subscription_payment_method' => $businessDetail->subscription_payment_method,
                 'subscription_payment_id' => $businessDetail->subscription_payment_id,
                 'subscription_code' => $businessDetail->subscription_code,
-                'notes' => 'Cancellation requested. Will be processed after subscription expires.'
             ]);
         }
 
