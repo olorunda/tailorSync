@@ -368,6 +368,7 @@ Route::middleware(['auth', 'onboarding.status','verified', 'redirect.client.user
     // Task Routes
     Route::middleware(['permission:view_tasks'])->group(function () {
         Volt::route('tasks', 'tasks.index')->name('tasks.index');
+        Volt::route('tasks/kanban', 'tasks.kanban')->name('tasks.kanban');
     });
 
     Route::middleware(['permission:create_tasks'])->group(function () {
