@@ -879,8 +879,10 @@ class PaymentService
 
         $headers = [
             'Authorization: Bearer ' . $secretKey,
+            "Cache-Control: no-cache",
             'Content-Type: application/json',
         ];
+
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -899,7 +901,7 @@ class PaymentService
         }
 
         $result = json_decode($response, true);
-
+dd($result,$subscriptionCode,$email);
         if (!$result['status']) {
             Log::error('Paystack Subscription Cancellation Error: ' . ($result['message'] ?? 'Unknown error'));
             throw new Exception('Error cancelling Paystack subscription: ' . ($result['message'] ?? 'Unknown error'));
