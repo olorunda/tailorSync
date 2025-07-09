@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'default' => env('MAIL_MAILER', 'log'),
+    'default' => env('MAIL_MAILER', 'zeptomail'),
 
     /*
     |--------------------------------------------------------------------------
@@ -36,6 +36,11 @@ return [
     */
 
     'mailers' => [
+
+        'zeptomail' => [
+            'transport' => 'zeptomail',
+            'api_key' => env('ZEPTOMAIL_API_KEY','wSsVR60k8x/xC6p8zjeqIe9sy10AU1v0RBh83ACo4nOvSvGW9cc+kBfLBlL1TaRMEWBhFmcX970syhgG1TsMjowkyw4EXCiF9mqRe1U4J3x17qnvhDzPWmtcmheAK48Pxwljk2NkGswr+g=='),
+        ],
 
         'smtp' => [
             'transport' => 'smtp',

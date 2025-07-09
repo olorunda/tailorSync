@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\View\Components\SimpleSelect;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use App\Providers\ZeptoMailServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -14,6 +15,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->register(AuthServiceProvider::class);
+        $this->app->register(ZeptoMailServiceProvider::class);
     }
 
     /**
