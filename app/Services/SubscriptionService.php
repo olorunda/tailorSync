@@ -57,7 +57,7 @@ class SubscriptionService
         ],
         'premium' => [
             'name' => 'Premium',
-            'price' => 15000,
+            'price' => 100,
             'duration' => 30, // days
             'features' => [
                 'max_products' => 'unlimited',
