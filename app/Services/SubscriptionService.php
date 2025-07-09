@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\BusinessDetail;
 use App\Models\SubscriptionHistory;
 use App\Models\User;
+use App\Notifications\SubscriptionConfirmationNotification;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Http;
@@ -381,7 +382,7 @@ class SubscriptionService
             $nextPaymentDate = $paymentData['next_payment_date'] ?? null;
 
             // Create subscription
-            self::subscribe(
+            $businessDetail = self::subscribe(
                 $user,
                 $planKey,
                 $paymentData['gateway'],
@@ -389,6 +390,9 @@ class SubscriptionService
                 $subscriptionCode,
                 $nextPaymentDate
             );
+
+            // Send subscription confirmation email
+            $user->notify(new SubscriptionConfirmationNotification($businessDetail));
 
             return [
                 'success' => true,

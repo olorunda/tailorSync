@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProcessSubscriptionPaymentRequest;
+use App\Notifications\SubscriptionConfirmationNotification;
 use App\Services\SubscriptionService;
 use Exception;
 use Illuminate\Http\Request;
@@ -60,7 +61,11 @@ class SubscriptionController extends Controller
         // If it's the free plan, subscribe directly without payment
         if ($planKey === 'free') {
             try {
-                SubscriptionService::subscribe($user, 'free');
+                $businessDetail = SubscriptionService::subscribe($user, 'free');
+
+                // Send subscription confirmation email
+                $user->notify(new SubscriptionConfirmationNotification($businessDetail));
+
                 return redirect()->route('subscriptions.index')
                     ->with('success', 'You have successfully subscribed to the Free plan.');
             } catch (Exception $e) {
