@@ -169,6 +169,9 @@ Route::middleware(['auth', 'onboarding.status', 'redirect.client.users'])->group
     // Public booking settings (only for parent accounts)
     Volt::route('settings/public-booking', 'settings.public-booking')->name('settings.public-booking');
 
+    // Subscription history (only for parent accounts)
+    Route::get('settings/subscription-history', \App\Livewire\Settings\SubscriptionHistory::class)->name('settings.subscription-history');
+
     // Store settings (only for parent accounts)
     Route::middleware(['permission:manage_store'])->group(function () {
         Route::get('settings/store', \App\Livewire\Settings\Store::class)->name('settings.store');
@@ -392,4 +395,5 @@ Route::middleware(['auth', 'onboarding.status'])->group(function () {
     Route::post('subscriptions/{plan}/process', [\App\Http\Controllers\SubscriptionController::class, 'processPayment'])->name('subscriptions.process');
     Route::get('subscriptions/callback/{reference}', [\App\Http\Controllers\SubscriptionController::class, 'handleCallback'])->name('subscriptions.callback');
     Route::post('subscriptions/cancel', [\App\Http\Controllers\SubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
+
 });

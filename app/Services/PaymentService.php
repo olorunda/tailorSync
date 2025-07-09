@@ -17,6 +17,12 @@ class PaymentService
     protected $settings;
     protected $isSubscriptionPayment = false;
 
+    // Paystack subscription plan codes
+    const PAYSTACK_PLAN_CODES = [
+        'basic' => null, // To be set in the Paystack dashboard or via API
+        'premium' => null, // To be set in the Paystack dashboard or via API
+    ];
+
     /**
      * Create a new payment service instance.
      *
@@ -86,6 +92,16 @@ class PaymentService
     public static function forSubscription(User $user): PaymentService
     {
         return new self($user, true);
+    }
+
+    /**
+     * Check if the current gateway is Paystack.
+     *
+     * @return bool
+     */
+    public function isPaystackGateway(): bool
+    {
+        return $this->gateway === 'paystack';
     }
 
     /**
@@ -547,6 +563,281 @@ class PaymentService
             'metadata' => $paymentIntent['metadata'] ?? [],
             'gateway_response' => $paymentIntent['status'],
             'raw_response' => $paymentIntent
+        ];
+    }
+
+    /**
+     * Create a Paystack subscription plan.
+     *
+     * @param string $name Plan name
+     * @param float $amount Plan amount in the smallest currency unit (kobo for NGN)
+     * @param string $interval Plan interval (daily, weekly, monthly, quarterly, biannually, annually)
+     * @param string $description Plan description
+     * @return array
+     */
+    public function createPaystackPlan($name, $amount, $interval = 'monthly', $description = '')
+    {
+        $secretKey = $this->settings['paystack']['secret_key'] ?? null;
+
+        if (!$secretKey) {
+            throw new Exception('Paystack API keys are not configured.');
+        }
+
+        $url = "https://api.paystack.co/plan";
+        $fields = [
+            'name' => $name,
+            'amount' => round($amount),
+            'interval' => $interval,
+            'description' => $description,
+        ];
+
+        $headers = [
+            'Authorization: Bearer ' . $secretKey,
+            'Content-Type: application/json',
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            Log::error('Paystack API Error: ' . $err);
+            throw new Exception('Error communicating with Paystack: ' . $err);
+        }
+
+        $result = json_decode($response, true);
+
+        if (!$result['status']) {
+            Log::error('Paystack Plan Creation Error: ' . ($result['message'] ?? 'Unknown error'));
+            throw new Exception('Error creating Paystack plan: ' . ($result['message'] ?? 'Unknown error'));
+        }
+
+        return [
+            'success' => true,
+            'plan_id' => $result['data']['id'],
+            'plan_code' => $result['data']['plan_code'],
+            'name' => $result['data']['name'],
+            'amount' => $result['data']['amount'] / 100, // Convert from kobo to naira
+            'interval' => $result['data']['interval'],
+            'raw_response' => $result['data']
+        ];
+    }
+
+    /**
+     * Initialize a Paystack subscription.
+     *
+     * @param string $planCode Paystack plan code
+     * @param string $email Customer email
+     * @param string $reference Transaction reference
+     * @param string $callbackUrl Callback URL
+     * @param array $metadata Additional metadata
+     * @return array
+     */
+    public function initializePaystackSubscription($planCode, $email, $reference, $callbackUrl, $metadata = [])
+    {
+        $secretKey = $this->settings['paystack']['secret_key'] ?? null;
+        $publicKey = $this->settings['paystack']['public_key'] ?? null;
+
+        if (!$secretKey || !$publicKey) {
+            throw new Exception('Paystack API keys are not configured.');
+        }
+
+        // First, initialize a transaction to get authorization code
+        $url = "https://api.paystack.co/transaction/initialize";
+        $fields = [
+            'email' => $email,
+            'amount' => 100, // Charge a small amount (1 NGN) to get authorization
+            'reference' => $reference,
+            'callback_url' => $callbackUrl,
+            'metadata' => array_merge($metadata, ['is_subscription' => true, 'plan_code' => $planCode]),
+            'plan' => $planCode // This will make it a subscription payment
+        ];
+
+        // Set currency if specified in metadata
+        if (isset($metadata['currency'])) {
+            $fields['currency'] = $metadata['currency'];
+        }
+
+        $headers = [
+            'Authorization: Bearer ' . $secretKey,
+            'Content-Type: application/json',
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            Log::error('Paystack API Error: ' . $err);
+            throw new Exception('Error communicating with Paystack: ' . $err);
+        }
+
+        $result = json_decode($response, true);
+
+        if (!$result['status']) {
+            Log::error('Paystack Subscription Error: ' . ($result['message'] ?? 'Unknown error'));
+            throw new Exception('Error initializing Paystack subscription: ' . ($result['message'] ?? 'Unknown error'));
+        }
+
+        return [
+            'success' => true,
+            'redirect_url' => $result['data']['authorization_url'],
+            'reference' => $reference,
+            'gateway' => 'paystack',
+            'subscription_code' => $result['data']['subscription_code'] ?? null,
+            'raw_response' => $result['data']
+        ];
+    }
+
+    /**
+     * Verify a Paystack subscription payment.
+     *
+     * @param string $reference Transaction reference
+     * @return array
+     */
+    public function verifyPaystackSubscriptionPayment($reference)
+    {
+        $secretKey = $this->settings['paystack']['secret_key'] ?? null;
+
+        if (!$secretKey) {
+            throw new Exception('Paystack API keys are not configured.');
+        }
+
+        // First verify the transaction
+        $verificationResult = $this->verifyPaystackPayment($reference);
+
+        if (!$verificationResult['success']) {
+            return $verificationResult;
+        }
+
+        // Extract metadata from the verification result
+        $metadata = $verificationResult['metadata'] ?? [];
+        $planCode = $metadata['plan_code'] ?? null;
+
+        if (!$planCode || !isset($metadata['is_subscription']) || !$metadata['is_subscription']) {
+            // This is not a subscription payment
+            return $verificationResult;
+        }
+
+        // Get the authorization code from the transaction
+        $authorizationCode = $verificationResult['raw_response']['authorization']['authorization_code'] ?? null;
+
+        if (!$authorizationCode) {
+            throw new Exception('No authorization code found in Paystack transaction.');
+        }
+
+        // Create a subscription using the authorization code
+        $url = "https://api.paystack.co/subscription";
+        $fields = [
+            'customer' => $verificationResult['raw_response']['customer']['email'],
+            'plan' => $planCode,
+            'authorization' => $authorizationCode,
+        ];
+
+        $headers = [
+            'Authorization: Bearer ' . $secretKey,
+            'Content-Type: application/json',
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            Log::error('Paystack API Error: ' . $err);
+            throw new Exception('Error communicating with Paystack: ' . $err);
+        }
+
+        $result = json_decode($response, true);
+
+        if (!$result['status']) {
+            Log::error('Paystack Subscription Creation Error: ' . ($result['message'] ?? 'Unknown error'));
+            throw new Exception('Error creating Paystack subscription: ' . ($result['message'] ?? 'Unknown error'));
+        }
+
+        // Add subscription details to the verification result
+        $verificationResult['subscription_code'] = $result['data']['subscription_code'];
+        $verificationResult['subscription_status'] = $result['data']['status'];
+        $verificationResult['next_payment_date'] = $result['data']['next_payment_date'];
+        $verificationResult['subscription_raw_response'] = $result['data'];
+
+        return $verificationResult;
+    }
+
+    /**
+     * Cancel a Paystack subscription.
+     *
+     * @param string $subscriptionCode Paystack subscription code
+     * @param string $email Customer email
+     * @return array
+     */
+    public function cancelPaystackSubscription($subscriptionCode, $email)
+    {
+        $secretKey = $this->settings['paystack']['secret_key'] ?? null;
+
+        if (!$secretKey) {
+            throw new Exception('Paystack API keys are not configured.');
+        }
+
+        $url = "https://api.paystack.co/subscription/disable";
+        $fields = [
+            'code' => $subscriptionCode,
+            'token' => hash('sha512', $subscriptionCode . $email . time())
+        ];
+
+        $headers = [
+            'Authorization: Bearer ' . $secretKey,
+            'Content-Type: application/json',
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            Log::error('Paystack API Error: ' . $err);
+            throw new Exception('Error communicating with Paystack: ' . $err);
+        }
+
+        $result = json_decode($response, true);
+
+        if (!$result['status']) {
+            Log::error('Paystack Subscription Cancellation Error: ' . ($result['message'] ?? 'Unknown error'));
+            throw new Exception('Error cancelling Paystack subscription: ' . ($result['message'] ?? 'Unknown error'));
+        }
+
+        return [
+            'success' => true,
+            'message' => 'Subscription cancelled successfully',
+            'raw_response' => $result['data']
         ];
     }
 }

@@ -116,9 +116,11 @@ class SubscriptionService
      * @param string $planKey
      * @param string $paymentMethod
      * @param string $paymentId
+     * @param string $subscriptionCode Paystack subscription code for recurring subscriptions
+     * @param string|null $nextPaymentDate Next payment date for recurring subscriptions
      * @return BusinessDetail
      */
-    public static function subscribe(User $user, $planKey, $paymentMethod = null, $paymentId = null)
+    public static function subscribe(User $user, $planKey, $paymentMethod = null, $paymentId = null, $subscriptionCode = null, $nextPaymentDate = null)
     {
         $plan = self::getPlan($planKey);
 
@@ -133,7 +135,10 @@ class SubscriptionService
         }
 
         $now = Carbon::now();
-        $endDate = $now->copy()->addDays($plan['duration']);
+
+        // For recurring subscriptions with Paystack, use the next payment date if available
+        // Otherwise, use the plan duration
+        $endDate = $nextPaymentDate ? Carbon::parse($nextPaymentDate) : $now->copy()->addDays($plan['duration']);
 
         $businessDetail->subscription_plan = $planKey;
         $businessDetail->subscription_start_date = $now;
@@ -148,6 +153,10 @@ class SubscriptionService
             $businessDetail->subscription_payment_id = $paymentId;
         }
 
+        if ($subscriptionCode) {
+            $businessDetail->subscription_code = $subscriptionCode;
+        }
+
         $businessDetail->save();
 
         // Record subscription history
@@ -159,6 +168,7 @@ class SubscriptionService
             'subscription_active' => $businessDetail->subscription_active,
             'subscription_payment_method' => $businessDetail->subscription_payment_method,
             'subscription_payment_id' => $businessDetail->subscription_payment_id,
+            'subscription_code' => $businessDetail->subscription_code,
         ]);
 
         return $businessDetail;
@@ -295,6 +305,28 @@ class SubscriptionService
             $metadata['currency'] = 'USD';
         }
 
+        // Get the Paystack plan code for this plan
+        $paystackPlanCode = PaymentService::PAYSTACK_PLAN_CODES[$planKey] ?? null;
+
+        // If we have a Paystack plan code and the gateway is Paystack, use the subscription API
+        if ($paystackPlanCode && $paymentService->isPaystackGateway()) {
+            return [
+                'payment_data' => $paymentService->initializePaystackSubscription(
+                    $paystackPlanCode,
+                    $user->email,
+                    $reference,
+                    $callbackUrl,
+                    $metadata
+                ),
+                'reference' => $reference,
+                'plan' => $plan,
+                'converted_price' => $price != $plan['price'] ? $price : null,
+                'currency' => $price != $plan['price'] ? 'USD' : 'NGN',
+                'is_recurring' => true
+            ];
+        }
+
+        // Fall back to regular one-time payment for other gateways or if no Paystack plan code is set
         return [
             'payment_data' => $paymentService->initializePayment(
                 $price,
@@ -306,7 +338,8 @@ class SubscriptionService
             'reference' => $reference,
             'plan' => $plan,
             'converted_price' => $price != $plan['price'] ? $price : null,
-            'currency' => $price != $plan['price'] ? 'USD' : 'NGN'
+            'currency' => $price != $plan['price'] ? 'USD' : 'NGN',
+            'is_recurring' => false
         ];
     }
 
@@ -331,15 +364,30 @@ class SubscriptionService
 
         // Verify the payment using the subscription-specific payment service
         $paymentService = PaymentService::forSubscription($user);
-        $paymentData = $paymentService->verifyPayment($reference);
+
+        // Get the Paystack plan code for this plan
+        $paystackPlanCode = PaymentService::PAYSTACK_PLAN_CODES[$planKey] ?? null;
+
+        // If we have a Paystack plan code and the gateway is Paystack, use the subscription API
+        if ($paystackPlanCode && $paymentService->isPaystackGateway()) {
+            $paymentData = $paymentService->verifyPaystackSubscriptionPayment($reference);
+        } else {
+            $paymentData = $paymentService->verifyPayment($reference);
+        }
 
         if ($paymentData['success']) {
+            // For Paystack recurring subscriptions, we have additional data
+            $subscriptionCode = $paymentData['subscription_code'] ?? null;
+            $nextPaymentDate = $paymentData['next_payment_date'] ?? null;
+
             // Create subscription
             self::subscribe(
                 $user,
                 $planKey,
                 $paymentData['gateway'],
-                $reference
+                $reference,
+                $subscriptionCode,
+                $nextPaymentDate
             );
 
             return [
@@ -363,6 +411,21 @@ class SubscriptionService
     public static function cancelSubscription(User $user)
     {
         $businessDetail = $user->businessDetail;
+        $subscriptionCode = $businessDetail->subscription_code;
+
+        // If this is a Paystack recurring subscription, cancel it with Paystack
+        if ($subscriptionCode && $businessDetail->subscription_payment_method === 'paystack') {
+            try {
+                $paymentService = PaymentService::forSubscription($user);
+                $result = $paymentService->cancelPaystackSubscription($subscriptionCode, $user->email);
+
+                // Log the result for debugging
+                Log::info('Paystack subscription cancellation result', $result);
+            } catch (Exception $e) {
+                // Log the error but continue with local cancellation
+                Log::error('Error cancelling Paystack subscription: ' . $e->getMessage());
+            }
+        }
 
         // Set subscription to inactive
         $businessDetail->subscription_active = false;
@@ -378,6 +441,7 @@ class SubscriptionService
                 'subscription_active' => $businessDetail->subscription_active,
                 'subscription_payment_method' => $businessDetail->subscription_payment_method,
                 'subscription_payment_id' => $businessDetail->subscription_payment_id,
+                'subscription_code' => $businessDetail->subscription_code,
             ]);
         }
 

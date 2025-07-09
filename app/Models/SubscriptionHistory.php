@@ -19,6 +19,7 @@ class SubscriptionHistory extends Model
         'subscription_active',
         'subscription_payment_method',
         'subscription_payment_id',
+        'subscription_code',
     ];
 
     /**
