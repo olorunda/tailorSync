@@ -4,7 +4,13 @@
         @include('partials.head')
         <!--Start of Tawk.to Script-->
         <script type="text/javascript">
+
             var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+            Tawk_API.visitor = {
+                name : "{{ auth()->user()->name }}",
+                email : "{{ auth()->user()->email }}",
+                hash : "{{ hash_hmac('sha256',auth()->user()->email,'d22a3437b3b93352089be49722deaaa6f8df1817266whhwh') }}"
+            };
             (function(){
                 var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
                 s1.async=true;
