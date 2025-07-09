@@ -156,46 +156,34 @@ new class extends Component {
                 <div x-show="open" x-transition class="mt-3 grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <label for="priority-filter" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Priority</label>
-                        <x-simple-select
-                            wire:model.live="priority"
-                            id="priority-filter"
-                            :options="[
-                                ['id' => '', 'name' => 'All Priorities'],
-                                ['id' => 'low', 'name' => 'Low'],
-                                ['id' => 'medium', 'name' => 'Medium'],
-                                ['id' => 'high', 'name' => 'High']
-                            ]"
-                        />
+                        <select wire:model.live="priority" id="priority-filter" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2">
+                            <option value="">All Priorities</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
                     </div>
 
                     <div>
                         <label for="status-filter" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Status</label>
-                        <x-simple-select
-                            wire:model.live="status"
-                            id="status-filter"
-                            :options="[
-                                ['id' => '', 'name' => 'All Statuses'],
-                                ['id' => 'pending', 'name' => 'Pending'],
-                                ['id' => 'in_progress', 'name' => 'In Progress'],
-                                ['id' => 'completed', 'name' => 'Completed']
-                            ]"
-                        />
+                        <select wire:model.live="status" id="status-filter" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2">
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                        </select>
                     </div>
 
                     <div>
                         <label for="type-filter" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Type</label>
-                        <x-simple-select
-                            wire:model.live="type"
-                            id="type-filter"
-                            :options="[
-                                ['id' => '', 'name' => 'All Types'],
-                                ['id' => 'cutting', 'name' => 'Cutting'],
-                                ['id' => 'sewing', 'name' => 'Sewing'],
-                                ['id' => 'fitting', 'name' => 'Fitting'],
-                                ['id' => 'delivery', 'name' => 'Delivery'],
-                                ['id' => 'other', 'name' => 'Other']
-                            ]"
-                        />
+                        <select wire:model.live="type" id="type-filter" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2">
+                            <option value="">All Types</option>
+                            <option value="cutting">Cutting</option>
+                            <option value="sewing">Sewing</option>
+                            <option value="fitting">Fitting</option>
+                            <option value="delivery">Delivery</option>
+                            <option value="other">Other</option>
+                        </select>
                     </div>
 
                     <div>
