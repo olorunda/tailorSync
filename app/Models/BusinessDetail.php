@@ -46,6 +46,7 @@ class BusinessDetail extends Model
         'subscription_start_date',
         'subscription_end_date',
         'subscription_active',
+        'cancellation_requested',
         'subscription_payment_method',
         'subscription_payment_id',
         'subscription_code',
@@ -86,5 +87,6 @@ class BusinessDetail extends Model
         'subscription_start_date' => 'datetime',
         'subscription_end_date' => 'datetime',
         'subscription_active' => 'boolean',
+        'cancellation_requested' => 'boolean',
     ];
 }
