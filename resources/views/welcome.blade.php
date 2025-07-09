@@ -3,8 +3,10 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="{{env('APP_NAME','ThreadNix')}} - Professional Tailoring Management System for tailor shops and alteration businesses. Manage clients, measurements, orders, inventory, and finances all in one place. Streamline your tailoring business operations with our comprehensive software solution.">
+        <meta name="keywords" content="tailoring management system, tailor shop software, client measurement tracking, order management for tailors, inventory management for tailoring business, tailoring business invoicing, fashion design management, alteration business software">
 
-        <title>{{env('APP_NAME','ThreadNix')}} - Tailoring Management System</title>
+        <title>{{env('APP_NAME','ThreadNix')}} - Professional Tailoring Management System for Tailor Shops</title>
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -167,11 +169,14 @@
                                 <span class="block">Elevate Your</span>
                                 <span class="block gradient-text">Tailoring Business</span>
                             </h1>
+                            <h2 class="text-2xl mb-4 text-zinc-100 max-w-xl font-medium">
+                                The #1 Tailor Shop Management Software for Modern Businesses
+                            </h2>
                             <p class="text-xl mb-4 text-zinc-100 max-w-xl">
-                                {{env('APP_NAME','ThreadNix')}} is a comprehensive management system designed specifically for tailors and fashion designers. Manage clients, measurements, orders, inventory, and finances all in one place.
+                                {{env('APP_NAME','ThreadNix')}} is a comprehensive management system designed specifically for tailors, seamstresses, and fashion designers. Efficiently manage clients, measurements, orders, inventory, and finances all in one place.
                             </p>
                             <p class="text-lg mb-8 text-zinc-100 max-w-xl">
-                                Choose from our <a href="#pricing" class="text-orange-300 hover:text-orange-200 underline">flexible plans</a> - from Free to Premium - and transform how you run your tailoring business today!
+                                Choose from our <a href="#pricing" class="text-orange-300 hover:text-orange-200 underline">flexible plans</a> - from Free to Premium - and transform how you run your tailoring business today! Perfect for alteration shops, custom clothing designers, and fashion studios.
                             </p>
                             <div class="flex flex-wrap gap-4">
                                 @if (Route::has('register'))
@@ -226,9 +231,9 @@
             <section id="features" class="py-20 bg-gradient-to-b from-white to-orange-50 dark:from-zinc-900 dark:to-zinc-800">
                 <div class="max-w-7xl mx-auto px-4">
                     <div class="text-center mb-16">
-                        <h2 class="text-4xl md:text-5xl font-bold mb-4 font-playfair gradient-text">Powerful Features</h2>
+                        <h2 class="text-4xl md:text-5xl font-bold mb-4 font-playfair gradient-text">Powerful Tailoring Business Management Features</h2>
                         <p class="text-xl text-zinc-700 dark:text-zinc-300 max-w-3xl mx-auto">
-                            Everything you need to manage your tailoring business efficiently in one place
+                            Everything you need to manage your tailor shop, alteration business, or fashion design studio efficiently in one comprehensive software solution
                         </p>
                     </div>
 
@@ -236,7 +241,7 @@
                         <!-- Feature 1 -->
                         <div class="bg-white dark:bg-zinc-800/50 p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 card-3d backdrop-blur-sm border border-orange-100 dark:border-orange-900/20">
                             <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-400 rounded-2xl flex items-center justify-center mb-6 transform -rotate-6 shadow-lg">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" role="img" aria-label="Client Measurement Icon">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                             </div>
@@ -267,7 +272,7 @@
                         <!-- Feature 2 -->
                         <div class="bg-white dark:bg-zinc-800/50 p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 card-3d backdrop-blur-sm border border-orange-100 dark:border-orange-900/20">
                             <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-400 rounded-2xl flex items-center justify-center mb-6 transform -rotate-6 shadow-lg">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" role="img" aria-label="Order Management Icon">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                 </svg>
                             </div>
@@ -298,7 +303,7 @@
                         <!-- Feature 3 -->
                         <div class="bg-white dark:bg-zinc-800/50 p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 card-3d backdrop-blur-sm border border-orange-100 dark:border-orange-900/20">
                             <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-400 rounded-2xl flex items-center justify-center mb-6 transform -rotate-6 shadow-lg">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" role="img" aria-label="Design Board Icon">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
                             </div>
