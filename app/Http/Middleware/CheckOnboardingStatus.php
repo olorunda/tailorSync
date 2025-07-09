@@ -18,6 +18,8 @@ class CheckOnboardingStatus
     {
         // Check if user is authenticated
         if (Auth::check()) {
+
+
             $user = Auth::user();
 
             // Check if user needs onboarding

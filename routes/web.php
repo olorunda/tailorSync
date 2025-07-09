@@ -23,7 +23,7 @@ Route::get('appointments/public/{slug}/time-slots', [\App\Http\Controllers\Publi
 Route::get('business/public/{slug}', \App\Livewire\PublicBusinessProfile::class)->name('business.public');
 
 // Store routes
-Route::prefix('store')->name('store.')->middleware(['auth', 'onboarding.status'])->group(function () {
+Route::prefix('store')->name('store.')->middleware(['auth', 'onboarding.status','verified'])->group(function () {
     Route::middleware(['permission:manage_store'])->group(function () {
         Route::get('settings', [\App\Http\Controllers\StoreSettingsController::class, 'index'])->name('settings');
         Route::post('settings', [\App\Http\Controllers\StoreSettingsController::class, 'update'])->name('settings.update');
@@ -124,7 +124,7 @@ Route::prefix('shop/{slug}')->name('storefront.')->group(function () {
 });
 
 Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified', 'onboarding.status', 'redirect.client.users'])
+    ->middleware(['auth', 'verified', 'onboarding.status','verified', 'redirect.client.users'])
     ->name('dashboard');
 
 // Onboarding Routes
@@ -132,7 +132,7 @@ Route::middleware(['auth','redirect.client.users'])->group(function () {
     Volt::route('onboarding', 'onboarding.wizard')->name('onboarding.wizard');
 });
 
-Route::middleware(['auth', 'onboarding.status', 'redirect.client.users'])->group(function () {
+Route::middleware(['auth', 'onboarding.status','verified', 'redirect.client.users'])->group(function () {
     // Notifications Routes
     Volt::route('notifications', 'notifications.index')->name('notifications.index');
 
@@ -392,7 +392,7 @@ require __DIR__.'/payment.php';
 Route::post('webhooks/paystack', [\App\Http\Controllers\PaystackWebhookController::class, 'handleWebhook'])->name('webhooks.paystack');
 
 // Subscription routes
-Route::middleware(['auth', 'onboarding.status'])->group(function () {
+Route::middleware(['auth', 'onboarding.status','verified'])->group(function () {
     Route::get('subscriptions', [\App\Http\Controllers\SubscriptionController::class, 'index'])->name('subscriptions.index');
     Route::get('subscriptions/{plan}/checkout', [\App\Http\Controllers\SubscriptionController::class, 'checkout'])->name('subscriptions.checkout');
     Route::post('subscriptions/{plan}/process', [\App\Http\Controllers\SubscriptionController::class, 'processPayment'])->name('subscriptions.process');
