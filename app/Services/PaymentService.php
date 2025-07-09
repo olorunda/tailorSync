@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\SubscriptionService;
 use Exception;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class PaymentService
@@ -17,7 +18,12 @@ class PaymentService
     protected $settings;
     protected $isSubscriptionPayment = false;
 
-    // Paystack subscription plan codes
+//    // Paystack subscription plan codes
+//    const PAYSTACK_PLAN_CODES = [
+//        'basic' => 'PLN_xeoss63j95oyltt', // To be set in the Paystack dashboard or via API
+//        'premium' => 'PLN_3pd70p5zxhjvzns', // To be set in the Paystack dashboard or via API
+//    ];
+
     const PAYSTACK_PLAN_CODES = [
         'basic' => 'PLN_43eyp3qcgyktjee', // To be set in the Paystack dashboard or via API
         'premium' => 'PLN_d79vgtirvzdbmjw', // To be set in the Paystack dashboard or via API
@@ -32,6 +38,7 @@ class PaymentService
      */
     public function __construct(User $user, bool $isSubscriptionPayment = false)
     {
+
         $this->user = $user;
         $this->businessDetail = $user->businessDetail;
         $this->isSubscriptionPayment = $isSubscriptionPayment;
@@ -856,6 +863,13 @@ class PaymentService
         return null;
     }
 
+
+    private function getEmailToken($secretKey,$subscriptionCode)
+    {
+        $response= Http::withToken($secretKey)->get('https://api.paystack.co/subscription/'.$subscriptionCode);
+        return  $response->json()['data']['email_token'] ?? '';
+
+    }
     /**
      * Cancel a Paystack subscription.
      *
@@ -867,6 +881,7 @@ class PaymentService
     {
         $secretKey = $this->settings['paystack']['secret_key'] ?? null;
 
+
         if (!$secretKey) {
             throw new Exception('Paystack API keys are not configured.');
         }
@@ -874,20 +889,20 @@ class PaymentService
         $url = "https://api.paystack.co/subscription/disable";
         $fields = [
             'code' => $subscriptionCode,
-            'token' => hash('sha512', $subscriptionCode . $email . time())
+            'token' => $this->getEmailToken($secretKey,$subscriptionCode)
         ];
 
         $headers = [
             'Authorization: Bearer ' . $secretKey,
             "Cache-Control: no-cache",
-            'Content-Type: application/json',
+            "Content-Type: application/x-www-form-urlencoded"
         ];
 
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($fields));
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
@@ -901,7 +916,7 @@ class PaymentService
         }
 
         $result = json_decode($response, true);
-dd($result,$subscriptionCode,$email);
+
         if (!$result['status']) {
             Log::error('Paystack Subscription Cancellation Error: ' . ($result['message'] ?? 'Unknown error'));
             throw new Exception('Error cancelling Paystack subscription: ' . ($result['message'] ?? 'Unknown error'));
