@@ -510,8 +510,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'USD' => '$',
             'EUR' => '€',
             'GBP' => '£',
-            'NGN' => '₦',
-            default => '$',
+//            'NGN' => '₦',
+            default => '₦',
         };
     }
 
