@@ -18,7 +18,7 @@ class PaymentService
     protected $settings;
     protected $isSubscriptionPayment = false;
 
-//    // Paystack subscription plan codes
+    // Paystack subscription plan codes
 //    const PAYSTACK_PLAN_CODES = [
 //        'basic' => 'PLN_xeoss63j95oyltt', // To be set in the Paystack dashboard or via API
 //        'premium' => 'PLN_3pd70p5zxhjvzns', // To be set in the Paystack dashboard or via API

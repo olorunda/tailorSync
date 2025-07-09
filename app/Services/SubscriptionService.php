@@ -182,13 +182,15 @@ class SubscriptionService
      */
     public static function isActive(BusinessDetail $businessDetail)
     {
-        // Free plan is always active
+         // Free plan is always active
         if ($businessDetail->subscription_plan === 'free') {
             return true;
         }
 
         // Check if subscription is marked as active and not expired
-        return $businessDetail->subscription_active &&
+        // Note: We ignore cancellation_requested flag to ensure features remain available
+        // until the subscription actually expires
+        return
                $businessDetail->subscription_end_date &&
                Carbon::now()->lt($businessDetail->subscription_end_date);
     }
