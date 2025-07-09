@@ -67,4 +67,9 @@ return [
         'provider' => env('IMAGE_GENERATOR_PROVIDER', 'imagerouter'), // Options: 'gemini', 'imagerouter'
     ],
 
+    'zeptomail' => [
+        'api_key' => env('ZEPTOMAIL_API_KEY'),
+        'endpoint' => env('ZEPTOMAIL_ENDPOINT', 'https://api.zeptomail.com/v1.1/email'),
+    ],
+
 ];

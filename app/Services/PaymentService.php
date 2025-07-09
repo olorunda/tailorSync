@@ -9,6 +9,7 @@ use Exception;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class PaymentService
 {
@@ -36,6 +37,8 @@ class PaymentService
      * @param bool $isSubscriptionPayment Whether this is a subscription payment
      * @return void
      */
+
+
     public function __construct(User $user, bool $isSubscriptionPayment = false)
     {
 
