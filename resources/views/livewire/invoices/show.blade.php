@@ -300,11 +300,11 @@ new class extends Component {
                         <div class="text-right">
                             <div class="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
                                 <p class="font-medium text-zinc-900 dark:text-zinc-100">{{ $invoice->user->businessDetail->business_name }}</p>
-                                <p>{{ $invoice->user->businessDetail->address }}</p>
-                                <p>{{ $invoice->user->businessDetail->city }}
-                                    , {{ $invoice->user->businessDetail->state }} {{ $invoice->user->businessDetail->postal_code }}</p>
-                                <p>Phone: {{ $invoice->user->businessDetail->phone }}</p>
-                                <p>Email: {{ $invoice->user->businessDetail->email }}</p>
+                                <p>{{ $invoice->user->businessDetail->business_address }}</p>
+{{--                                <p>{{ $invoice->user->businessDetail->city }}--}}
+{{--                                    , {{ $invoice->user->businessDetail->state }} {{ $invoice->user->businessDetail->postal_code }}</p>--}}
+                                <p>Phone: {{ $invoice->user->businessDetail->business_phone }}</p>
+                                <p>Email: {{ $invoice->user->businessDetail->business_email }}</p>
                             </div>
                             <div class="inline-block px-3 py-1 rounded-full
                                 {{ $invoice->status === 'paid' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' : '' }}
