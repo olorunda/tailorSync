@@ -299,11 +299,12 @@ new class extends Component {
                         </div>
                         <div class="text-right">
                             <div class="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-                                <p class="font-medium text-zinc-900 dark:text-zinc-100">Your Company Name</p>
-                                <p>123 Business Street</p>
-                                <p>City, State ZIP</p>
-                                <p>Phone: (123) 456-7890</p>
-                                <p>Email: contact@yourcompany.com</p>
+                                <p class="font-medium text-zinc-900 dark:text-zinc-100">{{ $invoice->user->businessDetail->business_name }}</p>
+                                <p>{{ $invoice->user->businessDetail->address }}</p>
+                                <p>{{ $invoice->user->businessDetail->city }}
+                                    , {{ $invoice->user->businessDetail->state }} {{ $invoice->user->businessDetail->postal_code }}</p>
+                                <p>Phone: {{ $invoice->user->businessDetail->phone }}</p>
+                                <p>Email: {{ $invoice->user->businessDetail->email }}</p>
                             </div>
                             <div class="inline-block px-3 py-1 rounded-full
                                 {{ $invoice->status === 'paid' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' : '' }}
