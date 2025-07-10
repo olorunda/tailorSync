@@ -1,6 +1,6 @@
 {
-  "name": "TailorFit",
-  "short_name": "TailorFit",
+  "name": "ThreadNix",
+  "short_name": "ThreadNix",
   "description": "Tailor management application",
   "start_url": "/",
   "display": "standalone",
