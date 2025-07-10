@@ -74,6 +74,44 @@
                 </div>
 
                 <div class="mt-6">
+                    <h3 class="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-4">Appointment Settings</h3>
+                    <div class="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg mb-4">
+                        <p class="text-sm text-orange-800 dark:text-orange-300">
+                            Configure your business hours and available days for appointments. These settings will determine when clients can book appointments.
+                        </p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="businessHoursStart" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Business Hours Start</label>
+                                <input type="time" id="businessHoursStart" wire:model="businessHoursStart" class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                @error('businessHoursStart') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <label for="businessHoursEnd" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Business Hours End</label>
+                                <input type="time" id="businessHoursEnd" wire:model="businessHoursEnd" class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                @error('businessHoursEnd') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Available Days</label>
+                            <div class="grid grid-cols-4 md:grid-cols-7 gap-2">
+                                @foreach(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as $day)
+                                    <label class="flex items-center p-2 border border-zinc-300 dark:border-zinc-600 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700">
+                                        <input type="checkbox" wire:model="availableDays" value="{{ strtolower($day) }}" class="rounded border-zinc-300 text-orange-600 shadow-sm focus:border-orange-300 focus:ring focus:ring-orange-200 focus:ring-opacity-50">
+                                        <span class="ml-2 text-sm text-zinc-700 dark:text-zinc-300">{{ $day }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            @error('availableDays') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6">
                     <h3 class="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-4">Tax Settings</h3>
                     <div class="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg mb-4">
                         <p class="text-sm text-orange-800 dark:text-orange-300">

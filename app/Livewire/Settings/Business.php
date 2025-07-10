@@ -3,6 +3,7 @@
 namespace App\Livewire\Settings;
 
 use App\Models\BusinessDetail;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -23,6 +24,11 @@ class Business extends Component
     public $instagramHandle;
     public $tiktokHandle;
     public $whatsappHandle;
+
+    // Appointment settings
+    public $businessHoursStart;
+    public $businessHoursEnd;
+    public $availableDays = [];
 
     // Permission check
     public $canManageTaxSettings = false;
@@ -78,6 +84,10 @@ class Business extends Component
         'instagramHandle' => 'nullable|string|max:255',
         'tiktokHandle' => 'nullable|string|max:255',
         'whatsappHandle' => 'nullable|string|max:255',
+        'businessHoursStart' => 'nullable|date_format:H:i',
+        'businessHoursEnd' => 'nullable|date_format:H:i|after:businessHoursStart',
+        'availableDays' => 'nullable|array',
+        'availableDays.*' => 'string|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
 
         // Tax settings
         'taxCountry' => 'required|string|in:none,canada,us,uk,nigeria',
@@ -146,6 +156,15 @@ class Business extends Component
             $this->instagramHandle = $this->businessDetail->instagram_handle;
             $this->tiktokHandle = $this->businessDetail->tiktok_handle;
             $this->whatsappHandle = $this->businessDetail->whatsapp_handle;
+
+            // Load appointment settings
+            if ($this->businessDetail->business_hours_start) {
+                $this->businessHoursStart = Carbon::parse($this->businessDetail->business_hours_start)->format('H:i');
+            }
+            if ($this->businessDetail->business_hours_end) {
+                $this->businessHoursEnd = Carbon::parse($this->businessDetail->business_hours_end)->format('H:i');
+            }
+            $this->availableDays = $this->businessDetail->available_days ?? [];
 
             // Load tax settings
             $this->taxCountry = $this->businessDetail->tax_country ?? 'none';
@@ -247,6 +266,9 @@ class Business extends Component
             'instagram_handle' => $this->instagramHandle,
             'tiktok_handle' => $this->tiktokHandle,
             'whatsapp_handle' => $this->whatsappHandle,
+            'business_hours_start' => $this->businessHoursStart,
+            'business_hours_end' => $this->businessHoursEnd,
+            'available_days' => $this->availableDays,
             'tax_country' => $this->taxCountry,
             'tax_enabled' => $this->taxEnabled,
             'tax_number' => $this->taxNumber,

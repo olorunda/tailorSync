@@ -4,6 +4,8 @@ use App\Models\Appointment;
 use App\Models\Client;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Volt\Component;
+use App\Notifications\AppointmentCreatedNotification;
+use App\Notifications\AppointmentConfirmationNotification;
 
 new class extends Component {
     public string $title = '';
@@ -56,6 +58,21 @@ new class extends Component {
             'status' => $this->status,
             'type' => 'other', // Default type
         ]);
+
+        // Notify the business owner (current user)
+        Auth::user()->notify(new AppointmentCreatedNotification($appointment));
+
+        // Notify the client if one is selected
+        if ($this->client_id) {
+            $client = Client::find($this->client_id);
+            if ($client && $client->email) {
+                // Get business name
+                $user = Auth::user();
+                $businessName = $user->businessDetail ? $user->businessDetail->business_name : $user->name;
+
+                $client->notify(new AppointmentConfirmationNotification($appointment, $businessName));
+            }
+        }
 
         $this->redirect(route('appointments.index'));
     }

@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Appointment;
 use App\Models\Client;
 use App\Models\User;
+use App\Notifications\AppointmentCreatedNotification;
+use App\Notifications\AppointmentConfirmationNotification;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 
@@ -154,6 +156,17 @@ class PublicAppointmentService
 
         $appointment->save();
 
+        // Get business name for notification
+        $businessName = $this->getBusinessName($user);
+
+        // Notify the business owner
+        $user->notify(new AppointmentCreatedNotification($appointment));
+
+        // Notify the client
+        if ($client->email) {
+            $client->notify(new AppointmentConfirmationNotification($appointment, $businessName));
+        }
+
         return $appointment;
     }
 
@@ -181,27 +194,37 @@ class PublicAppointmentService
     public function getAvailableTimeSlots(User $user, string $date): array
     {
         $dateObj = Carbon::parse($date);
+        $dayOfWeek = strtolower($dateObj->format('l')); // Get day of week (monday, tuesday, etc.)
 
         // Get all appointments for the selected date
         $appointments = $user->appointments()
             ->where('date', $dateObj->toDateString())
             ->get();
 
-        // Define business hours (9 AM to 5 PM by default)
+        // Get business details
         $businessDetail = $user->businessDetail;
-        $startHour = $businessDetail && $businessDetail->business_hours_start
-            ? Carbon::parse($businessDetail->business_hours_start)->hour
-            : 9;
-        $endHour = $businessDetail && $businessDetail->business_hours_end
-            ? Carbon::parse($businessDetail->business_hours_end)->hour
-            : 17;
+
+        // Check if the day is available for appointments
+        $availableDays = $businessDetail->available_days ?? [];
+        if (!empty($availableDays) && !in_array($dayOfWeek, $availableDays)) {
+            // This day is not available for appointments
+            return [];
+        }
+
+        // Define business hours (9 AM to 5 PM by default)
+        $startTime = $businessDetail && $businessDetail->business_hours_start
+            ? Carbon::parse($businessDetail->business_hours_start)
+            : Carbon::parse('09:00:00');
+        $endTime = $businessDetail && $businessDetail->business_hours_end
+            ? Carbon::parse($businessDetail->business_hours_end)
+            : Carbon::parse('17:00:00');
 
         // Generate all possible 30-minute slots
         $timeSlots = [];
-        $currentSlot = Carbon::parse($dateObj->format('Y-m-d') . ' ' . $startHour . ':00:00');
-        $endTime = Carbon::parse($dateObj->format('Y-m-d') . ' ' . $endHour . ':00:00');
+        $currentSlot = Carbon::parse($dateObj->format('Y-m-d') . ' ' . $startTime->format('H:i:s'));
+        $endTimeForDay = Carbon::parse($dateObj->format('Y-m-d') . ' ' . $endTime->format('H:i:s'));
 
-        while ($currentSlot < $endTime) {
+        while ($currentSlot < $endTimeForDay) {
             $slotEnd = (clone $currentSlot)->addMinutes(30);
 
             // Check if this slot overlaps with any existing appointment

@@ -22,6 +22,9 @@ class BusinessDetail extends Model
         'instagram_handle',
         'tiktok_handle',
         'whatsapp_handle',
+        'business_hours_start',
+        'business_hours_end',
+        'available_days',
         'store_enabled',
         'store_slug',
         'store_theme_color',
@@ -86,5 +89,8 @@ class BusinessDetail extends Model
         'subscription_start_date' => 'datetime',
         'subscription_end_date' => 'datetime',
         'subscription_active' => 'boolean',
+        'available_days' => 'array',
+        'business_hours_start' => 'datetime',
+        'business_hours_end' => 'datetime',
     ];
 }

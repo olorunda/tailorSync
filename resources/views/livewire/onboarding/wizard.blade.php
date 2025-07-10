@@ -32,12 +32,15 @@
                                     Logo
                                     @break
                                 @case(4)
-                                    Team
+                                    Appointments
                                     @break
                                 @case(5)
-                                    Clients
+                                    Team
                                     @break
                                 @case(6)
+                                    Clients
+                                    @break
+                                @case(7)
                                     Complete
                                     @break
                             @endswitch
@@ -149,8 +152,51 @@
                     </div>
                 @endif
 
-                <!-- Step 4: Team Members -->
+                <!-- Step 4: Appointment Settings -->
                 @if ($currentStep === 4)
+                    <div>
+                        <h2 class="text-2xl font-bold text-zinc-900 dark:text-white mb-6">Appointment Settings</h2>
+                        <p class="text-zinc-600 dark:text-zinc-300 mb-6">
+                            Configure your business hours and available days for appointments. These settings will determine when clients can book appointments with you.
+                        </p>
+
+                        <div class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="businessHoursStart" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Business Hours Start</label>
+                                    <input type="time" id="businessHoursStart" wire:model="businessHoursStart" class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                    @error('businessHoursStart') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div>
+                                    <label for="businessHoursEnd" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Business Hours End</label>
+                                    <input type="time" id="businessHoursEnd" wire:model="businessHoursEnd" class="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white">
+                                    @error('businessHoursEnd') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Available Days</label>
+                                <div class="grid grid-cols-4 md:grid-cols-7 gap-2">
+                                    @foreach(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as $day)
+                                        <label class="flex items-center p-2 border border-zinc-300 dark:border-zinc-600 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700">
+                                            <input type="checkbox" wire:model="availableDays" value="{{ strtolower($day) }}" class="rounded border-zinc-300 text-orange-600 shadow-sm focus:border-orange-300 focus:ring focus:ring-orange-200 focus:ring-opacity-50">
+                                            <span class="ml-2 text-sm text-zinc-700 dark:text-zinc-300">{{ $day }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                                @error('availableDays') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        <p class="mt-6 text-zinc-600 dark:text-zinc-300 text-sm">
+                            Note: You can update these settings later from the business settings page.
+                        </p>
+                    </div>
+                @endif
+
+                <!-- Step 5: Team Members -->
+                @if ($currentStep === 5)
                     <div>
                         <h2 class="text-2xl font-bold text-zinc-900 dark:text-white mb-6">Add Team Members</h2>
                         <p class="text-zinc-600 dark:text-zinc-300 mb-6">
@@ -210,8 +256,8 @@
                     </div>
                 @endif
 
-                <!-- Step 5: Client Import -->
-                @if ($currentStep === 5)
+                <!-- Step 6: Client Import -->
+                @if ($currentStep === 6)
                     <div>
                         <h2 class="text-2xl font-bold text-zinc-900 dark:text-white mb-6">Import Clients</h2>
                         <p class="text-zinc-600 dark:text-zinc-300 mb-6">
@@ -351,8 +397,8 @@
                     </div>
                 @endif
 
-                <!-- Step 6: Completion -->
-                @if ($currentStep === 6)
+                <!-- Step 7: Completion -->
+                @if ($currentStep === 7)
                     <div class="text-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-green-500 mx-auto mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

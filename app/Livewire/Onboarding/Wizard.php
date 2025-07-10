@@ -18,7 +18,7 @@ class Wizard extends Component
     public $currentStep = 1;
 
     // Total number of steps
-    public $totalSteps = 6;
+    public $totalSteps = 7;
 
     // Form data
     public $businessName = '';
@@ -29,6 +29,11 @@ class Wizard extends Component
     public $teamMemberName = '';
     public $teamMemberEmail = '';
     public $teamMembers = [];
+
+    // Appointment settings
+    public $businessHoursStart = '09:00';
+    public $businessHoursEnd = '17:00';
+    public $availableDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
 
     // Client import data
     public $csvFile = null;
@@ -44,6 +49,10 @@ class Wizard extends Component
         'businessPhone' => 'required',
         'businessEmail' => 'required|email',
         'logo' => 'nullable|image|max:1024', // 1MB max
+        'businessHoursStart' => 'nullable|date_format:H:i',
+        'businessHoursEnd' => 'nullable|date_format:H:i|after:businessHoursStart',
+        'availableDays' => 'nullable|array',
+        'availableDays.*' => 'string|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
     ];
 
     /**
@@ -63,6 +72,15 @@ class Wizard extends Component
         if ($this->currentStep === 3 && $this->logo) {
             $this->validate([
                 'logo' => 'image|max:1024',
+            ]);
+        }
+
+        if ($this->currentStep === 4) {
+            $this->validate([
+                'businessHoursStart' => 'nullable|date_format:H:i',
+                'businessHoursEnd' => 'nullable|date_format:H:i|after:businessHoursStart',
+                'availableDays' => 'nullable|array',
+                'availableDays.*' => 'string|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
             ]);
         }
 
@@ -251,6 +269,9 @@ class Wizard extends Component
             'business_phone' => $this->businessPhone,
             'business_email' => $this->businessEmail,
             'logo_path' => $this->logo ? $this->logo->store('logos', 'public') : null,
+            'business_hours_start' => $this->businessHoursStart,
+            'business_hours_end' => $this->businessHoursEnd,
+            'available_days' => $this->availableDays,
         ]);
 
         // Team members are already created when added via the addTeamMember method
