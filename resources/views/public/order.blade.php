@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Order #{{ $order->id }} - {{ config('app.name', 'Laravel') }}</title>
+    <title>Order #{{ $order->id ?? $invoice->id }} - {{ config('app.name', 'Laravel') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -25,7 +25,12 @@
                             <x-app-logo-icon class="block h-9 w-auto" />
                         </a>
                     </div>
+                    @if($order)
                     <h1 class="ml-4 text-xl font-semibold">Order #{{ $order->id }}</h1>
+                    @else
+
+{{--                        <h1 class="ml-4 text-xl font-semibold">Invoice #{{ $order->id }}</h1>--}}
+                    @endif
                 </div>
                 <div>
                     <button onclick="window.print()" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors">
@@ -39,6 +44,7 @@
         </header>
 
         <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            @if($order)
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Order Details Card -->
                 <div class="lg:col-span-2 bg-white dark:bg-zinc-800 rounded-xl shadow-sm overflow-hidden">
@@ -220,7 +226,7 @@
                 </div>
             </div>
             @endif
-
+            @endif
             @if ($invoice)
             <div class="mt-6">
                 <!-- Invoice Details -->
@@ -246,11 +252,13 @@
                             </div>
                             <div class="text-right">
                                 <div class="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-                                    <p class="font-medium text-zinc-900 dark:text-zinc-100">Your Company Name</p>
-                                    <p>123 Business Street</p>
-                                    <p>City, State ZIP</p>
-                                    <p>Phone: (123) 456-7890</p>
-                                    <p>Email: contact@yourcompany.com</p>
+                                    <p class="font-medium text-zinc-900 dark:text-zinc-100">{{$invoice->user->businessDetail->business_name}}</p>
+                                    <p>{{ $invoice->user->businessDetail->business_address }}</p>
+                                    {{--                                <p>{{ $invoice->user->businessDetail->city }}--}}
+                                    {{--                                    , {{ $invoice->user->businessDetail->state }} {{ $invoice->user->businessDetail->postal_code }}</p>--}}
+                                    <p>Phone: {{ $invoice->user->businessDetail->business_phone }}</p>
+                                    <p>Email: {{ $invoice->user->businessDetail->business_email }}</p>
+
                                 </div>
                                 <div class="inline-block px-3 py-1 rounded-full
                                     {{ $invoice->status === 'paid' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' : '' }}

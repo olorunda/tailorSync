@@ -33,6 +33,18 @@ class PublicOrderController extends Controller
      */
     public function show($hash)
     {
+//invoice without order
+        if(str_contains($this->publicOrderService->decryptHash($hash),'_')){
+            [$invoice_id,$type]=explode('_',$this->publicOrderService->decryptHash($hash));
+            $invoice= $this->publicOrderService->getInvoice($invoice_id);
+            return view('public.order', [
+                'order' =>false,
+                'invoice' => $invoice,
+                'currencySymbol' => $this->publicOrderService->getCurrencySymbol($invoice->user_id),
+            ]);
+        }
+
+
         // Log the received hash
         Log::info('Received hash for public order view', ['hash' => $hash]);
 
@@ -77,10 +89,11 @@ class PublicOrderController extends Controller
      * @param  int  $orderId
      * @return string
      */
-    public static function generateHash($orderId)
+    public static function generateHash($order_or_invoice_Id)
     {
+
         // Create a new instance of the service since this is a static method
         $publicOrderService = app(PublicOrderService::class);
-        return $publicOrderService->generateHash($orderId);
+        return $publicOrderService->generateHash($order_or_invoice_Id);
     }
 }

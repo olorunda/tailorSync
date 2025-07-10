@@ -298,6 +298,11 @@ new class extends Component {
                             </div>
                         </div>
                         <div class="text-right">
+                            @if($invoice->user->businessDetail->logo_path)
+                                <div class="mb-3 flex justify-end">
+                                    <img src="{{ asset('storage/' . $invoice->user->businessDetail->logo_path) }}" alt="{{ $invoice->user->businessDetail->business_name }} Logo" class="h-16 object-contain">
+                                </div>
+                            @endif
                             <div class="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
                                 <p class="font-medium text-zinc-900 dark:text-zinc-100">{{ $invoice->user->businessDetail->business_name }}</p>
                                 <p>{{ $invoice->user->businessDetail->business_address }}</p>

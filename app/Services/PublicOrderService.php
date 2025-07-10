@@ -16,7 +16,7 @@ class PublicOrderService
      * @param int $orderId
      * @return string
      */
-    public function generateHash(int $orderId): string
+    public function generateHash(int|string $orderId): string
     {
         return Crypt::encrypt($orderId);
     }
@@ -44,6 +44,10 @@ class PublicOrderService
         }
     }
 
+    public function decryptHash($hash)
+    {
+      return Crypt::decrypt($hash);
+    }
     /**
      * Get the invoice for an order.
      *
@@ -53,6 +57,11 @@ class PublicOrderService
     public function getInvoiceForOrder(Order $order): ?Invoice
     {
         return Invoice::where('order_id', $order->id)->first();
+    }
+
+    public function getInvoice($invoice_id): ?Invoice
+    {
+        return Invoice::where('id', $invoice_id)->first();
     }
 
     /**

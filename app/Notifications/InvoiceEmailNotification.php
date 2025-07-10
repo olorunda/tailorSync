@@ -49,9 +49,11 @@ class InvoiceEmailNotification extends Notification implements ShouldQueue
         $statusLabel = $statusLabels[$this->invoice->status] ?? ucfirst($this->invoice->status);
         $currencySymbol = Auth::user()->getCurrencySymbol();
 
-        // Generate encrypted hash for the order ID
-        $hash = PublicOrderController::generateHash($this->invoice->order_id);
-        $publicUrl = route('orders.public', ['hash' => $hash]);
+        // Generate encrypted hash for the order ID if it exists
+             $hash =  PublicOrderController::generateHash($this->invoice->order_id ?? $this->invoice->id.'_invoice');
+
+            $publicUrl = route('orders.public', ['hash' => $hash]);
+
 
         return (new MailMessage)
             ->subject("Invoice #{$this->invoice->invoice_number}")
@@ -96,7 +98,8 @@ class InvoiceEmailNotification extends Notification implements ShouldQueue
             ],
             'action' => [
                 'text' => 'View Invoice Online',
-                'url' => route('orders.public', ['hash' => PublicOrderController::generateHash($this->invoice->order_id)])
+                'url' =>  route('orders.public', ['hash' => PublicOrderController::generateHash($this->invoice->order_id ?? $this->invoice->id.'_invoice')])
+
             ]
         ];
 
