@@ -27,6 +27,46 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<!-- VAPID Public Key for Push Notifications -->
+<meta name="vapid-public-key" content="{{ config('services.push_notifications.public_key') }}">
+<!-- Push Notifications Script -->
+<script src="{{ asset('js/push-notifications.js') }}"></script>
+<!-- Auto Request Push Notification Permission -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add a one-time event listener for user interaction
+        function handleUserInteraction() {
+            // Check if already subscribed
+            if (window.pushNotificationManager && window.pushNotificationManager.swRegistration) {
+                window.pushNotificationManager.checkSubscription()
+                    .then(isSubscribed => {
+                        if (!isSubscribed) {
+                            window.pushNotificationManager.subscribe()
+                                .then(() => {
+                                    console.log('Successfully subscribed to push notifications after user interaction');
+                                })
+                                .catch(error => {
+                                    console.warn('Failed to subscribe to push notifications after user interaction:', error);
+                                });
+                        }
+                    });
+            }
+
+            // Remove all event listeners after first interaction
+            document.removeEventListener('click', handleUserInteraction);
+            document.removeEventListener('keydown', handleUserInteraction);
+            document.removeEventListener('scroll', handleUserInteraction);
+            document.removeEventListener('touchstart', handleUserInteraction);
+        }
+
+        // Add event listeners for common user interactions
+        document.addEventListener('click', handleUserInteraction);
+        document.addEventListener('keydown', handleUserInteraction);
+        document.addEventListener('scroll', handleUserInteraction);
+        document.addEventListener('touchstart', handleUserInteraction);
+    });
+</script>
+
 <!-- Simple Select CSS and JS -->
 <link href="{{ asset('css/simple-select.css') }}" rel="stylesheet">
 <script src="{{ asset('js/simple-select.js') }}"></script>

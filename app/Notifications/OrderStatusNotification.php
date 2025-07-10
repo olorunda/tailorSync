@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Http\Controllers\PublicOrderController;
 use App\Models\Order;
+use App\Notifications\Channels\PushNotificationChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -34,7 +35,14 @@ class OrderStatusNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        $channels = ['mail', 'database'];
+
+        // Add push notification channel if the notifiable has push subscriptions
+        if (method_exists($notifiable, 'pushSubscriptions') && $notifiable->pushSubscriptions()->exists()) {
+            $channels[] = PushNotificationChannel::class;
+        }
+
+        return $channels;
     }
 
     /**
@@ -113,6 +121,48 @@ class OrderStatusNotification extends Notification implements ShouldQueue
             'old_status' => $this->oldStatus,
             'new_status' => $this->newStatus,
             'mail' => $mailData
+        ];
+    }
+
+    /**
+     * Get the push notification representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function toPushNotification($notifiable): array
+    {
+        $statusMessages = [
+            'pending' => 'Your order has been received and is pending processing.',
+            'processing' => 'Your order is now being processed.',
+            'in_progress' => 'Work has begun on your order.',
+            'ready_for_fitting' => 'Your order is ready for fitting. Please schedule an appointment.',
+            'completed' => 'Your order has been completed and is ready for pickup.',
+            'delivered' => 'Your order has been delivered. Thank you for your business!',
+            'cancelled' => 'Your order has been cancelled.',
+        ];
+
+        $statusMessage = $statusMessages[$this->newStatus] ?? "Your order status has been updated to {$this->newStatus}.";
+        $publicUrl = route('orders.public', ['hash' => PublicOrderController::generateHash($this->order->id)]);
+
+        return [
+            'title' => "Order #{$this->order->order_number} Status Update",
+            'body' => $statusMessage,
+            'icon' => '/apple-touch-icon.png',
+            'badge' => '/apple-touch-icon.png',
+            'tag' => 'order-status-' . $this->order->id,
+            'url' => $publicUrl,
+            'data' => [
+                'order_id' => $this->order->id,
+                'order_number' => $this->order->order_number,
+                'new_status' => $this->newStatus
+            ],
+            'actions' => [
+                [
+                    'action' => 'view',
+                    'title' => 'View Order'
+                ]
+            ]
         ];
     }
 }

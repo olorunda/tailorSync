@@ -173,6 +173,7 @@
                     </form>
                 </flux:menu>
             </flux:dropdown>
+
         </flux:sidebar>
 
         <!-- Mobile Header -->
@@ -399,6 +400,7 @@
                 </div>
             </x-modal>
         </div>
+
 
     </body>
 </html>

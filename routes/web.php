@@ -399,5 +399,10 @@ Route::middleware(['auth', 'onboarding.status','verified'])->group(function () {
     Route::post('subscriptions/{plan}/process', [\App\Http\Controllers\SubscriptionController::class, 'processPayment'])->name('subscriptions.process');
     Route::get('subscriptions/callback/{reference}', [\App\Http\Controllers\SubscriptionController::class, 'handleCallback'])->name('subscriptions.callback');
     Route::post('subscriptions/cancel', [\App\Http\Controllers\SubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
+});
 
+// API Routes for Push Notifications
+Route::prefix('api')->middleware(['auth'])->group(function () {
+    Route::post('push-subscriptions', [\App\Http\Controllers\Api\PushSubscriptionController::class, 'store']);
+    Route::delete('push-subscriptions', [\App\Http\Controllers\Api\PushSubscriptionController::class, 'destroy']);
 });

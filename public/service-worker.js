@@ -2,6 +2,7 @@
 
 const CACHE_NAME = 'tailorfit-cache-v2';
 const OFFLINE_URL = '/offline';
+const NOTIFICATION_ICON = '/apple-touch-icon.png';
 const ASSETS_TO_CACHE = [
   '/',
   '/offline',
@@ -373,3 +374,61 @@ setInterval(() => {
     updateRouteCache();
   }
 }, 3600000); // Update every hour
+
+// Push event - handle incoming push notifications
+self.addEventListener('push', (event) => {
+  if (!event.data) {
+    console.log('Push event but no data');
+    return;
+  }
+
+  try {
+    const data = event.data.json();
+
+    const title = data.title || 'ThreadNix Notification';
+    const options = {
+      body: data.body || 'You have a new notification',
+      icon: data.icon || NOTIFICATION_ICON,
+      badge: NOTIFICATION_ICON,
+      data: {
+        url: data.url || '/',
+        ...data.data
+      },
+      actions: data.actions || [],
+      tag: data.tag || 'default',
+      renotify: data.renotify || false,
+      requireInteraction: data.requireInteraction || false,
+      silent: data.silent || false
+    };
+
+    event.waitUntil(
+      self.registration.showNotification(title, options)
+    );
+  } catch (error) {
+    console.error('Error showing notification:', error);
+  }
+});
+
+// Notification click event - handle user interaction with notifications
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const url = event.notification.data?.url || '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window' })
+      .then((clientList) => {
+        // Check if there's already a window open
+        for (const client of clientList) {
+          if (client.url === url && 'focus' in client) {
+            return client.focus();
+          }
+        }
+
+        // If no window is open or the URL doesn't match, open a new one
+        if (clients.openWindow) {
+          return clients.openWindow(url);
+        }
+      })
+  );
+});
