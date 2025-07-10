@@ -42,7 +42,7 @@ new class extends Component {
         // Generate invoice number
         $latestInvoice = Auth::user()->allInvoices()->latest()->first();
         $nextInvoiceNumber = $latestInvoice ? (intval(substr($latestInvoice->invoice_number, 3)) + 1) : 1;
-        $this->invoice_number = 'INV'.substr($this->businessDetail->name,0,2) . str_pad($nextInvoiceNumber, 5, '0', STR_PAD_LEFT);
+        $this->invoice_number = 'INV-'.substr(strtoupper($this->businessDetail->business_name),0,2) .'-'. str_pad($nextInvoiceNumber, 5, '0', STR_PAD_LEFT);
 
         // Get business details and tax settings
 
