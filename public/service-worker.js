@@ -1,6 +1,6 @@
 // Service Worker for TailorFit PWA
 
-const CACHE_NAME = 'tailorfit-cache-v1';
+const CACHE_NAME = 'tailorfit-cache-v2';
 const OFFLINE_URL = '/offline';
 const ASSETS_TO_CACHE = [
   '/',
@@ -23,29 +23,16 @@ const ROUTES_TO_CACHE = [
   '/settings/roles',
   '/settings/permissions',
   '/clients',
-  '/clients/create',
-  '/clients/import',
   '/orders',
-  '/orders/create',
   '/designs',
-  '/designs/create',
   '/inventory',
-  '/inventory/create',
-  '/inventory/import',
   '/appointments',
-  '/appointments/create',
   '/messages',
-  '/messages/create',
   '/invoices',
-  '/invoices/create',
   '/payments',
-  '/payments/create',
   '/expenses',
-  '/expenses/create',
   '/team',
-  '/team/create',
   '/tasks',
-  '/tasks/create'
 ];
 
 // Install event - cache assets and routes
