@@ -102,12 +102,12 @@ new class extends Component {
 
                 <div>
                     <label for="client_id" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Client (Optional)</label>
-                    <select wire:model="client_id" id="client_id" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                        <option value="">Select a client</option>
-                        @foreach($clients as $client)
-                            <option value="{{ $client->id }}">{{ $client->name }}</option>
-                        @endforeach
-                    </select>
+                    <x-simple-select
+                        wire:model="client_id"
+                        id="client_id"
+                        :options="$clients->map(fn($client) => ['id' => $client->id, 'name' => $client->name])->toArray()"
+                        placeholder="Select a client"
+                    />
                     @error('client_id') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
 
@@ -131,11 +131,16 @@ new class extends Component {
 
                 <div>
                     <label for="status" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Status</label>
-                    <select wire:model="status" id="status" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">
-                        <option value="scheduled">Scheduled</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
+                    <x-simple-select
+                        wire:model="status"
+                        id="status"
+                        :options="[
+                            ['id' => 'scheduled', 'name' => 'Scheduled'],
+                            ['id' => 'completed', 'name' => 'Completed'],
+                            ['id' => 'cancelled', 'name' => 'Cancelled']
+                        ]"
+                        :required="true"
+                    />
                     @error('status') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
 
