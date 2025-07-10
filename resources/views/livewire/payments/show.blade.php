@@ -131,11 +131,13 @@ new class extends Component {
                         </div>
                         <div class="text-right">
                             <div class="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-                                <p class="font-medium text-zinc-900 dark:text-zinc-100">Your Company Name</p>
-                                <p>123 Business Street</p>
-                                <p>City, State ZIP</p>
-                                <p>Phone: (123) 456-7890</p>
-                                <p>Email: contact@yourcompany.com</p>
+                                <p class="font-medium text-zinc-900 dark:text-zinc-100">{{ $payment->user->businessDetail->business_name }}</p>
+                                <p>{{ $payment->user->businessDetail->business_address }}</p>
+                                {{--                                <p>{{ $invoice->user->businessDetail->city }}--}}
+                                {{--                                    , {{ $invoice->user->businessDetail->state }} {{ $invoice->user->businessDetail->postal_code }}</p>--}}
+                                <p>Phone: {{ $payment->user->businessDetail->business_phone }}</p>
+                                <p>Email: {{ $payment->user->businessDetail->business_email }}</p>
+
                             </div>
                         </div>
                     </div>
