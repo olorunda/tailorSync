@@ -37,13 +37,15 @@ new class extends Component {
         $this->invoice_date = now()->format('Y-m-d');
         $this->due_date = now()->addDays(30)->format('Y-m-d');
 
+        $this->businessDetail = Auth::user()->businessDetail;
+
         // Generate invoice number
         $latestInvoice = Auth::user()->allInvoices()->latest()->first();
         $nextInvoiceNumber = $latestInvoice ? (intval(substr($latestInvoice->invoice_number, 3)) + 1) : 1;
-        $this->invoice_number = 'INV' . str_pad($nextInvoiceNumber, 5, '0', STR_PAD_LEFT);
+        $this->invoice_number = 'INV'.substr($this->businessDetail->name,0,2) . str_pad($nextInvoiceNumber, 5, '0', STR_PAD_LEFT);
 
         // Get business details and tax settings
-        $this->businessDetail = Auth::user()->businessDetail;
+
         if ($this->businessDetail) {
             $this->taxEnabled = $this->businessDetail->tax_enabled;
             $this->taxCountry = $this->businessDetail->tax_country;
