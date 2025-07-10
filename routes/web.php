@@ -403,6 +403,8 @@ Route::middleware(['auth', 'onboarding.status','verified'])->group(function () {
 
 // API Routes for Push Notifications
 Route::prefix('api')->middleware(['auth'])->group(function () {
-    Route::post('push-subscriptions', [\App\Http\Controllers\Api\PushSubscriptionController::class, 'store']);
-    Route::delete('push-subscriptions', [\App\Http\Controllers\Api\PushSubscriptionController::class, 'destroy']);
+    Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])->group(function () {
+        Route::post('push-subscriptions', [\App\Http\Controllers\Api\PushSubscriptionController::class, 'store']);
+        Route::delete('push-subscriptions', [\App\Http\Controllers\Api\PushSubscriptionController::class, 'destroy']);
+    });
 });
