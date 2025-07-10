@@ -217,6 +217,7 @@ new class extends Component {
 
     public function selectClient($clientId)
     {
+
         $client = Client::find($clientId);
         if ($client) {
             $this->client_id = $client->id;
@@ -296,6 +297,7 @@ new class extends Component {
             $this->tax_rate = 0;
         }
 
+
         if (!isset($this->discount_amount)) {
             $this->discount_amount = 0;
         }
@@ -316,6 +318,7 @@ new class extends Component {
         $validated = $this->validate([
             'invoice_number' => 'required|string|max:255|unique:invoices,invoice_number',
             'client_name' => 'required|string|max:255',
+            'client_id' => 'required|numeric',
             'client_email' => 'nullable|email|max:255',
             'client_address' => 'nullable|string',
             'invoice_date' => 'required|date',
@@ -489,12 +492,22 @@ new class extends Component {
                     <div class="space-y-4">
                         <div>
                             <label for="client_id" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Select Client</label>
+{{--                            <select wire:change="selectClient($event.target.value)" id="client_id" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5">--}}
+{{--                                <option value="">Select a client</option>--}}
+{{--                                @foreach ($clients as $client)--}}
+{{--                                    <option value="{{ $client->id }}">{{ $client->name }}</option>--}}
+{{--                                @endforeach--}}
+{{--                            </select>--}}
+
                             <x-simple-select
                                 x-on:simple-select-updated="$wire.selectClient($event.detail.value)"
                                 id="client_id"
+                                wire:model="client_id"
                                 :options="$clients->map(fn($client) => ['id' => $client->id, 'name' => $client->name])->toArray()"
                                 placeholder="Select a client"
                             />
+                            @error('client_id') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+
                         </div>
 
                         <div>
@@ -502,9 +515,12 @@ new class extends Component {
                             <x-simple-select
                                 x-on:simple-select-updated="$wire.selectOrder($event.detail.value)"
                                 id="order_id"
+                                wire:model="order_id"
                                 :options="$orders->map(fn($order) => ['id' => $order->id, 'name' => $order->order_number . ' - ' . ($order->client->name ?? 'Unknown')])->toArray()"
                                 placeholder="Select an order"
                             />
+                            @error('order_id') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+
                         </div>
 
                         <div>
@@ -590,6 +606,7 @@ new class extends Component {
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                                 <span class="text-zinc-500 dark:text-zinc-400 sm:text-sm">{{ Auth::user()->getCurrencySymbol() }}</span>
                                             </div>
+
                                             <input
                                                 type="number"
                                                 value="{{ $item['quantity'] * $item['unit_price'] }}"

@@ -455,10 +455,13 @@ new class extends Component {
                             <x-simple-select
                                 x-on:simple-select-updated="$wire.selectClient($event.detail.value)"
                                 id="client_id"
+                                wire:model="client_id"
                                 :options="$clients->map(fn($client) => ['id' => $client->id, 'name' => $client->name, 'selected' => $client_id == $client->id])->toArray()"
                                 placeholder="Select a client"
                                 :disabled="$invoice->status === 'paid'"
                             />
+                            @error('client_id') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+
                         </div>
 
                         <div>
@@ -466,10 +469,13 @@ new class extends Component {
                             <x-simple-select
                                 x-on:simple-select-updated="$wire.selectOrder($event.detail.value)"
                                 id="order_id"
+                                wire:model="order_id"
                                 :options="$orders->map(fn($order) => ['id' => $order->id, 'name' => $order->order_number . ' - ' . ($order->client->name ?? 'Unknown'), 'selected' => $order_id == $order->id])->toArray()"
                                 placeholder="Select an order"
                                 :disabled="$invoice->status === 'paid'"
                             />
+                            @error('order_id') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+
                         </div>
 
                         <div>

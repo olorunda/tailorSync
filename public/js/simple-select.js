@@ -40,6 +40,7 @@ document.addEventListener('alpine:init', () => {
         dropdownPosition: 'simple-select-dropdown-bottom',
 
         init() {
+
             console.log('SimpleSelect: Initializing', {
                 id: this.id,
                 name: this.name,
