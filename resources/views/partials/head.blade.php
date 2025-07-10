@@ -76,7 +76,8 @@
 <link href="{{ asset('css/tour.css') }}" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/intro.min.js"></script>
 
-@if(auth()->user()->onboarding_completed)
+
+@if(!auth()->guest() && auth()->user()->onboarding_completed)
 <script src="{{ asset('js/tour.js') }}"></script>
 @endif
 
