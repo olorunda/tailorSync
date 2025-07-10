@@ -31,6 +31,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'role_id',
         'parent_id',
         'onboarding_completed',
+        'tour_completed',
         'booking_hash',
     ];
 
@@ -622,6 +623,23 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Check if the user needs to take the tour.
+     * Only users who have completed onboarding but not the tour need to take it.
+     *
+     * @return bool
+     */
+    public function needsTour(): bool
+    {
+        // Only show tour to users who have completed onboarding
+        if (!$this->onboarding_completed) {
+            return false;
+        }
+
+        // Check if tour has been completed
+        return !$this->tour_completed;
+    }
+
+    /**
      * Get the business details associated with the user.
      */
     public function businessDetail()
@@ -720,5 +738,42 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         return route('business.public', ['slug' => $slug]);
+    }
+
+    /**
+     * Get the completed tours for the user.
+     */
+    public function completedTours(): HasMany
+    {
+        return $this->hasMany(CompletedTour::class);
+    }
+
+    /**
+     * Check if the user has completed the tour for a specific page.
+     *
+     * @param string $pageName
+     * @return bool
+     */
+    public function hasCompletedTourForPage(string $pageName): bool
+    {
+        return $this->completedTours()->where('page_name', $pageName)->exists();
+    }
+
+    /**
+     * Check if the user needs to take the tour for a specific page.
+     * Only users who have completed onboarding but not the tour for this page need to take it.
+     *
+     * @param string $pageName
+     * @return bool
+     */
+    public function needsTourForPage(string $pageName): bool
+    {
+        // Only show tour to users who have completed onboarding
+        if (!$this->onboarding_completed) {
+            return false;
+        }
+
+        // Check if tour for this page has been completed
+        return !$this->hasCompletedTourForPage($pageName);
     }
 }

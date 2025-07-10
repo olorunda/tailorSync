@@ -71,14 +71,27 @@
 <link href="{{ asset('css/simple-select.css') }}" rel="stylesheet">
 <script src="{{ asset('js/simple-select.js') }}"></script>
 
+<!-- Intro.js for Gamified Tour -->
+<link href="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/introjs.min.css" rel="stylesheet">
+<link href="{{ asset('css/tour.css') }}" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/intro.min.js"></script>
+
+@if(auth()->user()->onboarding_completed)
+<script src="{{ asset('js/tour.js') }}"></script>
+@endif
+
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 
 @livewireStyles
 @livewireScripts
 @fluxAppearance
 <script>
-
-
+    // Check if the user needs to take the tour
+    @auth
+        var showTour = {{ auth()->user()->needsTour() ? 'true' : 'false' }};
+    @else
+        var showTour = false;
+    @endauth
 
     // Reinitialize Select2 after Livewire updates
 

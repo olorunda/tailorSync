@@ -401,10 +401,20 @@ Route::middleware(['auth', 'onboarding.status','verified'])->group(function () {
     Route::post('subscriptions/cancel', [\App\Http\Controllers\SubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
 });
 
+// Tour route
+Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])->group(function () {
+
+    Route::post('/tour/complete', [\App\Http\Controllers\TourController::class, 'completeTour'])->middleware(['auth'])->name('tour.complete');
+
+});
 // API Routes for Push Notifications
 Route::prefix('api')->middleware(['auth'])->group(function () {
     Route::withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])->group(function () {
         Route::post('push-subscriptions', [\App\Http\Controllers\Api\PushSubscriptionController::class, 'store']);
         Route::delete('push-subscriptions', [\App\Http\Controllers\Api\PushSubscriptionController::class, 'destroy']);
+
+    // Tour API routes
+    Route::get('check-tour-completion', [\App\Http\Controllers\TourController::class, 'checkTourCompletion'])->name('api.check-tour-completion');
     });
-});
+
+    });
