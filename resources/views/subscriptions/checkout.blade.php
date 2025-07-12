@@ -135,7 +135,7 @@
                                     <a href="{{ route('subscriptions.index') }}" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200">
                                         Cancel
                                     </a>
-                                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white py-2 px-6 rounded">
+                                    <button type="submit" onclick="gtag_report_conversion('{{ route('subscriptions.index') }}')" class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white py-2 px-6 rounded">
                                         Proceed to Payment
                                     </button>
                                 </div>
@@ -147,3 +147,20 @@
         </div>
     </div>
 </x-app-layout>
+<!-- Event snippet for Purchase conversion page
+In your html page, add the snippet and call gtag_report_conversion when someone clicks on the chosen link or button. -->
+<script>
+    function gtag_report_conversion(url) {
+        var callback = function () {
+            if (typeof(url) != 'undefined') {
+                window.location = url;
+            }
+        };
+        gtag('event', 'conversion', {
+            'send_to': 'AW-16898767491/x4gRCMO8j-8aEIP1-vk-',
+            'transaction_id': '',
+            'event_callback': callback
+        });
+        return false;
+    }
+</script>
