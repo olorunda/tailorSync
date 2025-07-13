@@ -6,6 +6,27 @@
     gtag('js', new Date());
 
     gtag('config', 'G-6WPTZKW183');
+    gtag('config', 'AW-16898767491');
+</script>
+
+<!-- Event snippet for Purchase conversion page
+In your html page, add the snippet and call gtag_report_conversion when someone clicks on the chosen link or button. -->
+<script>
+    function gtag_report_conversion(url) {
+        var callback = function () {
+            if (typeof(url) != 'undefined') {
+                window.location = url;
+            }
+        };
+        // Generate a unique transaction ID using timestamp and random number
+        var transactionId = 'sub_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        gtag('event', 'conversion', {
+            'send_to': 'AW-16898767491/x4gRCMO8j-8aEIP1-vk-',
+            'transaction_id': transactionId,
+            'event_callback': callback
+        });
+        return false;
+    }
 </script>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
