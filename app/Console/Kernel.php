@@ -14,6 +14,9 @@ class Kernel extends ConsoleKernel
     {
         // Schedule the appointment reminder command to run daily at 8 AM
         $schedule->command('app:send-appointment-reminders')->dailyAt('08:00');
+
+        // Schedule the subscription upgrade reminder command to run weekly on Mondays at 9 AM
+        $schedule->command('app:send-subscription-upgrade-reminders')->weekly()->mondays()->at('09:00');
     }
 
     /**
