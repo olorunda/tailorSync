@@ -30,7 +30,7 @@ class UpdateStoreSettingsRequest extends FormRequest
             'store_secondary_color' => 'nullable|string|max:20',
             'store_accent_color' => 'nullable|string|max:20',
             'store_description' => 'nullable|string|max:1000',
-            'store_banner_image' => 'nullable|image|max:2048',
+            'store_banner_image' => 'nullable|image|max:10000',
             'store_featured_categories' => 'nullable|array',
             'store_featured_categories.*' => 'nullable|string|max:100',
             'store_social_links' => 'nullable|array',

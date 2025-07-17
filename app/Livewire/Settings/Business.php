@@ -79,7 +79,7 @@ class Business extends Component
         'businessAddress' => 'required',
         'businessPhone' => 'required',
         'businessEmail' => 'required|email',
-        'newLogo' => 'nullable|image|max:1024', // 1MB max
+        'newLogo' => 'nullable|image|max:10000', // 1MB max
         'facebookHandle' => 'nullable|string|max:255',
         'instagramHandle' => 'nullable|string|max:255',
         'tiktokHandle' => 'nullable|string|max:255',

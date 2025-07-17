@@ -56,7 +56,7 @@ class Store extends Component
             'storeSecondaryColor' => 'nullable|string|max:20',
             'storeAccentColor' => 'nullable|string|max:20',
             'storeDescription' => 'nullable|string|max:1000',
-            'newBannerImage' => 'nullable|image|max:2048',
+            'newBannerImage' => 'nullable|image|max:10000',
             'storeAnnouncement' => 'nullable|string|max:500',
             'storeShowFeaturedProducts' => 'boolean',
             'storeShowNewArrivals' => 'boolean',

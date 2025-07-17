@@ -58,7 +58,7 @@ new class extends Component {
             'total_cost' => 'nullable|numeric|min:0',
             'supplier' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:10000',
         ]);
 
         $inventoryItem = new InventoryItem();

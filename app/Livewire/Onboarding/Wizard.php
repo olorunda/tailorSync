@@ -48,7 +48,7 @@ class Wizard extends Component
         'businessAddress' => 'required',
         'businessPhone' => 'required',
         'businessEmail' => 'required|email',
-        'logo' => 'nullable|image|max:1024', // 1MB max
+        'logo' => 'nullable|image|max:10000', // 1MB max
         'businessHoursStart' => 'nullable|date_format:H:i',
         'businessHoursEnd' => 'nullable|date_format:H:i|after:businessHoursStart',
         'availableDays' => 'nullable|array',
@@ -71,7 +71,7 @@ class Wizard extends Component
 
         if ($this->currentStep === 3 && $this->logo) {
             $this->validate([
-                'logo' => 'image|max:1024',
+                'logo' => 'image|max:10000',
             ]);
         }
 
