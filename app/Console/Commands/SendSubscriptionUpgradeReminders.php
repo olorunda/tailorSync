@@ -32,8 +32,8 @@ class SendSubscriptionUpgradeReminders extends Command
         $this->info('Starting to send subscription upgrade reminders...');
 
         // Find business admins who haven't upgraded (on free plan or basic plan)
-        $businessDetails = BusinessDetail::whereIn('subscription_plan', ['free', 'basic'])
-            ->where('subscription_active', true)
+        $businessDetails = BusinessDetail::whereIn('subscription_plan', ['free'])
+            // ->where('subscription_active', true)
             ->get();
 
         $count = 0;
