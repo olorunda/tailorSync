@@ -1,0 +1,315 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NTAA 2025 Personal Income Tax Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card: #121a2b;
+      --card2: #0e182a;
+      --text: #ecf2f8;
+      --muted: #9fb3c8;
+      --accent: #02afef;   /* user theme aqua */
+      --accent2: #0796cc;  /* user theme blue */
+      --accent3: #40b554;  /* user theme green */
+      --border: rgba(255,255,255,.10);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; color: var(--text); font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background:
+        radial-gradient(900px 500px at 15% -10%, rgba(2,175,239,.22), transparent),
+        radial-gradient(900px 500px at 95% 0%, rgba(7,150,204,.16), transparent),
+        var(--bg);
+    }
+    .wrap { max-width: 1024px; margin: 0 auto; padding: 24px; }
+    .title { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+    .title h1 { margin:0; font-size: 1.8rem; letter-spacing:.2px; }
+    .badge { font-size:11px; font-weight:800; padding:4px 8px; border-radius:999px; background:linear-gradient(135deg, var(--accent3), #69d68b); color:#03121a; }.grid { display:grid; grid-template-columns: 1.1fr .9fr; gap: 22px; margin-top: 18px; }
+@media (max-width: 980px){ .grid{ grid-template-columns: 1fr; } }
+
+.card { background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03)); border:1px solid var(--border); border-radius:18px; padding:18px; box-shadow: 0 16px 40px rgba(0,0,0,.36); backdrop-filter: blur(8px); }
+.card h2 { margin:4px 0 12px; font-size: 0.9rem; color: var(--muted); text-transform: uppercase; letter-spacing:.12em; }
+
+.row  { display:grid; grid-template-columns: 1fr 1fr; gap:12px; align-items:start; }
+.row * { min-width:0; }
+.row3 { display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; align-items:start; }
+.row3 * { min-width:0; }
+@media (max-width: 720px){ .row, .row3 { grid-template-columns: 1fr; } }
+
+label { font-weight: 700; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing:.06em; }
+input, select, textarea {
+  width:100%; max-width:100%; min-width:0; padding:12px 14px; border-radius:12px; border:1px solid var(--border);
+  background:#0c1526; color:var(--text); font-size:14px; outline:none;
+}
+textarea { font-family: ui-monospace, Menlo, Consolas, monospace; min-height: 120px; }
+
+.hint { font-size:12px; color: var(--muted); margin-top:4px; }
+
+.btn { appearance:none; border:none; cursor:pointer; font-weight:800; letter-spacing:.02em; padding:12px 16px; border-radius:12px; }
+.btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color:#00131c; box-shadow: 0 10px 26px rgba(2,175,239,.35); }
+.btn.ghost { background: transparent; color: var(--text); border:1px solid var(--border); }
+.btnrow { display:flex; gap:10px; flex-wrap: wrap; }
+
+.kpi { display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; margin-bottom: 12px; }
+.pill { padding:10px 12px; border-radius:12px; border:1px solid var(--border); background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02)); }
+.pill strong { display:block; font-size: 20px; margin-top:4px; }
+
+table { width:100%; border-collapse: collapse; }
+th, td { padding:10px 8px; text-align:right; border-bottom:1px dashed rgba(255,255,255,.10); font-size: 14px; }
+th:first-child, td:first-child { text-align:left; }
+th { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing:.08em; }
+
+.footer { margin-top: 12px; font-size: 12px; color: var(--muted); }
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="title">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3l9 4.5v9L12 21l-9-4.5v-9L12 3z" stroke="url(#g)" stroke-width="1.5"/><defs><linearGradient id="g" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent2)"/></linearGradient></defs></svg>
+      <h1>NTAA 2025 · Nigeria Personal Income Tax Calculator</h1>
+      <span class="badge">Refreshed UI</span>
+    </div><div class="grid">
+  <!-- Inputs Card -->
+  <section class="card">
+    <h2>Inputs</h2>
+    <div class="row">
+      <div class="field">
+        <label for="currency">Income currency</label>
+        <select id="currency">
+          <option value="NGN">NGN (₦)</option>
+          <option value="USD">USD ($)</option>
+        </select>
+      </div>
+      <div class="field" id="fxWrap" style="display:none">
+        <label for="fx">CBN rate (₦ per $)</label>
+        <input id="fx" type="number" step="0.0001" placeholder="e.g. 1500" />
+        <div class="hint">Use the official CBN rate for the pay date.</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="income">Annual gross income</label>
+        <input id="income" type="number" min="0" step="0.01" placeholder="e.g. 30000000" />
+      </div>
+      <div class="field">
+        <label for="rent">Annual rent paid</label>
+        <input id="rent" type="number" min="0" step="0.01" placeholder="e.g. 5000000" />
+        <div class="hint">Rent relief = 20% of rent, capped at ₦500,000.</div>
+      </div>
+    </div>
+
+    <div class="row3">
+      <div class="field">
+        <label for="pension">Pension (annual)</label>
+        <input id="pension" type="number" min="0" step="0.01" placeholder="e.g. 1500000" />
+      </div>
+      <div class="field">
+        <label for="nhf">NHF (annual)</label>
+        <input id="nhf" type="number" min="0" step="0.01" placeholder="e.g. 250000" />
+      </div>
+      <div class="field">
+        <label for="nhis">NHIS (annual)</label>
+        <input id="nhis" type="number" min="0" step="0.01" placeholder="e.g. 120000" />
+      </div>
+    </div>
+
+    <details style="margin-top:10px">
+      <summary style="cursor:pointer; font-weight:700">Advanced settings</summary>
+      <div class="field" style="margin-top:10px">
+        <label for="bands">Tax bands (₦)</label>
+        <div class="hint">Each line: <em>width,rate%</em>. Last line with "+" is the top band.</div>
+        <textarea id="bands" rows="6">
+800000,0
+2200000,15
+9000000,18
+13000000,21
+25000000,23
++,25
+</textarea> </div> </details>
+
+<div class="btnrow" style="margin-top:14px">
+      <button class="btn primary" id="calc">Calculate</button>
+      <button class="btn ghost" id="reset">Reset</button>
+    </div>
+    <p class=\"footer\">Fields are empty by default. Empty or non‑numeric inputs are treated as 0 during calculation.<\/p>
+  </section>
+
+  <!-- Results Card -->
+  <section class="card">
+    <h2>Results</h2>
+    <div class="kpi">
+      <div class="pill"><span>Total annual tax</span><strong id="taxTotal">–</strong></div>
+      <div class="pill"><span>Effective tax rate</span><strong id="effRate">–</strong></div>
+    </div>
+    <div class="kpi">
+      <div class="pill"><span>Monthly PAYE (approx)</span><strong id="taxMonthly">–</strong></div>
+      <div class="pill"><span>Net annual take‑home</span><strong id="netIncome">–</strong></div>
+    </div>
+    <div class="pill" style="margin-bottom:12px">
+      <div style="display:flex; gap:18px; flex-wrap:wrap">
+        <div>Gross income: <strong id="grossOut">–</strong></div>
+        <div>Allowed deductions: <strong id="deductionsOut">–</strong></div>
+        <div>Taxable income: <strong id="taxableOut">–</strong></div>
+      </div>
+    </div>
+    <div style="max-height:340px; overflow:auto; border:1px solid var(--border); border-radius:12px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Band</th>
+            <th>Amount taxed (₦)</th>
+            <th>Rate</th>
+            <th>Tax (₦)</th>
+          </tr>
+        </thead>
+        <tbody id="breakdown"></tbody>
+      </table>
+    </div>
+    <p class="footer">Update bands if regulations change. This is a planning tool, not a filing system.</p>
+  </section>
+</div>
+
+  </div>  <script>
+    const fmtNGN = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 });
+    const fmtPct = (n)=> isFinite(n) ? (n*100).toFixed(2)+"%" : "–";
+
+    const els = {
+      currency: document.getElementById('currency'),
+      fxWrap: document.getElementById('fxWrap'),
+      fx: document.getElementById('fx'),
+      income: document.getElementById('income'),
+      rent: document.getElementById('rent'),
+      pension: document.getElementById('pension'),
+      nhf: document.getElementById('nhf'),
+      nhis: document.getElementById('nhis'),
+      bands: document.getElementById('bands'),
+      calc: document.getElementById('calc'),
+      reset: document.getElementById('reset'),
+      // outputs
+      taxTotal: document.getElementById('taxTotal'),
+      effRate: document.getElementById('effRate'),
+      taxMonthly: document.getElementById('taxMonthly'),
+      netIncome: document.getElementById('netIncome'),
+      grossOut: document.getElementById('grossOut'),
+      deductionsOut: document.getElementById('deductionsOut'),
+      taxableOut: document.getElementById('taxableOut'),
+      breakdown: document.getElementById('breakdown')
+    };
+
+    els.currency.addEventListener('change',()=>{
+      els.fxWrap.style.display = els.currency.value === 'USD' ? '' : 'none';
+      // adjust placeholder to guide user without prefill
+      document.querySelector('label[for="income"]').textContent = els.currency.value === 'USD' ? 'Annual gross income (USD)' : 'Annual gross income';
+      els.income.placeholder = els.currency.value === 'USD' ? 'e.g. 23880' : 'e.g. 30000000';
+    });
+
+    function nz(n){
+      // Treat empty strings and non-numeric as 0
+      if(n===null || n===undefined) return 0;
+      if(typeof n === 'string' && n.trim()==='') return 0;
+      n = Number(n);
+      return isNaN(n) ? 0 : n;
+    }
+
+    function parseBands(text){
+      return text.trim().split(/\n+/).map(line=>{
+        const [thr, rate] = line.split(',').map(x=>x.trim());
+        return { threshold: (thr === '+') ? '+' : nz(thr), rate: nz(rate)/100 };
+      });
+    }
+
+    function computeTaxBreakdown(taxable, bands){
+      let remaining = Math.max(0, nz(taxable));
+      const rows = [];
+      for(let i=0;i<bands.length;i++){
+        const b = bands[i];
+        const width = (b.threshold === '+') ? Infinity : nz(b.threshold);
+        const slice = Math.min(remaining, width);
+        const tax = slice * b.rate;
+        rows.push({ i, amount: slice, rate: b.rate, tax });
+        remaining -= slice;
+        if(remaining <= 0) break;
+      }
+      return rows;
+    }
+
+    function bandLabel(i, bands){
+      let lower = 0;
+      for(let j=0;j<i;j++){ lower += (bands[j].threshold === '+' ? 0 : nz(bands[j].threshold)); }
+      const width = bands[i].threshold === '+' ? Infinity : nz(bands[i].threshold);
+      const upper = lower + (isFinite(width) ? width : 0);
+      return isFinite(width) ? `${fmtNGN.format(lower)} – ${fmtNGN.format(upper)}` : `${fmtNGN.format(lower)} – above`;
+    }
+
+    function render(result){
+      if(!result){
+        els.taxTotal.textContent = '–';
+        els.effRate.textContent = '–';
+        els.taxMonthly.textContent = '–';
+        els.netIncome.textContent = '–';
+        els.grossOut.textContent = '–';
+        els.deductionsOut.textContent = '–';
+        els.taxableOut.textContent = '–';
+        els.breakdown.innerHTML = '';
+        return;
+      }
+      const { gross, deductions, taxable, rows, totalTax } = result;
+      els.taxTotal.textContent = fmtNGN.format(totalTax);
+      els.effRate.textContent = fmtPct(totalTax / (gross || 1));
+      els.taxMonthly.textContent = fmtNGN.format(totalTax / 12);
+      els.netIncome.textContent = fmtNGN.format(gross - totalTax);
+      els.grossOut.textContent = fmtNGN.format(gross);
+      els.deductionsOut.textContent = fmtNGN.format(deductions);
+      els.taxableOut.textContent = fmtNGN.format(taxable);
+      els.breakdown.innerHTML = rows.map((r)=>{
+        return `<tr>
+          <td>${bandLabel(r.i, parseBands(els.bands.value))}</td>
+          <td>${fmtNGN.format(r.amount)}</td>
+          <td>${(r.rate*100).toFixed(0)}%</td>
+          <td>${fmtNGN.format(r.tax)}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function calculate(){
+      const cur = els.currency.value;
+      const fx = nz(els.fx.value);
+      let gross = nz(els.income.value);
+      if(cur==='USD'){ gross = nz(els.income.value) * fx; }
+
+      const rent = nz(els.rent.value);
+      const pension = nz(els.pension.value);
+      const nhf = nz(els.nhf.value);
+      const nhis = nz(els.nhis.value);
+
+      const rentRelief = Math.min(rent * 0.20, 500000);
+      const deductions = rentRelief + pension + nhf + nhis;
+      const taxable = Math.max(0, gross - deductions);
+
+      const bands = parseBands(els.bands.value);
+      const rows = computeTaxBreakdown(taxable, bands);
+      const totalTax = rows.reduce((a,b)=> a + b.tax, 0);
+
+      render({ gross, deductions, taxable, rows, totalTax });
+    }
+
+    els.calc.addEventListener('click', calculate);
+    els.reset.addEventListener('click', ()=>{
+      document.querySelectorAll('input').forEach(el=> el.value = '');
+      // keep bands as-is; just clear numeric inputs
+      els.currency.value = 'NGN';
+      els.fxWrap.style.display = 'none';
+      render(null);
+    });
+
+    // keep mobile-friendly inputs 100% width
+    // no prefilled demo values beyond zeros
+  </script></body>
+</html>
