@@ -6,7 +6,37 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <style>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6WPTZKW183"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-6WPTZKW183');
+        gtag('config', 'AW-16898767491');
+    </script>
+
+    <!-- Event snippet for Purchase conversion page
+    In your html page, add the snippet and call gtag_report_conversion when someone clicks on the chosen link or button. -->
+    <script>
+        function gtag_report_conversion(url) {
+            var callback = function () {
+                if (typeof(url) != 'undefined') {
+                    window.location = url;
+                }
+            };
+            // Generate a unique transaction ID using timestamp and random number
+            var transactionId = 'sub_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+            gtag('event', 'conversion', {
+                'send_to': 'AW-16898767491/x4gRCMO8j-8aEIP1-vk-',
+                'transaction_id': transactionId,
+                'event_callback': callback
+            });
+            return false;
+        }
+    </script>
+    <style>
     :root {
       --bg: #0b1220;
       --card: #121a2b;
