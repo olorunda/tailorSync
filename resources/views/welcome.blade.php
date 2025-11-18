@@ -828,7 +828,7 @@
                             <div class="p-8 border-b border-orange-100 dark:border-orange-900/20">
                                 <h3 class="text-2xl font-semibold mb-2 font-playfair">Basic</h3>
                                 <div class="flex items-baseline">
-                                    <span class="text-4xl font-bold text-orange-600 dark:text-orange-500">{{ \App\Services\SubscriptionService::getCurrencySymbol() }}{{ number_format(\App\Services\SubscriptionService::convertPriceForInternationalUsers(7000), \App\Services\SubscriptionService::getCurrencyCode() === 'USD' ? 2 : 0) }}</span>
+                                    <span class="text-4xl font-bold text-orange-600 dark:text-orange-500">{{ \App\Services\SubscriptionService::getCurrencySymbol() }}{{ number_format(\App\Services\SubscriptionService::convertPriceForInternationalUsers(20), \App\Services\SubscriptionService::getCurrencyCode() === 'USD' ? 2 : 0) }}</span>
                                     <span class="text-zinc-500 dark:text-zinc-400 ml-2">/month</span>
                                 </div>
                                 <p class="mt-4 text-zinc-600 dark:text-zinc-400">Great for growing tailoring businesses</p>
@@ -893,7 +893,7 @@
                             <div class="p-8 border-b border-orange-100 dark:border-orange-900/20">
                                 <h3 class="text-2xl font-semibold mb-2 font-playfair">Premium</h3>
                                 <div class="flex items-baseline">
-                                    <span class="text-4xl font-bold text-orange-600 dark:text-orange-500">{{ \App\Services\SubscriptionService::getCurrencySymbol() }}{{ number_format(\App\Services\SubscriptionService::convertPriceForInternationalUsers(15000), \App\Services\SubscriptionService::getCurrencyCode() === 'USD' ? 2 : 0) }}</span>
+                                    <span class="text-4xl font-bold text-orange-600 dark:text-orange-500">{{ \App\Services\SubscriptionService::getCurrencySymbol() }}{{ number_format(\App\Services\SubscriptionService::convertPriceForInternationalUsers(30), \App\Services\SubscriptionService::getCurrencyCode() === 'USD' ? 2 : 0) }}</span>
                                     <span class="text-zinc-500 dark:text-zinc-400 ml-2">/month</span>
                                 </div>
                                 <p class="mt-4 text-zinc-600 dark:text-zinc-400">For established tailoring businesses</p>
