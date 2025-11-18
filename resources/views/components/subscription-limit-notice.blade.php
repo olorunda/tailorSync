@@ -46,7 +46,7 @@
             <p class="text-sm text-yellow-700">
                 {{ $message }}
                 @if ($suggestedPlan)
-                    <span class="font-medium">Upgrade to the {{ $suggestedPlan['name'] }} plan (₦{{ number_format($suggestedPlan['price']) }}/month) to access this feature.</span>
+                    <span class="font-medium">Upgrade to the {{ $suggestedPlan['name'] }} plan (${{ number_format($suggestedPlan['price']) }}/month) to access this feature.</span>
                 @endif
             </p>
             <p class="mt-2">
