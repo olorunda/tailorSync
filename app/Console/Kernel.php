@@ -17,8 +17,26 @@ class Kernel extends ConsoleKernel
 
         // Schedule the subscription upgrade reminder command to run weekly on Mondays at 9 AM
         $schedule->command('app:send-subscription-upgrade-reminders')->weekly()->mondays()->at('09:00');
+
+        $schedule->command($this->getQueueCommand('default'))->everyMinute()->before(function () {
+            // Task is about to start...
+            \Artisan::call("queue:restart");
+
+        });
     }
 
+    protected function getQueueCommand($queue)
+    {
+        // build the queue command
+        $params = implode(' ',[
+            '--daemon',
+            '--tries=1',
+            '--sleep=1',
+            "--queue=$queue"
+        ]);
+
+        return sprintf('queue:work %s', $params);
+    }
     /**
      * Register the commands for the application.
      */
