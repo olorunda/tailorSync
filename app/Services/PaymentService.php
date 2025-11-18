@@ -30,6 +30,12 @@ class PaymentService
         'premium' => 'PLN_d79vgtirvzdbmjw', // To be set in the Paystack dashboard or via API
     ];
 
+    // Stripe subscription price IDs
+    const STRIPE_PRICE_IDS = [
+        'basic' => 'price_1SUr0AKcRcJJtU2jDIRiKh7O', // To be set in the Stripe dashboard or via API
+        'premium' => 'price_1SUr0qKcRcJJtU2jTEiAPSFY', // To be set in the Stripe dashboard or via API
+    ];
+
     /**
      * Create a new payment service instance.
      *
@@ -54,6 +60,7 @@ class PaymentService
                 'flutterwave' => Config::get('services.payment.subscription.flutterwave'),
                 'stripe' => Config::get('services.payment.subscription.stripe'),
             ];
+
 
             if (empty($this->settings[$this->gateway]['secret_key'])) {
                 throw new Exception('Subscription payment gateway is not properly configured.');
@@ -448,7 +455,6 @@ class PaymentService
             'mode' => 'payment',
             'success_url' => $callbackUrl . '?session_id={CHECKOUT_SESSION_ID}&reference=' . $reference,
             'cancel_url' => $callbackUrl . '?canceled=true&reference=' . $reference,
-            'client_reference_id' => $reference,
             'customer_email' => $email,
             'metadata[reference]' => $reference
         ];
@@ -504,10 +510,10 @@ class PaymentService
             throw new Exception('Stripe API keys are not configured.');
         }
 
-        // First, find the session ID from the reference
-        $url = "https://api.stripe.com/v1/checkout/sessions?limit=1";
+        // First, find the session ID from the reference using metadata
+        $url = "https://api.stripe.com/v1/checkout/sessions?limit=100";
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url . '&client_reference_id=' . rawurlencode($reference));
+        curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_USERPWD, $secretKey . ":");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
@@ -531,7 +537,19 @@ class PaymentService
             throw new Exception('No Stripe session found for reference: ' . $reference);
         }
 
-        $session = $result['data'][0];
+        // Find the session with matching reference in metadata
+        $session = null;
+        foreach ($result['data'] as $sessionData) {
+            if (isset($sessionData['metadata']['reference']) && $sessionData['metadata']['reference'] === $reference) {
+                $session = $sessionData;
+                break;
+            }
+        }
+
+        if (!$session) {
+            throw new Exception('No Stripe session found with reference: ' . $reference);
+        }
+
         $sessionId = $session['id'];
 
         // Now retrieve the payment intent
@@ -574,6 +592,170 @@ class PaymentService
             'metadata' => $paymentIntent['metadata'] ?? [],
             'gateway_response' => $paymentIntent['status'],
             'raw_response' => $paymentIntent
+        ];
+    }
+
+    /**
+     * Create a Stripe product and price for subscription.
+     *
+     * @param string $name Plan name
+     * @param float $amount Plan amount in dollars
+     * @param string $interval Plan interval (day, week, month, year)
+     * @param string $description Plan description
+     * @return array
+     */
+    public function createStripePlan($name, $amount, $interval = 'month', $description = '')
+    {
+        $secretKey = $this->settings['stripe']['secret_key'] ?? null;
+
+        if (!$secretKey) {
+            throw new Exception('Stripe API keys are not configured.');
+        }
+
+        // Convert amount to cents
+        $amountCents = $amount * 100;
+
+        // First create a product
+        $productUrl = "https://api.stripe.com/v1/products";
+        $productFields = [
+            'name' => $name,
+            'description' => $description,
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $productUrl);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($productFields));
+        curl_setopt($ch, CURLOPT_USERPWD, $secretKey . ":");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            Log::error('Stripe API Error: ' . $err);
+            throw new Exception('Error communicating with Stripe: ' . $err);
+        }
+
+        $product = json_decode($response, true);
+
+        if (isset($product['error'])) {
+            Log::error('Stripe Product Error: ' . ($product['error']['message'] ?? 'Unknown error'));
+            throw new Exception('Error creating Stripe product: ' . ($product['error']['message'] ?? 'Unknown error'));
+        }
+
+        // Create a price for the product
+        $priceUrl = "https://api.stripe.com/v1/prices";
+        $priceFields = [
+            'currency' => 'usd',
+            'unit_amount' => $amountCents,
+            'product' => $product['id'],
+            'recurring[interval]' => $interval,
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $priceUrl);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($priceFields));
+        curl_setopt($ch, CURLOPT_USERPWD, $secretKey . ":");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            Log::error('Stripe API Error: ' . $err);
+            throw new Exception('Error communicating with Stripe: ' . $err);
+        }
+
+        $price = json_decode($response, true);
+
+        if (isset($price['error'])) {
+            Log::error('Stripe Price Error: ' . ($price['error']['message'] ?? 'Unknown error'));
+            throw new Exception('Error creating Stripe price: ' . ($price['error']['message'] ?? 'Unknown error'));
+        }
+
+        return [
+            'success' => true,
+            'product_id' => $product['id'],
+            'price_id' => $price['id'],
+            'name' => $product['name'],
+            'amount' => $amount,
+            'interval' => $interval,
+            'raw_response' => ['product' => $product, 'price' => $price]
+        ];
+    }
+
+    /**
+     * Initialize a Stripe subscription.
+     *
+     * @param string $priceId Stripe price ID
+     * @param string $email Customer email
+     * @param string $reference Transaction reference
+     * @param string $callbackUrl Callback URL
+     * @param array $metadata Additional metadata
+     * @return array
+     */
+    public function initializeStripeSubscription($priceId, $email, $reference, $callbackUrl, $metadata = [])
+    {
+        $secretKey = $this->settings['stripe']['secret_key'] ?? null;
+
+        if (!$secretKey) {
+            throw new Exception('Stripe API keys are not configured.');
+        }
+
+        // Create checkout session for subscription
+        $url = "https://api.stripe.com/v1/checkout/sessions";
+        $fields = [
+            'payment_method_types[]' => 'card',
+            'line_items[0][price]' => $priceId,
+            'line_items[0][quantity]' => 1,
+            'mode' => 'subscription',
+            'success_url' => $callbackUrl . '?session_id={CHECKOUT_SESSION_ID}&reference=' . $reference,
+            'cancel_url' => $callbackUrl . '?canceled=true&reference=' . $reference,
+            'customer_email' => $email,
+            'metadata[reference]' => $reference,
+            'metadata[is_subscription]' => 'true'
+        ];
+
+        // Add custom metadata
+        foreach ($metadata as $key => $value) {
+            $fields['metadata[' . $key . ']'] = $value;
+        }
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($fields));
+        curl_setopt($ch, CURLOPT_USERPWD, $secretKey . ":");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            Log::error('Stripe API Error: ' . $err);
+            throw new Exception('Error communicating with Stripe: ' . $err);
+        }
+
+        $result = json_decode($response, true);
+
+        if (isset($result['error'])) {
+            Log::error('Stripe Subscription Error: ' . ($result['error']['message'] ?? 'Unknown error'));
+            throw new Exception('Error initializing Stripe subscription: ' . ($result['error']['message'] ?? 'Unknown error'));
+        }
+
+        return [
+            'success' => true,
+            'redirect_url' => $result['url'],
+            'reference' => $reference,
+            'gateway' => 'stripe',
+            'session_id' => $result['id'],
+            'subscription_id' => $result['subscription'] ?? null,
+            'raw_response' => $result
         ];
     }
 
@@ -819,6 +1001,116 @@ class PaymentService
     }
 
     /**
+     * Verify a Stripe subscription payment.
+     *
+     * @param string $reference Transaction reference
+     * @return array
+     */
+    public function verifyStripeSubscriptionPayment($reference)
+    {
+        $secretKey = $this->settings['stripe']['secret_key'] ?? null;
+
+        if (!$secretKey) {
+            throw new Exception('Stripe API keys are not configured.');
+        }
+
+        // First, find the checkout session using the reference from metadata
+        $url = "https://api.stripe.com/v1/checkout/sessions?limit=100";
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_USERPWD, $secretKey . ":");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            Log::error('Stripe API Error: ' . $err);
+            throw new Exception('Error communicating with Stripe: ' . $err);
+        }
+
+        $result = json_decode($response, true);
+
+        if (isset($result['error'])) {
+            Log::error('Stripe Session Error: ' . ($result['error']['message'] ?? 'Unknown error'));
+            throw new Exception('Error retrieving Stripe session: ' . ($result['error']['message'] ?? 'Unknown error'));
+        }
+
+        if (empty($result['data'])) {
+            throw new Exception('No Stripe session found for reference: ' . $reference);
+        }
+
+        // Find the session with matching reference in metadata
+        $session = null;
+        foreach ($result['data'] as $sessionData) {
+            if (isset($sessionData['metadata']['reference']) && $sessionData['metadata']['reference'] === $reference) {
+                $session = $sessionData;
+                break;
+            }
+        }
+
+        if (!$session) {
+            throw new Exception('No Stripe session found with reference: ' . $reference);
+        }
+        $sessionId = $session['id'];
+        $subscriptionId = $session['subscription'];
+
+        if (!$subscriptionId) {
+            throw new Exception('No subscription found for Stripe session: ' . $sessionId);
+        }
+
+        // Get the subscription details
+        $subscriptionUrl = "https://api.stripe.com/v1/subscriptions/" . $subscriptionId;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $subscriptionUrl);
+        curl_setopt($ch, CURLOPT_USERPWD, $secretKey . ":");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            Log::error('Stripe API Error: ' . $err);
+            throw new Exception('Error communicating with Stripe: ' . $err);
+        }
+
+        $subscription = json_decode($response, true);
+
+        if (isset($subscription['error'])) {
+            Log::error('Stripe Subscription Error: ' . ($subscription['error']['message'] ?? 'Unknown error'));
+            throw new Exception('Error retrieving Stripe subscription: ' . ($subscription['error']['message'] ?? 'Unknown error'));
+        }
+
+        $success = in_array($subscription['status'], ['active', 'trialing']);
+        $amount = 0;
+
+        // Get the amount from the subscription items
+        if (!empty($subscription['items']['data'])) {
+            $item = $subscription['items']['data'][0];
+            $amount = $item['price']['unit_amount'] / 100; // Convert from cents
+        }
+
+        return [
+            'success' => $success,
+            'reference' => $reference,
+            'gateway' => 'stripe',
+            'amount' => $amount,
+            'currency' => $subscription['currency'] ?? 'usd',
+            'payment_date' => date('Y-m-d H:i:s', $subscription['created']),
+            'subscription_id' => $subscription['id'],
+            'subscription_status' => $subscription['status'],
+            'customer_id' => $subscription['customer'],
+            'current_period_start' => isset($subscription['current_period_start']) ? date('Y-m-d H:i:s', $subscription['current_period_start']) : null,
+            'current_period_end' => isset($subscription['current_period_end']) ? date('Y-m-d H:i:s', $subscription['current_period_end']) : null,
+            'metadata' => $session['metadata'] ?? [],
+            'gateway_response' => $subscription['status'],
+            'raw_response' => ['session' => $session, 'subscription' => $subscription]
+        ];
+    }
+
+    /**
      * Fetch existing subscription for a customer and plan.
      *
      * @param string $customerEmail Customer email
@@ -929,6 +1221,60 @@ class PaymentService
             'success' => true,
             'message' => 'Subscription cancelled successfully',
             'raw_response' => $result['data']
+        ];
+    }
+
+    /**
+     * Cancel a Stripe subscription.
+     *
+     * @param string $subscriptionId Stripe subscription ID
+     * @param string $email Customer email (unused for Stripe but kept for consistency)
+     * @return array
+     */
+    public function cancelStripeSubscription($subscriptionId, $email = null)
+    {
+        $secretKey = $this->settings['stripe']['secret_key'] ?? null;
+
+        if (!$secretKey) {
+            throw new Exception('Stripe API keys are not configured.');
+        }
+
+        // Cancel the subscription at the end of the current period
+        $url = "https://api.stripe.com/v1/subscriptions/" . $subscriptionId;
+        $fields = [
+            'cancel_at_period_end' => 'true'
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($fields));
+        curl_setopt($ch, CURLOPT_USERPWD, $secretKey . ":");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            Log::error('Stripe API Error: ' . $err);
+            throw new Exception('Error communicating with Stripe: ' . $err);
+        }
+
+        $result = json_decode($response, true);
+
+        if (isset($result['error'])) {
+            Log::error('Stripe Subscription Cancellation Error: ' . ($result['error']['message'] ?? 'Unknown error'));
+            throw new Exception('Error cancelling Stripe subscription: ' . ($result['error']['message'] ?? 'Unknown error'));
+        }
+
+        return [
+            'success' => true,
+            'message' => 'Subscription will be cancelled at the end of the current period',
+            'subscription_id' => $result['id'],
+            'cancel_at_period_end' => $result['cancel_at_period_end'],
+            'current_period_end' => date('Y-m-d H:i:s', $result['current_period_end']),
+            'raw_response' => $result
         ];
     }
 }

@@ -39,7 +39,7 @@ class SubscriptionService
         ],
         'basic' => [
             'name' => 'Basic',
-            'price' => 7000,
+            'price' => 20,
             'duration' => 30, // days
             'features' => [
                 'max_products' => 50,
@@ -58,7 +58,7 @@ class SubscriptionService
         ],
         'premium' => [
             'name' => 'Premium',
-            'price' => 15000,
+            'price' => 30,
             'duration' => 30, // days
             'features' => [
                 'max_products' => 'unlimited',
@@ -308,6 +308,8 @@ class SubscriptionService
 
         // Get the Paystack plan code for this plan
         $paystackPlanCode = PaymentService::PAYSTACK_PLAN_CODES[$planKey] ?? null;
+        // Get the Stripe price ID for this plan
+        $stripePriceId = PaymentService::STRIPE_PRICE_IDS[$planKey] ?? null;
 
         // If we have a Paystack plan code and the gateway is Paystack, use the subscription API
         if ($paystackPlanCode && $paymentService->isPaystackGateway()) {
@@ -327,7 +329,25 @@ class SubscriptionService
             ];
         }
 
-        // Fall back to regular one-time payment for other gateways or if no Paystack plan code is set
+        // If we have a Stripe price ID and the gateway is Stripe, use the subscription API
+        if ($stripePriceId && !$paymentService->isPaystackGateway()) {
+            return [
+                'payment_data' => $paymentService->initializeStripeSubscription(
+                    $stripePriceId,
+                    $user->email,
+                    $reference,
+                    $callbackUrl,
+                    $metadata
+                ),
+                'reference' => $reference,
+                'plan' => $plan,
+                'converted_price' => $price != $plan['price'] ? $price : null,
+                'currency' => $price != $plan['price'] ? 'USD' : 'NGN',
+                'is_recurring' => true
+            ];
+        }
+
+        // Fall back to regular one-time payment for other gateways or if no plan codes/price IDs are set
         return [
             'payment_data' => $paymentService->initializePayment(
                 $price,
@@ -368,18 +388,33 @@ class SubscriptionService
 
         // Get the Paystack plan code for this plan
         $paystackPlanCode = PaymentService::PAYSTACK_PLAN_CODES[$planKey] ?? null;
+        // Get the Stripe price ID for this plan
+        $stripePriceId = PaymentService::STRIPE_PRICE_IDS[$planKey] ?? null;
 
         // If we have a Paystack plan code and the gateway is Paystack, use the subscription API
         if ($paystackPlanCode && $paymentService->isPaystackGateway()) {
             $paymentData = $paymentService->verifyPaystackSubscriptionPayment($reference);
+        } elseif ($stripePriceId && !$paymentService->isPaystackGateway()) {
+            // If we have a Stripe price ID and the gateway is Stripe, use the subscription API
+            $paymentData = $paymentService->verifyStripeSubscriptionPayment($reference);
         } else {
             $paymentData = $paymentService->verifyPayment($reference);
         }
 
         if ($paymentData['success']) {
-            // For Paystack recurring subscriptions, we have additional data
-            $subscriptionCode = $paymentData['subscription_code'] ?? null;
-            $nextPaymentDate = $paymentData['next_payment_date'] ?? null;
+            // For recurring subscriptions, we have additional data
+            $subscriptionCode = null;
+            $nextPaymentDate = null;
+
+            if ($paymentData['gateway'] === 'paystack') {
+                // Paystack subscription data
+                $subscriptionCode = $paymentData['subscription_code'] ?? null;
+                $nextPaymentDate = $paymentData['next_payment_date'] ?? null;
+            } elseif ($paymentData['gateway'] === 'stripe') {
+                // Stripe subscription data - use subscription_id as the code for consistency
+                $subscriptionCode = $paymentData['subscription_id'] ?? null;
+                $nextPaymentDate = $paymentData['current_period_end'] ?? null;
+            }
 
             // Create subscription
             $businessDetail = self::subscribe(
@@ -417,17 +452,21 @@ class SubscriptionService
         $businessDetail = $user->businessDetail;
         $subscriptionCode = $businessDetail->subscription_code;
 
-        // If this is a Paystack recurring subscription, cancel it with Paystack
-        if ($subscriptionCode && $businessDetail->subscription_payment_method === 'paystack') {
+        // If this is a recurring subscription, cancel it with the payment provider
+        if ($subscriptionCode) {
             try {
                 $paymentService = PaymentService::forSubscription($user);
-                $result = $paymentService->cancelPaystackSubscription($subscriptionCode, $user->email);
 
-                // Log the result for debugging
-                Log::info('Paystack subscription cancellation result', $result);
+                if ($businessDetail->subscription_payment_method === 'paystack') {
+                    $result = $paymentService->cancelPaystackSubscription($subscriptionCode, $user->email);
+                    Log::info('Paystack subscription cancellation result', $result);
+                } elseif ($businessDetail->subscription_payment_method === 'stripe') {
+                    $result = $paymentService->cancelStripeSubscription($subscriptionCode, $user->email);
+                    Log::info('Stripe subscription cancellation result', $result);
+                }
             } catch (Exception $e) {
                 // Log the error but continue with local cancellation
-                Log::error('Error cancelling Paystack subscription: ' . $e->getMessage());
+                Log::error('Error cancelling subscription: ' . $e->getMessage());
             }
         }
 
@@ -460,6 +499,7 @@ class SubscriptionService
      */
     protected static function isNigerianIP($ip = null)
     {
+        return false;
         if (!$ip) {
             $ip = request()->header('cf-connecting-ip') ?? request()->ip();
         }
@@ -547,6 +587,7 @@ class SubscriptionService
      */
     public static function convertPriceForInternationalUsers($amount)
     {
+        return $amount;
         if (!self::isNigerianIP()) {
             // Convert from Naira to USD: multiply by 4 and divide by 1550
             return round(($amount * 2) / 1550, 2);

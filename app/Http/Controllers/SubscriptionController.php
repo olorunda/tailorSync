@@ -87,6 +87,7 @@ class SubscriptionController extends Controller
      */
     public function processPayment(ProcessSubscriptionPaymentRequest $request, $planKey)
     {
+
         $user = Auth::user();
 
         try {

@@ -49,6 +49,7 @@ return [
             'stripe' => [
                 'public_key' => env('SUBSCRIPTION_STRIPE_PUBLIC_KEY', env('STRIPE_PUBLIC_KEY')),
                 'secret_key' => env('SUBSCRIPTION_STRIPE_SECRET_KEY', env('STRIPE_SECRET_KEY')),
+                'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
             ],
         ],
     ],

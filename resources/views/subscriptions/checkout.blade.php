@@ -135,7 +135,7 @@
                                     <a href="{{ route('subscriptions.index') }}" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200">
                                         Cancel
                                     </a>
-                                    <button type="submit" onclick="gtag_report_conversion('{{ route('subscriptions.index') }}')" class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white py-2 px-6 rounded">
+                                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white py-2 px-6 rounded">
                                         Proceed to Payment
                                     </button>
                                 </div>

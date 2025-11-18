@@ -13,6 +13,9 @@ Route::view('offline', 'offline')->name('offline');
 // Public order viewing route
 Route::get('orders/public/{hash}', [\App\Http\Controllers\PublicOrderController::class, 'show'])->name('orders.public');
 
+// Stripe webhook route (must be accessible without authentication)
+Route::post('stripe/webhook', [\App\Http\Controllers\StripeWebhookController::class, 'handleWebhook'])->name('stripe.webhook');
+
 // Public appointment booking routes
 Route::get('appointments/public/{slug}', [\App\Http\Controllers\PublicAppointmentController::class, 'show'])->name('appointments.public.booking');
 Route::post('appointments/public/{slug}', [\App\Http\Controllers\PublicAppointmentController::class, 'store'])->name('appointments.public.store');
