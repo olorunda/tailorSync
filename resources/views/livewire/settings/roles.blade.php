@@ -2,7 +2,9 @@
 
 use App\Models\Role;
 use App\Models\Permission;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
 
@@ -11,7 +13,7 @@ new class extends Component {
 
     public $roles = [];
     public $permissions = [];
-    public $selectedRole = null;
+    public $selectedRoleId = null;
     public $rolePermissions = [];
     public $rolePermissions2 = [];
     public $newRole = [
@@ -49,7 +51,7 @@ new class extends Component {
     public function loadRoles(): void
     {
         $this->roles = Role::all();
-        if (count($this->roles) > 0 && !$this->selectedRole) {
+        if (count($this->roles) > 0 && (!$this->selectedRoleId || !$this->roles->contains('id', $this->selectedRoleId))) {
             $this->selectRole($this->roles[0]->id);
         }
     }
@@ -75,8 +77,13 @@ new class extends Component {
      */
     public function selectRole($roleId): void
     {
-        $this->selectedRole = Role::find($roleId);
-        $this->rolePermissions = $this->selectedRole->permissions->pluck('id')->toArray();
+        $this->selectedRoleId = $roleId;
+        $role = Role::find($roleId);
+        if ($role) {
+            $this->rolePermissions = $role->permissions->pluck('id')->toArray();
+        } else {
+            $this->rolePermissions = [];
+        }
     }
 
     /**
@@ -85,18 +92,25 @@ new class extends Component {
     public function createRole(): void
     {
         if (!auth()->user()->hasPermission('manage_roles_permissions')) {
-            session()->flash('error', 'You do not have permission to create roles.');
+            $this->dispatch('alert', ['status'=>'error','message'=>'You do not have permission to create roles.']);
             return;
         }
 
+        $businessId = auth()->user()->parent_id ?? auth()->id();
+
         $this->validate([
-            'newRole.name' => 'required|string|max:255|unique:roles,name',
+            'newRole.name' => [
+                'required', 'string', 'max:255',
+                Rule::unique('roles', 'name')->where(fn($q) => $q->where('user_id', $businessId))
+            ],
             'newRole.description' => 'required|string|max:255',
         ]);
 
-        Role::create([
+        $role = Role::create([
             'name' => $this->newRole['name'],
             'description' => $this->newRole['description'],
+            'user_id' => $businessId,
+            'is_system' => false,
         ]);
 
         $this->newRole = [
@@ -105,6 +119,7 @@ new class extends Component {
         ];
 
         $this->loadRoles();
+        $this->selectRole($role->id);
         $this->dispatch('role-created');
         $this->dispatch('alert', ['status'=>'success','message'=>'Role Successfully Created']);
 
@@ -116,11 +131,22 @@ new class extends Component {
     public function prepareRoleEdit($roleId): void
     {
         if (!auth()->user()->hasPermission('manage_roles_permissions')) {
-            session()->flash('error', 'You do not have permission to edit roles.');
+            $this->dispatch('alert', ['status'=>'error','message'=>'You do not have permission to edit roles.']);
             return;
         }
 
         $role = Role::find($roleId);
+
+        if (!$role) {
+            $this->dispatch('alert', ['status'=>'error','message'=>'Role not found.']);
+            return;
+        }
+
+        if ($role->is_system) {
+            $this->dispatch('alert', ['status'=>'error','message'=>'System roles cannot be edited.']);
+            return;
+        }
+
         $this->editRole = [
             'id' => $role->id,
             'name' => $role->name,
@@ -135,16 +161,32 @@ new class extends Component {
     public function updateRole(): void
     {
         if (!auth()->user()->hasPermission('manage_roles_permissions')) {
-            session()->flash('error', 'You do not have permission to update roles.');
+            $this->dispatch('alert', ['status'=>'error','message'=>'You do not have permission to update roles.']);
             return;
         }
 
+        $role = Role::find($this->editRole['id']);
+
+        if (!$role) {
+            $this->dispatch('alert', ['status'=>'error','message'=>'Role not found.']);
+            return;
+        }
+
+        if ($role->is_system) {
+            $this->dispatch('alert', ['status'=>'error','message'=>'System roles cannot be edited.']);
+            return;
+        }
+
+        $businessId = auth()->user()->parent_id ?? auth()->id();
+
         $this->validate([
-            'editRole.name' => 'required|string|max:255|unique:roles,name,' . $this->editRole['id'],
+            'editRole.name' => [
+                'required', 'string', 'max:255',
+                Rule::unique('roles', 'name')->where(fn($q) => $q->where('user_id', $businessId))->ignore($role->id)
+            ],
             'editRole.description' => 'required|string|max:255',
         ]);
 
-        $role = Role::find($this->editRole['id']);
         $role->update([
             'name' => $this->editRole['name'],
             'description' => $this->editRole['description'],
@@ -163,28 +205,34 @@ new class extends Component {
     public function deleteRole($roleId): void
     {
         if (!auth()->user()->hasPermission('manage_roles_permissions')) {
-            session()->flash('error', 'You do not have permission to delete roles.');
+            $this->dispatch('alert', ['status'=>'error','message'=>'You do not have permission to delete roles.']);
             return;
         }
 
-        // Don't allow deleting the admin role
         $role = Role::find($roleId);
-        if ($role->name === 'admin') {
-            $this->dispatch('role-delete-error', message: 'Cannot delete the admin role');
+
+        if (!$role) {
+            $this->dispatch('alert', ['status'=>'error','message'=>'Role not found.']);
+            return;
+        }
+
+        if ($role->is_system) {
+            $this->dispatch('alert', ['status'=>'error','message'=>'System roles cannot be deleted.']);
             return;
         }
 
         // Check if role has users
-        if ($role->users()->count() > 0) {
-            $this->dispatch('role-delete-error', message: 'Cannot delete a role that has users assigned');
+        $userCount = User::where('role_id', $role->id)->count();
+        if ($userCount > 0) {
+            $this->dispatch('alert', ['status'=>'error','message'=>'Cannot delete a role that has users assigned.']);
             return;
         }
 
         $role->permissions()->detach();
         $role->delete();
 
-        if ($this->selectedRole && $this->selectedRole->id === $roleId) {
-            $this->selectedRole = null;
+        if ($this->selectedRoleId === $roleId) {
+            $this->selectedRoleId = null;
             $this->rolePermissions = [];
         }
 
@@ -200,15 +248,23 @@ new class extends Component {
     public function updateRolePermissions(): void
     {
         if (!auth()->user()->hasPermission('manage_roles_permissions')) {
-            session()->flash('error', 'You do not have permission to update role permissions.');
+            $this->dispatch('alert', ['status'=>'error','message'=>'You do not have permission to update role permissions.']);
             return;
         }
 
-        if (!$this->selectedRole) {
+        $selectedRole = Role::find($this->selectedRoleId);
+
+        if (!$selectedRole) {
             return;
         }
+
+        if ($selectedRole->is_system) {
+            $this->dispatch('alert', ['status'=>'error','message'=>'System role permissions cannot be modified.']);
+            return;
+        }
+
         $this->rolePermissions2=(array_values(array_unique((array)array_merge($this->rolePermissions2, $this->rolePermissions))));
-        $this->selectedRole->permissions()->sync($this->rolePermissions2);
+        $selectedRole->permissions()->sync($this->rolePermissions2);
         $this->dispatch('permissions-updated');
         $this->dispatch('alert', ['status'=>'success','message'=>'Permission Successfully Updated']);
 
@@ -220,12 +276,15 @@ new class extends Component {
     public function togglePermission($permissionId): void
     {
         if (!auth()->user()->hasPermission('manage_roles_permissions')) {
-            session()->flash('error', 'You do not have permission to update role permissions.');
+            $this->dispatch('alert', ['status'=>'error','message'=>'You do not have permission to update role permissions.']);
             return;
         }
 
+        $selectedRole = Role::find($this->selectedRoleId);
 
-
+        if ($selectedRole && $selectedRole->is_system) {
+            return;
+        }
 
         if (in_array($permissionId, $this->rolePermissions)) {
             $this->rolePermissions2 = array_diff($this->rolePermissions, [$permissionId]);
@@ -237,6 +296,10 @@ new class extends Component {
 
 <section class="w-full">
     @include('partials.settings-heading')
+
+    @php
+        $selectedRole = \App\Models\Role::find($selectedRoleId);
+    @endphp
 
     <x-settings.layout :heading="__('Roles Management')" :subheading="__('Create and manage user roles')">
         <div class="my-6 w-full space-y-8">
@@ -250,7 +313,7 @@ new class extends Component {
                     <flux:label for="role-select" :value="__('Select Role to Edit')" />
                     <select id="role-select"   wire:change="selectRole($event.target.value)" class="bg-zinc-50 dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 text-zinc-900 dark:text-zinc-100 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5 mt-1">
                         @foreach($roles as $role)
-                            <option value="{{ $role->id }}">{{ $role->name }}</option>
+                            <option value="{{ $role->id }}" @if($selectedRoleId == $role->id) selected @endif>{{ $role->name }} {{ $role->is_system ? '(System)' : '' }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -258,9 +321,17 @@ new class extends Component {
                 <!-- Role Actions -->
                 <div class="flex flex-wrap gap-2 mb-6">
                     <flux:button wire:click="$set('isEditingRole', false)" variant="secondary" size="sm">{{ __('New Role') }}</flux:button>
-                    @if($selectedRole)
+                    @if($selectedRole && !$selectedRole->is_system)
                         <flux:button wire:click="prepareRoleEdit({{ $selectedRole->id }})" variant="secondary" size="sm">{{ __('Edit Role') }}</flux:button>
-                        <flux:button wire:click="deleteRole({{ $selectedRole->id }})" variant="danger" size="sm">{{ __('Delete Role') }}</flux:button>
+                        
+                        <flux:button 
+                            wire:click="deleteRole({{ $selectedRole->id }})" 
+                            wire:confirm="{{ __('Are you sure you want to delete this role?') }}"
+                            variant="danger" 
+                            size="sm"
+                        >
+                            {{ __('Delete Role') }}
+                        </flux:button>
                     @endif
                 </div>
 
@@ -291,6 +362,12 @@ new class extends Component {
                     <flux:heading size="lg">{{ __('Role Permissions') }}</flux:heading>
                     <flux:subheading>{{ __('Manage permissions for') }}: {{ $selectedRole->name }}</flux:subheading>
                     <flux:separator variant="subtle" class="mb-4" />
+
+                    @if($selectedRole->is_system)
+                        <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 text-sm rounded-lg border border-blue-100 dark:border-blue-800">
+                            {{ __('This is a system role. Permissions are fixed and cannot be modified.') }}
+                        </div>
+                    @endif
 
                     <form wire:submit="updateRolePermissions" class="space-y-4">
                         @php
@@ -343,14 +420,15 @@ new class extends Component {
                                                         wire:model.live="rolePermissions"
                                                         wire:click="togglePermission({{ $permission->id }})"
                                                         value="{{ $permission->id }}"
-                                                        class="w-5 h-5 text-orange-600 bg-zinc-100 border-zinc-300 rounded focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-zinc-800 focus:ring-2 dark:bg-zinc-700 dark:border-zinc-600"
+                                                        @if($selectedRole->is_system) disabled @endif
+                                                        class="w-5 h-5 text-orange-600 bg-zinc-100 border-zinc-300 rounded focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-zinc-800 focus:ring-2 dark:bg-zinc-700 dark:border-zinc-600 disabled:opacity-50"
                                                     >
                                                 </div>
                                                 <div class="ml-3">
-                                                    <label for="permission-{{ $permission->id }}" class="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                                    <label for="permission-{{ $permission->id }}" class="text-sm font-medium text-zinc-900 dark:text-zinc-100 @if($selectedRole->is_system) opacity-50 @endif">
                                                         {{ $permission->name }}
                                                     </label>
-                                                    <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{{ $permission->description }}</p>
+                                                    <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 @if($selectedRole->is_system) opacity-50 @endif">{{ $permission->description }}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -359,13 +437,15 @@ new class extends Component {
                             </div>
                         @endforeach
 
-                        <div class="flex items-center gap-4 mt-6">
-                            <flux:button variant="primary" type="submit">{{ __('Save Permissions') }}</flux:button>
+                        @if(!$selectedRole->is_system)
+                            <div class="flex items-center gap-4 mt-6">
+                                <flux:button variant="primary" type="submit">{{ __('Save Permissions') }}</flux:button>
 
-                            <x-action-message class="me-3" on="permissions-updated">
-                                {{ __('Saved.') }}
-                            </x-action-message>
-                        </div>
+                                <x-action-message class="me-3" on="permissions-updated">
+                                    {{ __('Saved.') }}
+                                </x-action-message>
+                            </div>
+                        @endif
                     </form>
                 </div>
             @endif

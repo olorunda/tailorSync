@@ -39,6 +39,33 @@ new class extends Component {
         }
     }
 
+    public function export()
+    {
+        $user = Auth::user();
+        $items = $user->allInventoryItems()->get();
+
+        return response()->streamDownload(function () use ($items) {
+            $output = fopen('php://output', 'w');
+            fputcsv($output, ['id', 'name', 'sku', 'type', 'quantity', 'unit', 'unit_price', 'total_cost', 'supplier', 'location']);
+
+            foreach ($items as $item) {
+                fputcsv($output, [
+                    $item->id,
+                    $item->name,
+                    $item->sku,
+                    $item->type,
+                    $item->quantity,
+                    $item->unit,
+                    $item->unit_price,
+                    $item->total_cost,
+                    $item->supplier,
+                    $item->location,
+                ]);
+            }
+            fclose($output);
+        }, 'inventory_export_' . now()->format('Y-m-d') . '.csv');
+    }
+
     public function placeholder()
     {
         return <<<'HTML'
@@ -109,6 +136,18 @@ new class extends Component {
                 </svg>
                 Import Items
             </a>
+            <a href="{{ route('inventory.adjust') }}" class="inline-flex items-center px-4 py-2 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-md text-sm font-medium transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+                Adjust Quantities
+            </a>
+            <button wire:click="export" class="inline-flex items-center px-4 py-2 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-md text-sm font-medium transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+                Export CSV
+            </button>
             <a href="{{ route('inventory.create') }}" class="inline-flex items-center px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md text-sm font-medium transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />

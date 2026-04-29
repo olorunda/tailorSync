@@ -261,12 +261,13 @@ Route::middleware(['auth', 'onboarding.status','verified', 'redirect.client.user
         Volt::route('inventory/import', 'inventory.import')->name('inventory.import');
     });
 
-    Route::middleware(['permission:view_inventory'])->group(function () {
-        Volt::route('inventory/{inventoryItem}', 'inventory.show')->name('inventory.show');
+    Route::middleware(['permission:edit_inventory'])->group(function () {
+        Route::get('inventory/adjust', \App\Livewire\Inventory\Adjust::class)->name('inventory.adjust');
+        Volt::route('inventory/{inventoryItem}/edit', 'inventory.edit')->name('inventory.edit');
     });
 
-    Route::middleware(['permission:edit_inventory'])->group(function () {
-        Volt::route('inventory/{inventoryItem}/edit', 'inventory.edit')->name('inventory.edit');
+    Route::middleware(['permission:view_inventory'])->group(function () {
+        Volt::route('inventory/{inventoryItem}', 'inventory.show')->name('inventory.show');
     });
 
     // Appointment Routes
