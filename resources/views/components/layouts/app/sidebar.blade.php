@@ -3,23 +3,57 @@
     <head>
         @include('partials.head')
         <!--Start of Tawk.to Script-->
-{{--        <script type="text/javascript">--}}
+        <script type="text/javascript">
+            // Visitor identity for authenticated users
+            var Tawk_API = Tawk_API || {};
+            var Tawk_LoadStart = new Date();
 
-{{--            var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();--}}
-{{--            Tawk_API.visitor = {--}}
-{{--                name : "{{ auth()->user()->name }}",--}}
-{{--                email : "{{ auth()->user()->email }}",--}}
-{{--                hash : "{{ hash_hmac('sha256',auth()->user()->email,'d22a3437b3b93352089be49722deaaa6f8df1817266whhwh') }}"--}}
-{{--            };--}}
-{{--            (function(){--}}
-{{--                var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];--}}
-{{--                s1.async=true;--}}
-{{--                s1.src='https://embed.tawk.to/686e122c6bd052190d8f071a/1ivmvdvnj';--}}
-{{--                s1.charset='UTF-8';--}}
-{{--                s1.setAttribute('crossorigin','*');--}}
-{{--                s0.parentNode.insertBefore(s1,s0);--}}
-{{--            })();--}}
-{{--        </script>--}}
+            Tawk_API.visitor = {
+                name  : "{{ auth()->user()->name }}",
+                email : "{{ auth()->user()->email }}",
+                hash  : "{{ hash_hmac('sha256', auth()->user()->email, 'd22a3437b3b93352089be49722deaaa6f8df1817266whhwh') }}"
+            };
+
+            // Only inject the Tawk script once
+            if (!window._tawkLoaded) {
+                window._tawkLoaded = true;
+                (function(){
+                    var s1 = document.createElement("script"),
+                        s0 = document.getElementsByTagName("script")[0];
+                    s1.async = true;
+                    s1.src   = 'https://embed.tawk.to/686e122c6bd052190d8f071a/1ivmvdvnj';
+                    s1.charset = 'UTF-8';
+                    s1.setAttribute('crossorigin', '*');
+                    s0.parentNode.insertBefore(s1, s0);
+                })();
+            }
+
+            // Handle showing/hiding the widget based on screen size
+            function toggleTawkVisibility() {
+                if (typeof Tawk_API !== 'undefined') {
+                    if (window.innerWidth < 1024) {
+                        if (typeof Tawk_API.hideWidget === 'function') {
+                            Tawk_API.hideWidget();
+                        }
+                    } else {
+                        if (typeof Tawk_API.showWidget === 'function') {
+                            Tawk_API.showWidget();
+                        }
+                    }
+                }
+            }
+
+            // Re-show or hide the widget on Livewire SPA navigation
+            document.addEventListener('livewire:navigated', toggleTawkVisibility);
+
+            // Re-evaluate visibility on window resize
+            window.addEventListener('resize', toggleTawkVisibility);
+
+            // Set initial visibility once Tawk loads
+            Tawk_API.onLoad = function () {
+                toggleTawkVisibility();
+            };
+        </script>
         <!--End of Tawk.to Script-->
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
