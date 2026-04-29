@@ -218,7 +218,27 @@
 
         <!-- Mobile Header -->
         <flux:header class="lg:hidden">
-            <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
+            <!-- CTA Hamburger: animated to draw attention -->
+            <button
+                type="button"
+                x-data="{ seen: false }"
+                x-init="setTimeout(() => seen = true, 4000)"
+                x-on:click="$dispatch('flux-sidebar-toggle'); seen = true"
+                aria-label="Open navigation menu"
+                class="lg:hidden shrink-0 mr-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold shadow-lg shadow-orange-500/30 active:scale-95 transition-transform duration-150 relative"
+            >
+                <!-- Pulse ring — fades out after user clicks -->
+                <span
+                    x-show="!seen"
+                    class="absolute inset-0 rounded-lg animate-ping bg-orange-400 opacity-40 pointer-events-none"
+                ></span>
+
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 shrink-0">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
+                </svg>
+                <span>Menu</span>
+            </button>
+
             <a href="{{ route('dashboard') }}" class="flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
                 <x-app-logo-icon />
                 <span class="text-lg font-semibold">{{ config('app.name', 'TailorFit') }}</span>
