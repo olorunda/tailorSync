@@ -58,23 +58,7 @@ if ('serviceWorker' in navigator) {
                     });
                 }
 
-                // Listen for navigation events to update route cache
-                document.addEventListener('livewire:navigated', () => {
-                    if (navigator.onLine && navigator.serviceWorker.controller) {
-                        navigator.serviceWorker.controller.postMessage({
-                            type: 'UPDATE_ROUTE_CACHE'
-                        });
-                    }
-                });
 
-                // Also listen for regular page loads
-                window.addEventListener('pageshow', () => {
-                    if (navigator.onLine && navigator.serviceWorker.controller) {
-                        navigator.serviceWorker.controller.postMessage({
-                            type: 'UPDATE_ROUTE_CACHE'
-                        });
-                    }
-                });
             })
             .catch(error => {
                 console.error('Service Worker registration failed:', error);
@@ -95,10 +79,7 @@ window.addEventListener('online', () => {
                 type: 'SYNC_PENDING_REQUESTS'
             });
 
-            // Update route cache
-            navigator.serviceWorker.controller.postMessage({
-                type: 'UPDATE_ROUTE_CACHE'
-            });
+
         } else {
             // If controller is not available yet, wait for it
             navigator.serviceWorker.ready.then(registration => {
@@ -108,10 +89,7 @@ window.addEventListener('online', () => {
                         type: 'SYNC_PENDING_REQUESTS'
                     });
 
-                    // Update route cache
-                    registration.active.postMessage({
-                        type: 'UPDATE_ROUTE_CACHE'
-                    });
+
                 }
             });
         }

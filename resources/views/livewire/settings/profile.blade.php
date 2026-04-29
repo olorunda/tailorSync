@@ -51,7 +51,7 @@ new class extends Component {
                 Rule::unique(User::class)->ignore($user->id)
             ],
 
-            'currency' => ['required', 'string', Rule::in(['USD', 'EUR', 'GBP', 'NGN'])],
+            'currency' => ['required', 'string', Rule::in(['USD', 'EUR', 'GBP', 'NGN', 'ZAR'])],
         ]);
 
         $user->fill($validated);
@@ -105,6 +105,7 @@ new class extends Component {
                     <option value="EUR">Euro (€)</option>
                     <option value="GBP">British Pound (£)</option>
                     <option value="NGN">Nigerian Naira (₦)</option>
+                    <option value="ZAR">South African Rand (R)</option>
                 </select>
             </div>
 

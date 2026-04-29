@@ -197,10 +197,8 @@ class PaymentService
             'metadata' => $metadata
         ];
 
-        // Set currency if specified in metadata
-        if (isset($metadata['currency'])) {
-            $fields['currency'] = $metadata['currency'];
-        }
+        // Set currency if specified in metadata or use user's currency
+        $fields['currency'] = strtoupper($metadata['currency'] ?? $this->user->currency ?? 'NGN');
 
         $headers = [
             'Authorization: Bearer ' . $secretKey,
@@ -318,7 +316,7 @@ class PaymentService
         $fields = [
             'tx_ref' => $reference,
             'amount' => $amount,
-            'currency' => isset($metadata['currency']) ? $metadata['currency'] : 'NGN',
+            'currency' => strtoupper($metadata['currency'] ?? $this->user->currency ?? 'NGN'),
             'redirect_url' => $callbackUrl,
             'customer' => [
                 'email' => $email
@@ -448,7 +446,7 @@ class PaymentService
         $url = "https://api.stripe.com/v1/checkout/sessions";
         $fields = [
             'payment_method_types[]' => 'card',
-            'line_items[0][price_data][currency]' => 'usd',
+            'line_items[0][price_data][currency]' => strtolower($metadata['currency'] ?? $this->user->currency ?? 'usd'),
             'line_items[0][price_data][unit_amount]' => $amount,
             'line_items[0][price_data][product_data][name]' => $this->businessDetail->business_name . ' Payment',
             'line_items[0][quantity]' => 1,
@@ -648,7 +646,7 @@ class PaymentService
         // Create a price for the product
         $priceUrl = "https://api.stripe.com/v1/prices";
         $priceFields = [
-            'currency' => 'usd',
+            'currency' => strtolower($this->user->currency ?? 'usd'),
             'unit_amount' => $amountCents,
             'product' => $product['id'],
             'recurring[interval]' => $interval,
@@ -853,10 +851,8 @@ class PaymentService
             'plan' => $planCode // This will make it a subscription payment
         ];
 
-        // Set currency if specified in metadata
-        if (isset($metadata['currency'])) {
-            $fields['currency'] = $metadata['currency'];
-        }
+        // Set currency if specified in metadata or use user's currency
+        $fields['currency'] = strtoupper($metadata['currency'] ?? $this->user->currency ?? 'NGN');
 
         $headers = [
             'Authorization: Bearer ' . $secretKey,

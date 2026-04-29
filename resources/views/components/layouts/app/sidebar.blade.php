@@ -113,6 +113,12 @@
                         @endif
                     </flux:navlist.group>
                 @endif
+ 
+                <flux:navlist.group :heading="__('Settings')" class="grid">
+                    @if(auth()->user()->hasPermission('view_profile') || auth()->user()->hasPermission('change_password') || auth()->user()->hasPermission('manage_appearance') || auth()->user()->hasPermission('manage_roles_permissions'))
+                        <flux:navlist.item icon="cog-6-tooth" :href="route('settings.profile')" :current="request()->routeIs('settings.*')" wire:navigate>{{ __('Settings') }}</flux:navlist.item>
+                    @endif
+                </flux:navlist.group>
             </flux:navlist>
 
             <flux:spacer />

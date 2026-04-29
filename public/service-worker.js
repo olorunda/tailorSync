@@ -1,6 +1,6 @@
 // Service Worker for TailorFit PWA
 
-const CACHE_NAME = 'tailorfit-cache-v2';
+const CACHE_NAME = 'tailorfit-cache-v3';
 const OFFLINE_URL = '/offline';
 const NOTIFICATION_ICON = '/apple-touch-icon.png';
 const ASSETS_TO_CACHE = [
@@ -52,17 +52,8 @@ self.addEventListener('install', (event) => {
           });
         });
 
-        // Cache routes
-        const routePromises = ROUTES_TO_CACHE.map(url => {
-          return cache.add(url).catch(error => {
-            console.warn('Failed to cache route:', url, error);
-            // Continue despite the failure
-            return Promise.resolve();
-          });
-        });
-
         // Combine all promises
-        return Promise.all([...assetPromises, ...routePromises]);
+        return Promise.all([...assetPromises]);
       })
       .then(() => self.skipWaiting())
   );
@@ -129,51 +120,11 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          // Cache the latest version
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseToCache)
-                .catch(error => {
-                  console.warn('Failed to cache HTML response:', error);
-                  // Continue despite the failure
-                });
-
-              // If this is a route, also cache it with just the pathname
-              if (isRoute) {
-                cache.put(new Request(url.pathname), responseToCache.clone())
-                  .catch(error => {
-                    console.warn('Failed to cache route:', url.pathname, error);
-                    // Continue despite the failure
-                  });
-              }
-            })
-            .catch(error => {
-              console.warn('Failed to open cache:', error);
-              // Continue despite the failure
-            });
+          // Do not cache HTML responses to avoid stale CSRF tokens
           return response;
         })
         .catch(() => {
-          return caches.match(event.request)
-            .then((cachedResponse) => {
-              if (cachedResponse) {
-                return cachedResponse;
-              }
-
-              // If not found with full URL, try with just the pathname
-              if (isRoute) {
-                return caches.match(new Request(url.pathname))
-                  .then((pathResponse) => {
-                    if (pathResponse) {
-                      return pathResponse;
-                    }
-                    return caches.match(OFFLINE_URL);
-                  });
-              }
-
-              return caches.match(OFFLINE_URL);
-            });
+          return caches.match(OFFLINE_URL);
         })
     );
     return;
@@ -336,9 +287,6 @@ self.addEventListener('message', (event) => {
       self.registration.sync.register('sync-pending-requests')
         .catch(error => console.error('Sync registration failed:', error));
     }
-  } else if (event.data && event.data.type === 'UPDATE_ROUTE_CACHE') {
-    // Update the cache for all routes
-    updateRouteCache();
   }
 });
 
@@ -368,12 +316,14 @@ async function updateRouteCache() {
   }
 }
 
-// Periodically update the route cache when online
+// Periodically update the route cache when online (Disabled to prevent stale HTML)
+/*
 setInterval(() => {
   if (navigator.onLine) {
     updateRouteCache();
   }
 }, 3600000); // Update every hour
+*/
 
 // Push event - handle incoming push notifications
 self.addEventListener('push', (event) => {
