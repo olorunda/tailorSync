@@ -13,7 +13,9 @@ return new class extends Migration
     public function up(): void
     {
         // For MySQL, we need to modify the ENUM values
-        DB::statement("ALTER TABLE orders MODIFY COLUMN status ENUM('pending', 'in_progress', 'fitting', 'delivered', 'paid', 'ready', 'completed', 'cancelled') DEFAULT 'pending'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE orders MODIFY COLUMN status ENUM('pending', 'in_progress', 'fitting', 'delivered', 'paid', 'ready', 'completed', 'cancelled') DEFAULT 'pending'");
+        }
     }
 
     /**
@@ -22,6 +24,8 @@ return new class extends Migration
     public function down(): void
     {
         // Revert back to the original ENUM values
-        DB::statement("ALTER TABLE orders MODIFY COLUMN status ENUM('pending', 'in_progress', 'fitting', 'delivered', 'paid') DEFAULT 'pending'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE orders MODIFY COLUMN status ENUM('pending', 'in_progress', 'fitting', 'delivered', 'paid') DEFAULT 'pending'");
+        }
     }
 };

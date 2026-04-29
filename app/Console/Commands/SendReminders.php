@@ -106,7 +106,7 @@ class SendReminders extends Command
     }
 
     /**
-     * Send reminders to customers for orders due tomorrow or overdue.
+     * Send reminders to customers and admins for orders due tomorrow or overdue.
      */
     protected function sendOrderReminders()
     {
@@ -121,21 +121,29 @@ class SendReminders extends Command
             ->get();
 
         foreach ($orders as $order) {
-            if ($order->client) {
-                $isOverdue = $order->due_date && $order->due_date->isPast();
-                $type = $isOverdue ? 'overdue' : 'upcoming';
+            $isOverdue = $order->due_date && $order->due_date->isPast();
+            $type = $isOverdue ? 'overdue' : 'upcoming';
 
-                if ($this->shouldRemind($order, $type)) {
-                    $order->client->notify(new OrderReminderNotification($order, $isOverdue));
-                    $this->logReminder($order, $type);
+            if ($this->shouldRemind($order, $type)) {
+                // Notify Customer
+                if ($order->client) {
+                    $order->client->notify(new OrderReminderNotification($order, $isOverdue, 'customer'));
                     $this->line(" - Order Reminder ({$type}) sent to client {$order->client->name} for Order #{$order->order_number}");
                 }
+
+                // Notify Admin (Business Owner)
+                if ($order->user) {
+                    $order->user->notify(new OrderReminderNotification($order, $isOverdue, 'admin'));
+                    $this->line(" - Order Reminder ({$type}) sent to admin {$order->user->name} for Order #{$order->order_number}");
+                }
+
+                $this->logReminder($order, $type);
             }
         }
     }
 
     /**
-     * Send reminders to customers for upcoming appointments.
+     * Send reminders to customers and admins for upcoming appointments.
      */
     protected function sendAppointmentReminders()
     {
@@ -147,13 +155,21 @@ class SendReminders extends Command
             ->get();
 
         foreach ($appointments as $appointment) {
+            // Notify Customer
             if ($appointment->client) {
-                $appointment->client->notify(new AppointmentReminderNotification($appointment));
-                $appointment->update(['reminder_sent' => true]);
-                // Appointment already has reminder_sent, but we log it anyway for consistency
-                $this->logReminder($appointment, 'upcoming');
+                $appointment->client->notify(new AppointmentReminderNotification($appointment, 'customer'));
                 $this->line(" - Appointment Reminder sent to client {$appointment->client->name} for '{$appointment->title}'");
             }
+
+            // Notify Admin (Business Owner) - Using order user if available, else appointment user
+            $admin = ($appointment->order && $appointment->order->user) ? $appointment->order->user : $appointment->user;
+            if ($admin) {
+                $admin->notify(new AppointmentReminderNotification($appointment, 'admin'));
+                $this->line(" - Appointment Reminder sent to admin {$admin->name} for '{$appointment->title}'");
+            }
+
+            $appointment->update(['reminder_sent' => true]);
+            $this->logReminder($appointment, 'upcoming');
         }
     }
 

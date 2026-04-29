@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreignId('design_id')->nullable(); // Will be created later
             $table->string('fabric_type')->nullable();
             $table->date('due_date');
-            $table->enum('status', ['pending', 'in_progress', 'fitting', 'delivered', 'paid'])->default('pending');
+            $table->enum('status', ['pending', 'in_progress', 'fitting', 'delivered', 'paid', 'ready', 'completed', 'cancelled'])->default('pending');
             $table->decimal('cost', 10, 2);
             $table->decimal('deposit', 10, 2)->default(0);
             $table->decimal('balance', 10, 2)->default(0);

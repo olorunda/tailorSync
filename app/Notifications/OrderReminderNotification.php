@@ -14,14 +14,16 @@ class OrderReminderNotification extends Notification implements ShouldQueue
 
     protected $order;
     protected $isOverdue;
+    protected $target; // 'customer' or 'admin'
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(Order $order, bool $isOverdue = false)
+    public function __construct(Order $order, bool $isOverdue = false, string $target = 'customer')
     {
         $this->order = $order;
         $this->isOverdue = $isOverdue;
+        $this->target = $target;
     }
 
     /**
@@ -37,6 +39,30 @@ class OrderReminderNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
+        if ($this->target === 'admin') {
+            $subject = $this->isOverdue 
+                ? "ACTION REQUIRED: Order #{$this->order->order_number} is OVERDUE" 
+                : "UPCOMING DUE DATE: Order #{$this->order->order_number}";
+
+            $message = $this->isOverdue
+                ? "This is an internal reminder that Order #{$this->order->order_number} has passed its due date. Please update the customer and adjust the schedule if necessary."
+                : "This is an internal reminder that Order #{$this->order->order_number} is approaching its due date.";
+
+            return (new MailMessage)
+                ->subject($subject)
+                ->greeting("Hello Team,")
+                ->line($message)
+                ->line("**Order Details:**")
+                ->line("**Order Number:** #{$this->order->order_number}")
+                ->line("**Customer:** " . ($this->order->customer->name ?? 'N/A'))
+                ->line("**Design:** " . ($this->order->design_name ?: ($this->order->design->name ?? 'Custom Design')))
+                ->line("**Due Date:** " . ($this->order->due_date ? $this->order->due_date->format('F j, Y') : 'Not specified'))
+                ->line("**Status:** " . ucfirst($this->order->status))
+                ->action('Manage Order', url('/orders/' . $this->order->id))
+                ->line('Keep up the great work!');
+        }
+
+        // Default to Customer content
         $subject = $this->isOverdue 
             ? "Update on your Order #{$this->order->order_number}" 
             : "Reminder: Your Order #{$this->order->order_number} is nearly ready";
@@ -68,7 +94,10 @@ class OrderReminderNotification extends Notification implements ShouldQueue
             'order_number' => $this->order->order_number,
             'due_date' => $this->order->due_date ? $this->order->due_date->toIso8601String() : null,
             'is_overdue' => $this->isOverdue,
-            'message' => "Reminder for order #{$this->order->order_number}",
+            'target' => $this->target,
+            'message' => $this->target === 'admin' 
+                ? "Internal Reminder: Order #{$this->order->order_number} " . ($this->isOverdue ? 'is overdue' : 'due soon')
+                : "Reminder for order #{$this->order->order_number}",
         ];
     }
 }

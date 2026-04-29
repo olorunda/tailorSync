@@ -33,7 +33,7 @@ return new class extends Migration
             $table->dateTime('start_time');
             $table->dateTime('end_time');
             $table->enum('type', ['fitting', 'consultation', 'delivery', 'other'])->default('fitting');
-            $table->enum('status', ['scheduled', 'confirmed', 'completed', 'cancelled'])->default('scheduled');
+            $table->enum('status', ['scheduled', 'confirmed', 'completed', 'cancelled', 'pending'])->default('scheduled');
             $table->boolean('reminder_sent')->default(false);
             $table->timestamps();
         });

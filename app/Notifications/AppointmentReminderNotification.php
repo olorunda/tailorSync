@@ -13,19 +13,19 @@ class AppointmentReminderNotification extends Notification implements ShouldQueu
     use Queueable;
 
     protected $appointment;
+    protected $target; // 'customer' or 'admin'
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(Appointment $appointment)
+    public function __construct(Appointment $appointment, string $target = 'customer')
     {
         $this->appointment = $appointment;
+        $this->target = $target;
     }
 
     /**
      * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
      */
     public function via(object $notifiable): array
     {
@@ -40,9 +40,24 @@ class AppointmentReminderNotification extends Notification implements ShouldQueu
         $formattedDate = $this->appointment->start_time->format('l, F j, Y');
         $formattedTime = $this->appointment->start_time->format('g:i A');
         $endTime = $this->appointment->end_time ? $this->appointment->end_time->format('g:i A') : null;
-
         $timeRange = $endTime ? "{$formattedTime} - {$endTime}" : $formattedTime;
 
+        if ($this->target === 'admin') {
+            return (new MailMessage)
+                ->subject("Staff Reminder: Upcoming Appointment with " . ($this->appointment->client->name ?? 'Client'))
+                ->greeting("Hello Team,")
+                ->line("This is a reminder about an upcoming appointment on your schedule.")
+                ->line("**Appointment Details:**")
+                ->line("**Client:** " . ($this->appointment->client->name ?? 'N/A'))
+                ->line("**Title:** {$this->appointment->title}")
+                ->line("**Date:** {$formattedDate}")
+                ->line("**Time:** {$timeRange}")
+                ->line("**Location:** " . ($this->appointment->location ?: 'Our store'))
+                ->action('Manage Appointment', url('/appointments/' . $this->appointment->id))
+                ->line('Have a productive meeting!');
+        }
+
+        // Customer content
         $orderInfo = '';
         if ($this->appointment->order) {
             $orderInfo = "This appointment is related to your order #{$this->appointment->order->order_number}.";
@@ -70,64 +85,17 @@ class AppointmentReminderNotification extends Notification implements ShouldQueu
 
     /**
      * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array
     {
-        $formattedDate = $this->appointment->start_time->format('l, F j, Y');
-        $formattedTime = $this->appointment->start_time->format('g:i A');
-        $endTime = $this->appointment->end_time ? $this->appointment->end_time->format('g:i A') : null;
-
-        $timeRange = $endTime ? "{$formattedTime} - {$endTime}" : $formattedTime;
-
-        $orderInfo = '';
-        if ($this->appointment->order) {
-            $orderInfo = "This appointment is related to your order #{$this->appointment->order->order_number}.";
-        }
-
-        // Prepare lines for the mail message
-        $lines = [
-            "This is a friendly reminder about your upcoming appointment.",
-            "**Appointment Details:**",
-            "**Title:** {$this->appointment->title}",
-            "**Date:** {$formattedDate}",
-            "**Time:** {$timeRange}",
-            "**Location:** " . ($this->appointment->location ?: 'Our store')
-        ];
-
-        // Add description if available
-        if ($this->appointment->description) {
-            $lines[] = "**Description:** {$this->appointment->description}";
-        }
-
-        // Add order info if available
-        if ($orderInfo) {
-            $lines[] = $orderInfo;
-        }
-
-        $lines[] = "Please let us know if you need to reschedule or have any questions.";
-        $lines[] = "Thank you for your business!";
-
-        // Store the mail message components
-        $mailData = [
-            'subject' => "Reminder: Upcoming Appointment on {$formattedDate}",
-            'greeting' => "Hello {$notifiable->name},",
-            'lines' => $lines,
-            'action' => [
-                'text' => 'View Appointment Details',
-                'url' => url('/appointments/' . $this->appointment->id)
-            ]
-        ];
-
         return [
             'appointment_id' => $this->appointment->id,
             'title' => $this->appointment->title,
             'start_time' => $this->appointment->start_time->toIso8601String(),
-            'end_time' => $this->appointment->end_time ? $this->appointment->end_time->toIso8601String() : null,
-            'location' => $this->appointment->location,
-            'order_id' => $this->appointment->order_id,
-            'mail' => $mailData
+            'target' => $this->target,
+            'message' => $this->target === 'admin'
+                ? "Internal Reminder: Appointment with " . ($this->appointment->client->name ?? 'Client')
+                : "Reminder for your appointment: {$this->appointment->title}",
         ];
     }
 }
