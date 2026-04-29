@@ -11,23 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('orders', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('client_id')->constrained()->onDelete('cascade');
-            $table->string('order_number')->unique();
-            $table->string('design_name')->nullable();
-            $table->foreignId('design_id')->nullable(); // Will be created later
-            $table->string('fabric_type')->nullable();
-            $table->date('due_date');
-            $table->enum('status', ['pending', 'in_progress', 'fitting', 'delivered', 'paid', 'ready', 'completed', 'cancelled'])->default('pending');
-            $table->decimal('cost', 10, 2);
-            $table->decimal('deposit', 10, 2)->default(0);
-            $table->decimal('balance', 10, 2)->default(0);
-            $table->text('description')->nullable();
-            $table->text('notes')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('orders')) {
+            Schema::create('orders', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->foreignId('client_id')->constrained()->onDelete('cascade');
+                $table->string('order_number')->unique();
+                $table->string('design_name')->nullable();
+                $table->foreignId('design_id')->nullable(); // Will be created later
+                $table->string('fabric_type')->nullable();
+                $table->date('due_date');
+                $table->enum('status', ['pending', 'in_progress', 'fitting', 'delivered', 'paid', 'ready', 'completed', 'cancelled'])->default('pending');
+                $table->decimal('cost', 10, 2);
+                $table->decimal('deposit', 10, 2)->default(0);
+                $table->decimal('balance', 10, 2)->default(0);
+                $table->text('description')->nullable();
+                $table->text('notes')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

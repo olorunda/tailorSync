@@ -11,16 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('business_details', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('business_name');
-            $table->text('business_address');
-            $table->string('business_phone');
-            $table->string('business_email');
-            $table->string('logo_path')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('business_details')) {
+            Schema::create('business_details', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->string('business_name');
+                $table->text('business_address');
+                $table->string('business_phone');
+                $table->string('business_email');
+                $table->string('logo_path')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**
