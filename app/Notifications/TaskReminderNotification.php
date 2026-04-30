@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Task;
+use App\Notifications\Channels\PushNotificationChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -29,7 +30,14 @@ class TaskReminderNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        $channels = ['mail', 'database'];
+
+        // Add push notification channel if the notifiable has push subscriptions
+        if (method_exists($notifiable, 'pushSubscriptions') && $notifiable->pushSubscriptions()->exists()) {
+            $channels[] = PushNotificationChannel::class;
+        }
+
+        return $channels;
     }
 
     /**
@@ -73,6 +81,31 @@ class TaskReminderNotification extends Notification implements ShouldQueue
             'message' => $this->isOverdue 
                 ? "Task '{$this->task->title}' is overdue." 
                 : "Task '{$this->task->title}' is due soon.",
+        ];
+    }
+
+    /**
+     * Get the push notification representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function toPushNotification($notifiable): array
+    {
+        $title = $this->isOverdue ? "URGENT: Task Overdue" : "Task Reminder";
+        $body = $this->isOverdue ? "Task '{$this->task->title}' is overdue." : "Task '{$this->task->title}' is due soon.";
+
+        return [
+            'title' => $title,
+            'body' => $body,
+            'icon' => '/apple-touch-icon.png',
+            'badge' => '/apple-touch-icon.png',
+            'tag' => 'task-reminder-' . $this->task->id,
+            'url' => url('/tasks'),
+            'data' => [
+                'task_id' => $this->task->id,
+                'type' => 'task_reminder'
+            ]
         ];
     }
 }

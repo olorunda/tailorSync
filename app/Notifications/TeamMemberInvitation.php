@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Notifications\Channels\PushNotificationChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -41,7 +42,14 @@ class TeamMemberInvitation extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        $channels = ['mail', 'database'];
+
+        // Add push notification channel if the notifiable has push subscriptions
+        if (method_exists($notifiable, 'pushSubscriptions') && $notifiable->pushSubscriptions()->exists()) {
+            $channels[] = PushNotificationChannel::class;
+        }
+
+        return $channels;
     }
 
     /**
@@ -69,7 +77,30 @@ class TeamMemberInvitation extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            //
+            'business_name' => $this->businessName,
+            'message' => "You have been invited to join {$this->businessName} on TailorFit."
+        ];
+    }
+
+    /**
+     * Get the push notification representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function toPushNotification($notifiable): array
+    {
+        return [
+            'title' => "New Invitation",
+            'body' => "You have been invited to join '{$this->businessName}' on TailorSync.",
+            'icon' => '/apple-touch-icon.png',
+            'badge' => '/apple-touch-icon.png',
+            'tag' => 'team-invitation-' . md5($this->businessName),
+            'url' => url('/login'),
+            'data' => [
+                'business_name' => $this->businessName,
+                'type' => 'team_invitation'
+            ]
         ];
     }
 }

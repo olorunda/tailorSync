@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Invoice;
+use App\Notifications\Channels\PushNotificationChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -29,7 +30,14 @@ class InvoiceReminderNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        $channels = ['mail', 'database'];
+
+        // Add push notification channel if the notifiable has push subscriptions
+        if (method_exists($notifiable, 'pushSubscriptions') && $notifiable->pushSubscriptions()->exists()) {
+            $channels[] = PushNotificationChannel::class;
+        }
+
+        return $channels;
     }
 
     /**
@@ -70,6 +78,32 @@ class InvoiceReminderNotification extends Notification implements ShouldQueue
             'total_amount' => $this->invoice->total_amount,
             'due_date' => $this->invoice->due_date ? $this->invoice->due_date->toIso8601String() : null,
             'is_overdue' => $this->isOverdue,
+        ];
+    }
+
+    /**
+     * Get the push notification representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function toPushNotification($notifiable): array
+    {
+        $title = $this->isOverdue ? "Overdue Invoice #{$this->invoice->invoice_number}" : "Invoice Reminder #{$this->invoice->invoice_number}";
+        $body = $this->isOverdue ? "Your invoice is past its due date. Please make a payment." : "Friendly reminder: your invoice is due soon.";
+        $hash = \App\Http\Controllers\PublicOrderController::generateHash($this->invoice->order_id ?? $this->invoice->id . '_invoice');
+
+        return [
+            'title' => $title,
+            'body' => $body,
+            'icon' => '/apple-touch-icon.png',
+            'badge' => '/apple-touch-icon.png',
+            'tag' => 'invoice-reminder-' . $this->invoice->id,
+            'url' => url('/orders/public/' . $hash),
+            'data' => [
+                'invoice_id' => $this->invoice->id,
+                'type' => 'invoice_reminder'
+            ]
         ];
     }
 }

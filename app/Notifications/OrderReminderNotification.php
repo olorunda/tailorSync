@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Order;
+use App\Notifications\Channels\PushNotificationChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -14,7 +15,7 @@ class OrderReminderNotification extends Notification implements ShouldQueue
 
     protected $order;
     protected $isOverdue;
-    protected $target; // 'customer' or 'admin'
+    protected $target; // 'admin' or 'customer'
 
     /**
      * Create a new notification instance.
@@ -28,10 +29,19 @@ class OrderReminderNotification extends Notification implements ShouldQueue
 
     /**
      * Get the notification's delivery channels.
+     *
+     * @return array<int, string>
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        $channels = ['mail', 'database'];
+
+        // Add push notification channel if the notifiable has push subscriptions
+        if (method_exists($notifiable, 'pushSubscriptions') && $notifiable->pushSubscriptions()->exists()) {
+            $channels[] = PushNotificationChannel::class;
+        }
+
+        return $channels;
     }
 
     /**
@@ -39,41 +49,19 @@ class OrderReminderNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        if ($this->target === 'admin') {
-            $subject = $this->isOverdue 
-                ? "ACTION REQUIRED: Order #{$this->order->order_number} is OVERDUE" 
-                : "UPCOMING DUE DATE: Order #{$this->order->order_number}";
-
-            $message = $this->isOverdue
-                ? "This is an internal reminder that Order #{$this->order->order_number} has passed its due date. Please update the customer and adjust the schedule if necessary."
-                : "This is an internal reminder that Order #{$this->order->order_number} is approaching its due date.";
-
-            return (new MailMessage)
-                ->subject($subject)
-                ->greeting("Hello Team,")
-                ->line($message)
-                ->line("**Order Details:**")
-                ->line("**Order Number:** #{$this->order->order_number}")
-                ->line("**Customer:** " . ($this->order->customer->name ?? 'N/A'))
-                ->line("**Design:** " . ($this->order->design_name ?: ($this->order->design->name ?? 'Custom Design')))
-                ->line("**Due Date:** " . ($this->order->due_date ? $this->order->due_date->format('F j, Y') : 'Not specified'))
-                ->line("**Status:** " . ucfirst($this->order->status))
-                ->action('Manage Order', url('/orders/' . $this->order->id))
-                ->line('Keep up the great work!');
-        }
-
-        // Default to Customer content
         $subject = $this->isOverdue 
-            ? "Update on your Order #{$this->order->order_number}" 
-            : "Reminder: Your Order #{$this->order->order_number} is nearly ready";
+            ? "Overdue Order: #{$this->order->order_number}" 
+            : "Reminder: Order #{$this->order->order_number} Due Soon";
 
+        $greeting = $this->target === 'admin' ? "Hello Team," : "Hello {$notifiable->name},";
+        
         $message = $this->isOverdue
-            ? "We are working hard on your order. There has been a slight delay, but it's our top priority."
-            : "This is a friendly reminder regarding the estimated completion date for your order.";
+            ? "This is a reminder that Order #{$this->order->order_number} is past its due date."
+            : "This is a friendly reminder that Order #{$this->order->order_number} is due soon.";
 
         return (new MailMessage)
             ->subject($subject)
-            ->greeting("Hello {$notifiable->name},")
+            ->greeting($greeting)
             ->line($message)
             ->line("**Order Details:**")
             ->line("**Order Number:** #{$this->order->order_number}")
@@ -98,6 +86,31 @@ class OrderReminderNotification extends Notification implements ShouldQueue
             'message' => $this->target === 'admin' 
                 ? "Internal Reminder: Order #{$this->order->order_number} " . ($this->isOverdue ? 'is overdue' : 'due soon')
                 : "Reminder for order #{$this->order->order_number}",
+        ];
+    }
+    /**
+     * Get the push notification representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function toPushNotification($notifiable): array
+    {
+        $title = $this->isOverdue ? "Overdue Order #{$this->order->order_number}" : "Order Reminder #{$this->order->order_number}";
+        $body = $this->isOverdue ? "This order is past its due date." : "Your order is due soon. Check the details.";
+        $hash = \App\Http\Controllers\PublicOrderController::generateHash($this->order->id);
+
+        return [
+            'title' => $title,
+            'body' => $body,
+            'icon' => '/apple-touch-icon.png',
+            'badge' => '/apple-touch-icon.png',
+            'tag' => 'order-reminder-' . $this->order->id,
+            'url' => url('/orders/public/' . $hash),
+            'data' => [
+                'order_id' => $this->order->id,
+                'type' => 'order_reminder'
+            ]
         ];
     }
 }

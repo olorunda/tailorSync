@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Http\Controllers\PublicOrderController;
 use App\Models\Invoice;
+use App\Notifications\Channels\PushNotificationChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -31,7 +32,14 @@ class InvoiceEmailNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail','database'];
+        $channels = ['mail', 'database'];
+
+        // Add push notification channel if the notifiable has push subscriptions
+        if (method_exists($notifiable, 'pushSubscriptions') && $notifiable->pushSubscriptions()->exists()) {
+            $channels[] = PushNotificationChannel::class;
+        }
+
+        return $channels;
     }
 
     /**
@@ -50,9 +58,8 @@ class InvoiceEmailNotification extends Notification implements ShouldQueue
         $currencySymbol = Auth::user()->getCurrencySymbol();
 
         // Generate encrypted hash for the order ID if it exists
-             $hash =  PublicOrderController::generateHash($this->invoice->order_id ?? $this->invoice->id.'_invoice');
-
-            $publicUrl = route('orders.public', ['hash' => $hash]);
+        $hash =  PublicOrderController::generateHash($this->invoice->order_id ?? $this->invoice->id.'_invoice');
+        $publicUrl = route('orders.public', ['hash' => $hash]);
 
 
         return (new MailMessage)
@@ -109,6 +116,32 @@ class InvoiceEmailNotification extends Notification implements ShouldQueue
             'status' => $this->invoice->status,
             'amount' => $this->invoice->total_amount,
             'mail' => $mailData
+        ];
+    }
+
+    /**
+     * Get the push notification representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function toPushNotification($notifiable): array
+    {
+        $currencySymbol = Auth::user()->getCurrencySymbol();
+        $amount = $currencySymbol . number_format($this->invoice->total_amount, 2);
+        $hash = PublicOrderController::generateHash($this->invoice->order_id ?? $this->invoice->id . '_invoice');
+
+        return [
+            'title' => "New Invoice #{$this->invoice->invoice_number}",
+            'body' => "You have a new invoice for {$amount}. Please check the details.",
+            'icon' => '/apple-touch-icon.png',
+            'badge' => '/apple-touch-icon.png',
+            'tag' => 'invoice-' . $this->invoice->id,
+            'url' => route('orders.public', ['hash' => $hash]),
+            'data' => [
+                'invoice_id' => $this->invoice->id,
+                'type' => 'new_invoice'
+            ]
         ];
     }
 }

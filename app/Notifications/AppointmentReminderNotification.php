@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Appointment;
+use App\Notifications\Channels\PushNotificationChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -29,7 +30,14 @@ class AppointmentReminderNotification extends Notification implements ShouldQueu
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        $channels = ['mail', 'database'];
+
+        // Add push notification channel if the notifiable has push subscriptions
+        if (method_exists($notifiable, 'pushSubscriptions') && $notifiable->pushSubscriptions()->exists()) {
+            $channels[] = PushNotificationChannel::class;
+        }
+
+        return $channels;
     }
 
     /**
@@ -96,6 +104,34 @@ class AppointmentReminderNotification extends Notification implements ShouldQueu
             'message' => $this->target === 'admin'
                 ? "Internal Reminder: Appointment with " . ($this->appointment->client->name ?? 'Client')
                 : "Reminder for your appointment: {$this->appointment->title}",
+        ];
+    }
+
+    /**
+     * Get the push notification representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function toPushNotification($notifiable): array
+    {
+        $formattedTime = $this->appointment->start_time->format('g:i A');
+
+        $body = $this->target === 'admin'
+            ? "Upcoming appointment at {$formattedTime} with " . ($this->appointment->client->name ?? 'Client')
+            : "Reminder: Your appointment '{$this->appointment->title}' is today at {$formattedTime}.";
+
+        return [
+            'title' => "Appointment Reminder",
+            'body' => $body,
+            'icon' => '/apple-touch-icon.png',
+            'badge' => '/apple-touch-icon.png',
+            'tag' => 'appointment-reminder-' . $this->appointment->id,
+            'url' => url('/appointments/' . $this->appointment->id),
+            'data' => [
+                'appointment_id' => $this->appointment->id,
+                'type' => 'appointment_reminder'
+            ]
         ];
     }
 }

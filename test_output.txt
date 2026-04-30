@@ -1,0 +1,10 @@
+PHPUnit 11.5.55 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.4.19
+Configuration: /Users/olaoluwa/PhpstormProjects/tailorSync/phpunit.xml
+
+.                                                                   1 / 1 (100%)
+
+Time: 00:00.920, Memory: 50.50 MB
+
+OK (1 test, 91 assertions)

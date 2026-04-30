@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Notifications\Channels\PushNotificationChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -32,7 +33,14 @@ class EmailMessageNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        $channels = ['mail', 'database'];
+
+        // Add push notification channel if the notifiable has push subscriptions
+        if (method_exists($notifiable, 'pushSubscriptions') && $notifiable->pushSubscriptions()->exists()) {
+            $channels[] = PushNotificationChannel::class;
+        }
+
+        return $channels;
     }
 
     /**
@@ -40,11 +48,9 @@ class EmailMessageNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-
-//        $name=$notifiable['email'];
         return (new MailMessage)
             ->subject($this->subject)
-            ->greeting("Hello {$notifiable->routes['mail']},")
+            ->greeting("Hello " . ($notifiable->name ?? $notifiable->email) . ",")
             ->line("You have received a new message from {$this->senderName}.")
             ->line("Message:")
             ->line(nl2br($this->messageContent))
@@ -80,6 +86,28 @@ class EmailMessageNotification extends Notification implements ShouldQueue
             'message' => $this->messageContent,
             'sender_name' => $this->senderName,
             'mail' => $mailData
+        ];
+    }
+
+    /**
+     * Get the push notification representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function toPushNotification($notifiable): array
+    {
+        return [
+            'title' => "New Message from {$this->senderName}",
+            'body' => $this->subject,
+            'icon' => '/apple-touch-icon.png',
+            'badge' => '/apple-touch-icon.png',
+            'tag' => 'email-message-' . md5($this->subject . $this->senderName),
+            'url' => route('notifications.index'),
+            'data' => [
+                'sender_name' => $this->senderName,
+                'type' => 'email_message'
+            ]
         ];
     }
 }

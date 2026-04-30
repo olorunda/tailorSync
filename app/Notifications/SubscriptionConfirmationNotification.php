@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\BusinessDetail;
+use App\Notifications\Channels\PushNotificationChannel;
 use App\Services\SubscriptionService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -32,7 +33,14 @@ class SubscriptionConfirmationNotification extends Notification implements Shoul
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        $channels = ['mail', 'database'];
+
+        // Add push notification channel if the notifiable has push subscriptions
+        if (method_exists($notifiable, 'pushSubscriptions') && $notifiable->pushSubscriptions()->exists()) {
+            $channels[] = PushNotificationChannel::class;
+        }
+
+        return $channels;
     }
 
     /**
@@ -96,6 +104,31 @@ class SubscriptionConfirmationNotification extends Notification implements Shoul
             'subscription_plan' => $this->planKey,
             'subscription_end_date' => $this->businessDetail->subscription_end_date,
             'mail' => $mailData
+        ];
+    }
+
+    /**
+     * Get the push notification representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function toPushNotification($notifiable): array
+    {
+        $plan = SubscriptionService::getPlan($this->planKey);
+        $planName = $plan ? $plan['name'] : ucfirst($this->planKey);
+
+        return [
+            'title' => "Subscription Activated",
+            'body' => "Welcome to the {$planName} plan! Your subscription is now active.",
+            'icon' => '/apple-touch-icon.png',
+            'badge' => '/apple-touch-icon.png',
+            'tag' => 'subscription-confirmation-' . $this->businessDetail->id,
+            'url' => route('subscriptions.index'),
+            'data' => [
+                'business_detail_id' => $this->businessDetail->id,
+                'type' => 'subscription_confirmation'
+            ]
         ];
     }
 }

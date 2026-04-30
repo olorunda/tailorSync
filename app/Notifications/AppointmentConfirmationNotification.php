@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Appointment;
+use App\Notifications\Channels\PushNotificationChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -31,7 +32,14 @@ class AppointmentConfirmationNotification extends Notification implements Should
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        $channels = ['mail', 'database'];
+
+        // Add push notification channel if the notifiable has push subscriptions
+        if (method_exists($notifiable, 'pushSubscriptions') && $notifiable->pushSubscriptions()->exists()) {
+            $channels[] = PushNotificationChannel::class;
+        }
+
+        return $channels;
     }
 
     /**
@@ -126,6 +134,31 @@ class AppointmentConfirmationNotification extends Notification implements Should
             'order_id' => $this->appointment->order_id,
             'business_name' => $this->businessName,
             'mail' => $mailData
+        ];
+    }
+
+    /**
+     * Get the push notification representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function toPushNotification($notifiable): array
+    {
+        $formattedDate = $this->appointment->start_time->format('M j');
+        $formattedTime = $this->appointment->start_time->format('g:i A');
+
+        return [
+            'title' => "Appointment Confirmed",
+            'body' => "Your appointment '{$this->appointment->title}' is confirmed for {$formattedDate} at {$formattedTime}.",
+            'icon' => '/apple-touch-icon.png',
+            'badge' => '/apple-touch-icon.png',
+            'tag' => 'appointment-confirmation-' . $this->appointment->id,
+            'url' => url('/appointments/' . $this->appointment->id),
+            'data' => [
+                'appointment_id' => $this->appointment->id,
+                'type' => 'appointment_confirmation'
+            ]
         ];
     }
 }

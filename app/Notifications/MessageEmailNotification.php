@@ -3,11 +3,11 @@
 namespace App\Notifications;
 
 use App\Models\Message;
+use App\Notifications\Channels\PushNotificationChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\Auth;
 
 class MessageEmailNotification extends Notification implements ShouldQueue
 {
@@ -30,7 +30,14 @@ class MessageEmailNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        $channels = ['mail', 'database'];
+
+        // Add push notification channel if the notifiable has push subscriptions
+        if (method_exists($notifiable, 'pushSubscriptions') && $notifiable->pushSubscriptions()->exists()) {
+            $channels[] = PushNotificationChannel::class;
+        }
+
+        return $channels;
     }
 
     /**
@@ -83,6 +90,31 @@ class MessageEmailNotification extends Notification implements ShouldQueue
             'sender_id' => $this->message->sender_id,
             'sender_name' => $senderName,
             'mail' => $mailData
+        ];
+    }
+
+    /**
+     * Get the push notification representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function toPushNotification($notifiable): array
+    {
+        $sender = $this->message->sender;
+        $senderName = $sender ? $sender->name : 'Unknown';
+
+        return [
+            'title' => "New Message from {$senderName}",
+            'body' => $this->message->subject,
+            'icon' => '/apple-touch-icon.png',
+            'badge' => '/apple-touch-icon.png',
+            'tag' => 'message-' . $this->message->id,
+            'url' => route('messages.index'),
+            'data' => [
+                'message_id' => $this->message->id,
+                'type' => 'new_message'
+            ]
         ];
     }
 }

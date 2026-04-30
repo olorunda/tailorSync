@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\BusinessDetail;
+use App\Notifications\Channels\PushNotificationChannel;
 use App\Services\SubscriptionService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -32,7 +33,14 @@ class SubscriptionUpgradeReminderNotification extends Notification implements Sh
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        $channels = ['mail', 'database'];
+
+        // Add push notification channel if the notifiable has push subscriptions
+        if (method_exists($notifiable, 'pushSubscriptions') && $notifiable->pushSubscriptions()->exists()) {
+            $channels[] = PushNotificationChannel::class;
+        }
+
+        return $channels;
     }
 
     /**
@@ -150,5 +158,31 @@ class SubscriptionUpgradeReminderNotification extends Notification implements Sh
         }
 
         return [];
+    }
+
+    /**
+     * Get the push notification representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function toPushNotification($notifiable): array
+    {
+        $nextPlanKey = $this->currentPlanKey === 'free' ? 'basic' : 'premium';
+        $nextPlan = SubscriptionService::getPlan($nextPlanKey);
+        $nextPlanName = $nextPlan ? $nextPlan['name'] : ucfirst($nextPlanKey);
+
+        return [
+            'title' => "Unlock More Features!",
+            'body' => "Upgrade to the {$nextPlanName} plan to unlock more powerful features for your business.",
+            'icon' => '/apple-touch-icon.png',
+            'badge' => '/apple-touch-icon.png',
+            'tag' => 'subscription-upgrade-' . $this->businessDetail->id,
+            'url' => route('subscriptions.index'),
+            'data' => [
+                'business_detail_id' => $this->businessDetail->id,
+                'type' => 'subscription_upgrade_reminder'
+            ]
+        ];
     }
 }
