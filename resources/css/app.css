@@ -170,7 +170,11 @@ select:focus[data-flux-control] {
 
     .responsive-table tbody td:before {
         content: attr(data-label);
-        @apply float-left font-medium text-zinc-700 dark:text-zinc-100;
+        @apply float-left font-medium text-zinc-700;
+    }
+
+    .dark .responsive-table tbody td:before {
+        @apply text-zinc-100;
     }
 
     /* Remove whitespace-nowrap on mobile */
