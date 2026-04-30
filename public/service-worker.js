@@ -1,6 +1,6 @@
 // Service Worker for ThredNix PWA
 
-const CACHE_NAME = 'tailorfit-cache-v3';
+const CACHE_NAME = 'tailorfit-cache-v4';
 const OFFLINE_URL = '/offline';
 const NOTIFICATION_ICON = '/apple-touch-icon.png';
 const ASSETS_TO_CACHE = [
@@ -10,8 +10,6 @@ const ASSETS_TO_CACHE = [
   '/favicon.ico',
   '/favicon.svg',
   '/apple-touch-icon.png',
-  '/build/assets/app.css',
-  '/build/assets/app.js'
 ];
 
 // All routes to cache
