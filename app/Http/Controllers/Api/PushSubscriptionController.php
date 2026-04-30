@@ -34,23 +34,18 @@ class PushSubscriptionController extends Controller
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
-        // Check if subscription already exists
-        if ($user->hasPushSubscription($request->endpoint)) {
-            return response()->json(['message' => 'Subscription already exists'], 200);
-        }
-
-        // Create new subscription
-        $subscription = $user->createPushSubscription([
-            'endpoint' => $request->endpoint,
-            'keys' => [
-                'p256dh' => $request->keys['p256dh'],
-                'auth' => $request->keys['auth'],
-            ],
-            'contentEncoding' => $request->contentEncoding ?? 'aes128gcm',
-        ]);
+        // Create or update subscription
+        $subscription = $user->pushSubscriptions()->updateOrCreate(
+            ['endpoint' => $request->endpoint],
+            [
+                'public_key' => $request->keys['p256dh'],
+                'auth_token' => $request->keys['auth'],
+                'content_encoding' => $request->contentEncoding ?? 'aes128gcm',
+            ]
+        );
 
         return response()->json([
-            'message' => 'Subscription created successfully',
+            'message' => 'Subscription saved successfully',
             'subscription' => $subscription
         ], 201);
     }

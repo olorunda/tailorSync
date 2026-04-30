@@ -38,7 +38,7 @@ class PushSmokeTest extends Command
             $this->error("User with ID {$userId} not found.");
             return 1;
         }
-        dd($user->pushSubscriptions()->get());
+
         if (!$user->pushSubscriptions()->exists()) {
             $this->error("User has no push subscriptions. ID=2 in push_subscriptions table corresponds to user_id=34.");
             return 1;
@@ -74,7 +74,7 @@ class PushSmokeTest extends Command
             'Task Reminder' => new TaskReminderNotification($task),
             'Subscription Confirmed' => new SubscriptionConfirmationNotification($businessDetail),
             'Subscription Upgrade' => new SubscriptionUpgradeReminderNotification($businessDetail),
-            'Team Invitation' => new TeamMemberInvitation('secret-pass', 'TailorSync Smoke Test'),
+            'Team Invitation' => new TeamMemberInvitation('secret-pass', 'ThredNix Smoke Test'),
         ];
 
         foreach ($notificationMap as $label => $notification) {

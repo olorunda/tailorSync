@@ -1,4 +1,4 @@
-// Service Worker for TailorFit PWA
+// Service Worker for ThredNix PWA
 
 const CACHE_NAME = 'tailorfit-cache-v3';
 const OFFLINE_URL = '/offline';
@@ -335,7 +335,7 @@ self.addEventListener('push', (event) => {
   try {
     const data = event.data.json();
 
-    const title = data.title || 'ThreadNix Notification';
+    const title = data.title || 'ThredNix Notification';
     const options = {
       body: data.body || 'You have a new notification',
       icon: data.icon || NOTIFICATION_ICON,

@@ -1,5 +1,5 @@
 /**
- * Push Notifications Handler for ThreadNix
+ * Push Notifications Handler for ThredNix
  *
  * This file handles:
  * 1. Checking for service worker and push notification support
@@ -55,6 +55,27 @@ class PushNotificationManager {
 
     return this.swRegistration.pushManager.getSubscription()
       .then(subscription => {
+        if (subscription) {
+          // Check if the subscription key matches the current applicationServerPublicKey
+          const currentKey = this.urlB64ToUint8Array(this.applicationServerPublicKey);
+          const subscriptionKey = new Uint8Array(subscription.options.applicationServerKey);
+          
+          let keyMatch = currentKey.length === subscriptionKey.length;
+          if (keyMatch) {
+            for (let i = 0; i < currentKey.length; i++) {
+              if (currentKey[i] !== subscriptionKey[i]) {
+                keyMatch = false;
+                break;
+              }
+            }
+          }
+
+          if (!keyMatch) {
+            console.log('Push subscription key mismatch. Re-subscribing...');
+            return subscription.unsubscribe().then(() => this.subscribe());
+          }
+        }
+
         this.isSubscribed = subscription !== null;
         console.log('User is' + (this.isSubscribed ? '' : ' not') + ' subscribed to push notifications');
 
