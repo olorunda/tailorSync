@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('measurements', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('client_id')->constrained()->onDelete('cascade');
-            $table->text('notes')->nullable();
-            $table->date('measurement_date');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('measurements')) {
+            Schema::create('measurements', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('client_id')->constrained()->onDelete('cascade');
+                $table->text('notes')->nullable();
+                $table->date('measurement_date');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

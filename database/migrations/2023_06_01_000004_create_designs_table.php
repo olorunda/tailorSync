@@ -11,24 +11,28 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('designs', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('name');
-            $table->text('description')->nullable();
-            $table->string('image_path')->nullable();
-            $table->string('collection')->nullable(); // For grouping designs into collections/lookbooks
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('designs')) {
+            Schema::create('designs', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->string('name');
+                $table->text('description')->nullable();
+                $table->string('image_path')->nullable();
+                $table->string('collection')->nullable(); // For grouping designs into collections/lookbooks
+                $table->timestamps();
+            });
+        }
 
         // Create a pivot table for design tags
-        Schema::create('design_tags', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('design_id')->constrained()->onDelete('cascade');
-            $table->string('tag_type'); // 'fabric', 'style', etc.
-            $table->string('tag_value');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('design_tags')) {
+            Schema::create('design_tags', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('design_id')->constrained()->onDelete('cascade');
+                $table->string('tag_type'); // 'fabric', 'style', etc.
+                $table->string('tag_value');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

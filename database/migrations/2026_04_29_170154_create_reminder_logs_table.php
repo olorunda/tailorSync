@@ -11,15 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('reminder_logs', function (Blueprint $table) {
-            $table->id();
-            $table->morphs('remindable');
-            $table->string('reminder_type'); // e.g., 'upcoming', 'overdue'
-            $table->timestamp('sent_at')->useCurrent();
-            $table->timestamps();
-            
-            $table->index(['remindable_id', 'remindable_type', 'reminder_type'], 'remindable_type_index');
-        });
+        if (!Schema::hasTable('reminder_logs')) {
+            Schema::create('reminder_logs', function (Blueprint $table) {
+                $table->id();
+                $table->morphs('remindable');
+                $table->string('reminder_type'); // e.g., 'upcoming', 'overdue'
+                $table->timestamp('sent_at')->useCurrent();
+                $table->timestamps();
+                
+                $table->index(['remindable_id', 'remindable_type', 'reminder_type'], 'remindable_type_index');
+            });
+        }
     }
 
     /**
