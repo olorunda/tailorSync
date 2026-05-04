@@ -161,4 +161,87 @@ class ReminderTest extends TestCase
         $this->artisan('reminders:send');
         Notification::assertNotSentTo($client, OrderReminderNotification::class);
     }
+    /** @test */
+    public function it_limits_total_reminders_to_a_maximum_of_two()
+    {
+        Notification::fake();
+
+        $admin = User::factory()->create(['role' => 'admin']);
+        $client = Client::factory()->create(['user_id' => $admin->id]);
+        
+        // Order due tomorrow
+        $order = Order::factory()->create([
+            'user_id' => $admin->id,
+            'client_id' => $client->id,
+            'due_date' => Carbon::tomorrow(),
+            'status' => 'in_progress'
+        ]);
+
+        // 1. First run - sends upcoming reminder
+        $this->artisan('reminders:send');
+        Notification::assertSentTo($client, OrderReminderNotification::class);
+        $this->assertEquals(1, \App\Models\ReminderLog::where('remindable_id', $order->id)->count());
+
+        // 2. Wait 5 days - it's now overdue
+        Carbon::setTestNow(now()->addDays(5));
+        Notification::fake();
+        
+        // Second run - sends 1st overdue reminder
+        $this->artisan('reminders:send');
+        Notification::assertSentTo($client, OrderReminderNotification::class);
+        $this->assertEquals(2, \App\Models\ReminderLog::where('remindable_id', $order->id)->count());
+
+        // 3. Wait another 5 days
+        Carbon::setTestNow(now()->addDays(5));
+        Notification::fake();
+
+        // Third run - should NOT send anymore because total limit (2) is reached
+        $this->artisan('reminders:send');
+        Notification::assertNotSentTo($client, OrderReminderNotification::class);
+        $this->assertEquals(2, \App\Models\ReminderLog::where('remindable_id', $order->id)->count());
+
+        Carbon::setTestNow(); // Reset time
+    }
+
+    /** @test */
+    public function it_limits_overdue_only_reminders_to_a_maximum_of_two()
+    {
+        Notification::fake();
+
+        $admin = User::factory()->create(['role' => 'admin']);
+        $client = Client::factory()->create(['user_id' => $admin->id]);
+        
+        // Order already overdue by 10 days (no upcoming reminder was sent)
+        $order = Order::factory()->create([
+            'user_id' => $admin->id,
+            'client_id' => $client->id,
+            'due_date' => Carbon::today()->subDays(10),
+            'status' => 'in_progress'
+        ]);
+
+        // 1. First run - sends 1st overdue reminder
+        $this->artisan('reminders:send');
+        Notification::assertSentTo($client, OrderReminderNotification::class);
+        $this->assertEquals(1, \App\Models\ReminderLog::where('remindable_id', $order->id)->count());
+
+        // 2. Wait 5 days
+        Carbon::setTestNow(now()->addDays(5));
+        Notification::fake();
+        
+        // Second run - sends 2nd overdue reminder
+        $this->artisan('reminders:send');
+        Notification::assertSentTo($client, OrderReminderNotification::class);
+        $this->assertEquals(2, \App\Models\ReminderLog::where('remindable_id', $order->id)->count());
+
+        // 3. Wait another 5 days
+        Carbon::setTestNow(now()->addDays(5));
+        Notification::fake();
+
+        // Third run - should NOT send anymore
+        $this->artisan('reminders:send');
+        Notification::assertNotSentTo($client, OrderReminderNotification::class);
+        $this->assertEquals(2, \App\Models\ReminderLog::where('remindable_id', $order->id)->count());
+
+        Carbon::setTestNow(); // Reset time
+    }
 }

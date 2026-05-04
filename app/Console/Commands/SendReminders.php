@@ -50,9 +50,15 @@ class SendReminders extends Command
      */
     protected function shouldRemind($model, $type)
     {
-        $query = ReminderLog::where('remindable_id', $model->id)
-            ->where('remindable_type', get_class($model))
-            ->where('reminder_type', $type);
+        $baseQuery = ReminderLog::where('remindable_id', $model->id)
+            ->where('remindable_type', get_class($model));
+
+        // Limit total reminders (upcoming + overdue) to 2 to avoid spamming
+        if ((clone $baseQuery)->count() >= 2) {
+            return false;
+        }
+
+        $query = $baseQuery->where('reminder_type', $type);
 
         // If it's an overdue reminder, we might want to resend it after 3 days
         if ($type === 'overdue') {
