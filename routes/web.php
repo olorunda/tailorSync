@@ -14,7 +14,9 @@ Route::view('offline', 'offline')->name('offline');
 Route::get('orders/public/{hash}', [\App\Http\Controllers\PublicOrderController::class, 'show'])->name('orders.public');
 
 // Stripe webhook route (must be accessible without authentication)
-Route::post('stripe/webhook', [\App\Http\Controllers\StripeWebhookController::class, 'handleWebhook'])->name('stripe.webhook');
+Route::post('stripe/webhook', [\App\Http\Controllers\StripeWebhookController::class, 'handleWebhook'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->name('stripe.webhook');
 
 // Public appointment booking routes
 Route::get('appointments/public/{slug}', [\App\Http\Controllers\PublicAppointmentController::class, 'show'])->name('appointments.public.booking');
@@ -394,7 +396,9 @@ require __DIR__.'/auth.php';
 require __DIR__.'/payment.php';
 
 // Paystack webhook route - must be outside of any middleware group that requires CSRF verification
-Route::post('webhooks/paystack', [\App\Http\Controllers\PaystackWebhookController::class, 'handleWebhook'])->name('webhooks.paystack');
+Route::post('webhooks/paystack', [\App\Http\Controllers\PaystackWebhookController::class, 'handleWebhook'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->name('webhooks.paystack');
 
 // Subscription routes
 Route::middleware(['auth', 'onboarding.status','verified'])->group(function () {
