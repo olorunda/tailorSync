@@ -60,7 +60,9 @@ class StripeWebhookController extends Controller
                     break;
 
                 case 'invoice.payment_succeeded':
-                    $this->handleInvoicePaymentSucceeded($event->data->object);
+                case 'charge.succeeded':
+                case 'payment_intent.succeeded':
+                    $this->handleSuccessfulPayment($event->data->object, $event->type);
                     break;
 
                 case 'invoice.payment_failed':
@@ -90,7 +92,7 @@ class StripeWebhookController extends Controller
      */
     protected function handleSubscriptionUpdated($subscription)
     {
-        $businessDetail = $this->findBusinessDetailBySubscriptionId($subscription->id);
+        $businessDetail = $this->findBusinessDetail($subscription->id, $subscription, 'customer.subscription.updated');
 
         if (!$businessDetail) {
             Log::warning('Business detail not found for subscription: ' . $subscription->id);
@@ -105,6 +107,12 @@ class StripeWebhookController extends Controller
         $businessDetail->subscription_end_date = isset($subscription->current_period_end)
             ? date('Y-m-d H:i:s', $subscription->current_period_end)
             : null;
+
+        // Try to update plan if present in metadata
+        $planKey = $subscription->metadata['plan_key'] ?? $subscription->metadata->plan_key ?? null;
+        if ($planKey) {
+            $businessDetail->subscription_plan = $planKey;
+        }
 
         $businessDetail->save();
 
@@ -125,7 +133,7 @@ class StripeWebhookController extends Controller
      */
     protected function handleSubscriptionDeleted($subscription)
     {
-        $businessDetail = $this->findBusinessDetailBySubscriptionId($subscription->id);
+        $businessDetail = $this->findBusinessDetail($subscription->id, $subscription, 'customer.subscription.deleted');
 
         if (!$businessDetail) {
             Log::warning('Business detail not found for subscription: ' . $subscription->id);
@@ -146,33 +154,61 @@ class StripeWebhookController extends Controller
     }
 
     /**
-     * Handle successful invoice payment.
+     * Handle successful payment event (invoice, charge, or payment intent).
      *
-     * @param object $invoice
+     * @param object $object
+     * @param string $eventType
      * @return void
      */
-    protected function handleInvoicePaymentSucceeded($invoice)
+    protected function handleSuccessfulPayment($object, $eventType)
     {
-        if (!$invoice->subscription) {
-            return; // Not a subscription invoice
+        $invoiceId = $object->invoice ?? null;
+        if ($eventType === 'invoice.payment_succeeded') {
+            $invoiceId = $object->id;
         }
 
-        $businessDetail = $this->findBusinessDetailBySubscriptionId($invoice->subscription);
+        if (!$invoiceId) {
+            Log::warning("No invoice ID found for event: {$eventType}");
+            return;
+        }
+
+        $businessDetail = $this->findBusinessDetail(null, $object, $eventType);
 
         if (!$businessDetail) {
-            Log::warning('Business detail not found for subscription: ' . $invoice->subscription);
+            Log::warning("Business detail not found for successful payment event: {$eventType}");
             return;
         }
 
         // Ensure subscription is active after successful payment
         $businessDetail->subscription_active = true;
+
+        // Retrieve invoice from Stripe to find subscription ID and details
+        $stripeInvoice = $this->stripeApiRequest("invoices/{$invoiceId}");
+        if ($stripeInvoice && !isset($stripeInvoice['error'])) {
+            $subscriptionId = $stripeInvoice['subscription'] ?? null;
+            if ($subscriptionId) {
+                $businessDetail->subscription_code = $subscriptionId;
+
+                // Retrieve subscription from Stripe to get period dates and metadata
+                $stripeSubscription = $this->stripeApiRequest("subscriptions/{$subscriptionId}");
+                if ($stripeSubscription && !isset($stripeSubscription['error'])) {
+                    $businessDetail->subscription_end_date = isset($stripeSubscription['current_period_end'])
+                        ? date('Y-m-d H:i:s', $stripeSubscription['current_period_end'])
+                        : null;
+                    $planKey = $stripeSubscription['metadata']['plan_key'] ?? null;
+                    if ($planKey) {
+                        $businessDetail->subscription_plan = $planKey;
+                    }
+                }
+            }
+        }
+
         $businessDetail->save();
 
-        Log::info('Subscription payment succeeded via webhook', [
-            'subscription_id' => $invoice->subscription,
+        Log::info("Subscription payment succeeded via webhook ({$eventType})", [
             'business_id' => $businessDetail->id,
-            'invoice_id' => $invoice->id,
-            'amount_paid' => $invoice->amount_paid / 100 // Convert from cents
+            'invoice_id' => $invoiceId,
+            'subscription_code' => $businessDetail->subscription_code
         ]);
     }
 
@@ -188,7 +224,7 @@ class StripeWebhookController extends Controller
             return; // Not a subscription invoice
         }
 
-        $businessDetail = $this->findBusinessDetailBySubscriptionId($invoice->subscription);
+        $businessDetail = $this->findBusinessDetail($invoice->subscription, $invoice, 'invoice.payment_failed');
 
         if (!$businessDetail) {
             Log::warning('Business detail not found for subscription: ' . $invoice->subscription);
@@ -201,22 +237,166 @@ class StripeWebhookController extends Controller
             'invoice_id' => $invoice->id,
             'attempt_count' => $invoice->attempt_count ?? 1
         ]);
-
-        // Note: We don't immediately deactivate the subscription here
-        // as Stripe may retry the payment. The subscription will be
-        // deactivated when Stripe sends a subscription.deleted event
     }
 
     /**
-     * Find business detail by Stripe subscription ID.
+     * Helper to perform signed requests to Stripe API.
      *
-     * @param string $subscriptionId
+     * @param string $endpoint
+     * @return array|null
+     */
+    protected function stripeApiRequest($endpoint)
+    {
+        $secretKey = config('services.payment.subscription.stripe.secret_key');
+        if (!$secretKey) {
+            Log::error('Stripe secret key not configured in webhook controller');
+            return null;
+        }
+
+        $url = "https://api.stripe.com/v1/" . ltrim($endpoint, '/');
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_USERPWD, $secretKey . ":");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            Log::error('Stripe API Error in Webhook: ' . $err);
+            return null;
+        }
+
+        return json_decode($response, true);
+    }
+
+    /**
+     * Find business detail by various identifiers.
+     *
+     * @param string|null $subscriptionId
+     * @param object|null $eventObject
+     * @param string|null $eventType
      * @return BusinessDetail|null
      */
-    protected function findBusinessDetailBySubscriptionId($subscriptionId)
+    protected function findBusinessDetail($subscriptionId, $eventObject = null, $eventType = null)
     {
-        return BusinessDetail::where('subscription_code', $subscriptionId)
-            ->where('subscription_payment_method', 'stripe')
-            ->first();
+        // 1. First, search by subscription_code in DB
+        if ($subscriptionId) {
+            $businessDetail = BusinessDetail::where('subscription_code', $subscriptionId)
+                ->where('subscription_payment_method', 'stripe')
+                ->first();
+            if ($businessDetail) {
+                return $businessDetail;
+            }
+        }
+
+        // 2. If not found by subscription_code, try to retrieve subscription from Stripe to get metadata
+        if ($subscriptionId) {
+            Log::info('Subscription not found in DB. Retrieving subscription from Stripe: ' . $subscriptionId);
+            $stripeSubscription = $this->stripeApiRequest("subscriptions/{$subscriptionId}");
+            if ($stripeSubscription && !isset($stripeSubscription['error'])) {
+                // Check if user_id is in subscription metadata
+                $userId = $stripeSubscription['metadata']['user_id'] ?? null;
+                if ($userId) {
+                    $businessDetail = BusinessDetail::where('user_id', $userId)->first();
+                    if ($businessDetail) {
+                        Log::info('Found business detail via Stripe subscription metadata user_id', [
+                            'user_id' => $userId,
+                            'business_id' => $businessDetail->id
+                        ]);
+                        // Update subscription_code so subsequent lookups are fast
+                        $businessDetail->subscription_code = $subscriptionId;
+                        $businessDetail->subscription_payment_method = 'stripe';
+                        $businessDetail->save();
+                        return $businessDetail;
+                    }
+                }
+
+                // If not found by user_id, check reference in metadata
+                $reference = $stripeSubscription['metadata']['reference'] ?? null;
+                if ($reference) {
+                    $parts = explode('_', $reference);
+                    if (count($parts) >= 3 && $parts[0] === 'sub') {
+                        $userId = $parts[2];
+                        $businessDetail = BusinessDetail::where('user_id', $userId)->first();
+                        if ($businessDetail) {
+                            Log::info('Found business detail via Stripe subscription metadata reference', [
+                                'reference' => $reference,
+                                'user_id' => $userId,
+                                'business_id' => $businessDetail->id
+                            ]);
+                            $businessDetail->subscription_code = $subscriptionId;
+                            $businessDetail->subscription_payment_method = 'stripe';
+                            $businessDetail->save();
+                            return $businessDetail;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3. Try to locate via invoice ID if available
+        $invoiceId = $eventObject->invoice ?? null;
+        if ($eventType === 'invoice.payment_succeeded' && $eventObject) {
+            $invoiceId = $eventObject->id;
+        }
+
+        if (!$subscriptionId && $invoiceId) {
+            Log::info('No subscription ID provided. Retrieving invoice from Stripe: ' . $invoiceId);
+            $stripeInvoice = $this->stripeApiRequest("invoices/{$invoiceId}");
+            if ($stripeInvoice && !isset($stripeInvoice['error'])) {
+                $subId = $stripeInvoice['subscription'] ?? null;
+                if ($subId) {
+                    // Recursively lookup using the retrieved subscription ID
+                    return $this->findBusinessDetail($subId, $eventObject, $eventType);
+                }
+            }
+        }
+
+        // 4. Fallback: Search by customer email
+        $email = null;
+        if ($eventObject) {
+            if (isset($eventObject->customer_email)) {
+                $email = $eventObject->customer_email;
+            } elseif (isset($eventObject->billing_details->email)) {
+                $email = $eventObject->billing_details->email;
+            } elseif (isset($eventObject->email)) {
+                $email = $eventObject->email;
+            }
+        }
+
+        // If we still don't have email but have customer ID, fetch customer from Stripe
+        $customerId = $eventObject->customer ?? null;
+        if (!$email && $customerId) {
+            Log::info('Retrieving customer from Stripe: ' . $customerId);
+            $stripeCustomer = $this->stripeApiRequest("customers/{$customerId}");
+            if ($stripeCustomer && !isset($stripeCustomer['error'])) {
+                $email = $stripeCustomer['email'] ?? null;
+            }
+        }
+
+        if ($email) {
+            $user = User::where('email', $email)->first();
+            if ($user && $user->businessDetail) {
+                Log::info('Found business detail via customer email', [
+                    'email' => $email,
+                    'business_id' => $user->businessDetail->id
+                ]);
+
+                // Associate subscription ID if available
+                if ($subscriptionId) {
+                    $businessDetail = $user->businessDetail;
+                    $businessDetail->subscription_code = $subscriptionId;
+                    $businessDetail->subscription_payment_method = 'stripe';
+                    $businessDetail->save();
+                }
+
+                return $user->businessDetail;
+            }
+        }
+
+        return null;
     }
 }
